@@ -172,19 +172,13 @@ int SDLmain(int argc, char *argv[])
   }
 
   check_endian();
-
-#if defined(SDL2) && defined(_WIN32)
+ 
+#ifdef _WIN32
   SDL_setenv("SDL_AUDIODRIVER", "directsound", 1);
 #endif
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_AUDIO | SDL_INIT_TIMER) != 0)
     fatal("failed to initialize SDL: %s", SDL_GetError());
-
-#ifndef SDL2
-  SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-  /* Enable Unicode key translations */
-  SDL_EnableUNICODE(TRUE);
-#endif
 
   trs_parse_command_line(argc, argv, &debug);
   trs_set_keypad_joystick();

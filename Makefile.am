@@ -2,10 +2,10 @@ AUTOMAKE_OPTIONS=foreign
 
 AM_CFLAGS=-Wall
 
-bin_PROGRAMS=	sdltrs
-dist_man_MANS=	src/sdltrs.1
+bin_PROGRAMS=	sdl2trs
+dist_man_MANS=	src/sdl2trs.1
 
-sdltrs_SOURCES=	src/blit.c \
+sdl2trs_SOURCES=src/blit.c \
 		src/debug.c \
 		src/dis.c \
 		src/error.c \

@@ -8,15 +8,15 @@
 .  TP \\$1\" no doublequotes around argument!
 ..
 .\"
-.TH sdltrs 1 "2020-01-25" "sdltrs 1.2.7"
+.TH sdl2trs 1 "2020-01-25" "sdl2trs 1.2.7"
 .SH NAME
-sdltrs \- TRS-80 Model I/III/4/4P emulator for SDL
+sdl2trs \- TRS-80 Model I/III/4/4P emulator for SDL2
 .SH SYNOPSIS
-.B sdltrs
+.B sdl2trs
 [\fIfile.t8c\fP] [\fIfile.t8s\fP] [\fIfile.cmd\fP] [\fIoptions\fP]
 .SH DESCRIPTION
-.B sdltrs
-is an SDL-based emulator for Tandy/Radio Shack line of Zilog
+.B sdl2trs
+is an SD2L-based emulator for Tandy/Radio Shack line of Zilog
 Z80-based microcomputers popular in late 1970s and early 1980s.
 .SH OPTIONS
 .TP
@@ -58,7 +58,7 @@ Default: \fB\-resize3 \-noresize4\fP
 .B \-noresize3
 .TQ
 .B \-noresize4
-Model 3 or 4/4P: always keep SDL window large enough for 80x24
+Model 3 or 4/4P: always keep SDL2 window large enough for 80x24
 text (640x240) putting a blank margin around outside.
 .RS
 Default: \fB\-resize3 \-noresize4\fP
@@ -336,10 +336,10 @@ TRS-80 '0' key
 Main Menu
 .TQ
 .B F8
-Exit SDLTRS
+Exit SDL2TRS
 .TQ
 .B Shift-F8
-Abort SDLTRS without confirmation
+Abort SDL2TRS without confirmation
 .TQ
 .B F9
 Enter zbx debugger
@@ -468,7 +468,7 @@ Miscellaneous (Other) Settings
 Pause/Unpause Emulator
 .TQ
 .B Alt-Q
-Exit SDLTRS
+Exit SDL2TRS
 .TQ
 .B Alt-R
 Read Configuration File

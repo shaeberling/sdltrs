@@ -248,11 +248,9 @@ int trs_gui_get_key(void)
 {
   SDL_Event event;
 
-#ifdef SDL2
   /* Stop Text input first to prevent double chars */
   SDL_StopTextInput();
   SDL_StartTextInput();
-#endif
 
   while (1) {
     SDL_WaitEvent(&event);
@@ -260,11 +258,7 @@ int trs_gui_get_key(void)
       case SDL_QUIT:
         trs_exit(0);
         break;
-#ifdef SDL2
       case SDL_WINDOWEVENT:
-#else
-      case SDL_ACTIVEEVENT:
-#endif
         trs_gui_refresh();
         break;
       case SDL_MOUSEBUTTONDOWN:
@@ -274,25 +268,16 @@ int trs_gui_get_key(void)
           return SDLK_TAB;
         else if (event.button.button == SDL_BUTTON_RIGHT)
           return SDLK_ESCAPE;
-#ifndef SDL2
-        else if (event.button.button == 4) /* SDL_BUTTON_WHEELUP */
-          return SDLK_UP;
-        else if (event.button.button == 5) /* SDL_BUTTON_WHEELDOWN */
-          return SDLK_DOWN;
-#endif
         break;
-#ifdef SDL2
       case SDL_MOUSEWHEEL:
         if (event.wheel.y > 0)
           return SDLK_UP;
         if (event.wheel.y < 0)
           return SDLK_DOWN;
         break;
-
       case SDL_TEXTINPUT:
         SDL_StopTextInput();
         return event.text.text[0];
-#endif
       case SDL_KEYDOWN:
         if (event.key.keysym.mod & KMOD_ALT) {
           switch (event.key.keysym.sym) {
@@ -312,16 +297,8 @@ int trs_gui_get_key(void)
         }
         else if (event.key.keysym.sym == SDLK_F8)
           trs_exit(!(event.key.keysym.mod & KMOD_SHIFT));
-#ifdef SDL2
         else if (event.key.keysym.sym < 0x20 ||
                  event.key.keysym.sym > 0x7E)
-#else
-        else if (event.key.keysym.sym < 0x100 &&
-            event.key.keysym.unicode >= 0x20 &&
-            event.key.keysym.unicode <= 0x7E)
-          return(event.key.keysym.unicode);
-        else
-#endif
           return(event.key.keysym.sym);
         break;
       case SDL_JOYBUTTONDOWN:
@@ -2229,11 +2206,7 @@ void trs_gui_joystick_management(void)
         snprintf(joystick_choices[0],61,"%60s","None");
         for (i=0;i<num_joysticks;i++) {
           snprintf(joystick_choices[i+1],61,"Joystick %1d - %47s",i,
-#ifdef SDL2
               SDL_JoystickName(SDL_JoystickOpen(i)));
-#else
-              SDL_JoystickName(i));
-#endif
         }
         if ((gui_joystick_num == -1) || (gui_joystick_num >= num_joysticks))
           joy_index = 0;
@@ -2969,9 +2942,6 @@ void trs_gui_get_virtual_key(void)
     event.key.keysym.sym = key;
     event.key.keysym.mod = 0;
     event.key.keysym.scancode = 0;
-#ifndef SDL2
-    event.key.keysym.unicode = 0;
-#endif
     SDL_PushEvent(&event);
   }
 }

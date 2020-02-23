@@ -150,16 +150,15 @@ static SDL_Surface *trs_box[3][64];
 static SDL_Surface *image;
 static SDL_Surface *screen;
 static SDL_Rect drawnRects[MAX_RECTS];
-#ifdef SDL2
 static SDL_Window *window = NULL;
-#endif
+static SDL_Renderer *render = NULL;
+static SDL_Texture *texture = NULL;
 static Uint32 light_red;
 static Uint32 bright_red;
 static Uint32 light_orange;
 static Uint32 bright_orange;
 static Uint32 last_key[256];
 
-#if defined(SDL2) || !defined(NOX)
 #define PASTE_IDLE    0
 #define PASTE_GETNEXT 1
 #define PASTE_KEYDOWN 2
@@ -181,7 +180,6 @@ static int selectionStartY = 0;
 static int selectionEndX = 0;
 static int selectionEndY = 0;
 static int requestSelectAll = FALSE;
-#endif
 
 /* Support for Micro Labs Grafyx Solution and Radio Shack hi-res card */
 
@@ -1187,24 +1185,6 @@ void trs_parse_command_line(int argc, char **argv, int *debug)
   trs_disk_setsteps();
 }
 
-static void trs_flip_fullscreen(void)
-{
-  static unsigned int window_scale = 1;
-
-  fullscreen = !fullscreen;
-  if (fullscreen) {
-    window_scale = scale;
-    if (scale != 1)
-      scale = 1;
-  }
-  else {
-    if (window_scale != 1)
-      scale = window_scale;
-  }
-
-  trs_screen_init();
-}
-
 void trs_rom_init(void)
 {
   switch(trs_model) {
@@ -1267,23 +1247,17 @@ void trs_screen_caption(void)
              timer_overclock ? "Turbo " : "",
              trs_paused ? "PAUSED " : "",
              trs_sound ? "" : "(Mute)");
-#ifdef SDL2
   SDL_SetWindowTitle(window, title);
-#else
-  SDL_WM_SetCaption(title,NULL);
-#endif
   if (trs_show_led)
     trs_turbo_led();
 }
 
 void trs_screen_init(void)
 {
-  int led_height, led_width;
+  int led_height;
   SDL_Color colors[2];
 
-#if defined(SDL2) || !defined(NOX)
   copyStatus = COPY_IDLE;
-#endif
   if (trs_model == 1) {
     trs_charset = trs_charset1;
     currentmode = NORMAL;
@@ -1302,21 +1276,21 @@ void trs_screen_init(void)
 
   if (trs_model == 1) {
     if (trs_charset < 3)
-      cur_char_width = 6 * scale;
+      cur_char_width = 6;
     else
-      cur_char_width = 8 * scale;
-    cur_char_height = TRS_CHAR_HEIGHT * (scale * 2);
+      cur_char_width = 8;
+    cur_char_height = TRS_CHAR_HEIGHT * 2;
   } else {
-    cur_char_width = TRS_CHAR_WIDTH * scale;
+    cur_char_width = TRS_CHAR_WIDTH;
     if (screen640x240 || text80x24)
-      cur_char_height = TRS_CHAR_HEIGHT4 * (scale * 2);
+      cur_char_height = TRS_CHAR_HEIGHT4 * 2;
     else
-      cur_char_height = TRS_CHAR_HEIGHT * (scale * 2);
+      cur_char_height = TRS_CHAR_HEIGHT * 2;
   }
 
-  imageSize.width = 8*G_XSIZE * scale;
-  imageSize.height = 2*G_YSIZE * scale;
-  imageSize.bytes_per_line = G_XSIZE * scale;
+  imageSize.width = 8*G_XSIZE;
+  imageSize.height = 2*G_YSIZE;
+  imageSize.bytes_per_line = G_XSIZE;
 
   if (fullscreen)
     border_width = 0;
@@ -1324,17 +1298,15 @@ void trs_screen_init(void)
     border_width = window_border_width;
 
   if (trs_show_led)
-    led_width = 8;
+    led_height = 8;
   else
-    led_width = 0;
-
-  led_height = led_width * scale;
+    led_height = 0;
 
   if (trs_model >= 3  && !resize) {
     OrigWidth = cur_char_width * 80 + 2 * border_width;
     left_margin = cur_char_width * (80 - row_chars)/2 + border_width;
-    OrigHeight = TRS_CHAR_HEIGHT4 * (scale * 2) * 24 + 2 * border_width + led_height;
-    top_margin = (TRS_CHAR_HEIGHT4 * (scale * 2) * 24 -
+    OrigHeight = TRS_CHAR_HEIGHT4 * 2 * 24 + 2 * border_width + led_height;
+    top_margin = (TRS_CHAR_HEIGHT4 * 2 * 24 -
                  cur_char_height * col_chars)/2 + border_width;
   } else {
     OrigWidth = cur_char_width * row_chars + 2 * border_width;
@@ -1344,31 +1316,35 @@ void trs_screen_init(void)
   }
   screen_height = OrigHeight - led_height;
 
-#ifdef SDL2
   if (window == NULL) {
     window = SDL_CreateWindow(program_name,
                               SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED,
-                              OrigWidth, OrigHeight,
+                              800, 600,
                               SDL_WINDOW_SHOWN);
     if (window == NULL) {
       trs_sdl_cleanup();
       fatal("failed to create window: %s", SDL_GetError());
     }
+
+    render = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (render == NULL) {
+      trs_sdl_cleanup();
+      fatal("failed to create renderer: %s", SDL_GetError());
+    }
+
+    screen = SDL_GetWindowSurface(window);
   }
-  SDL_RaiseWindow(window);
+
+  if (texture)
+    SDL_DestroyTexture(texture);
+  texture = SDL_CreateTexture(render,
+                              SDL_PIXELFORMAT_ARGB8888,
+                              SDL_TEXTUREACCESS_STREAMING,
+                              OrigWidth, OrigHeight);
+
   SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
-  SDL_SetWindowSize(window, OrigWidth, OrigHeight);
-  screen = SDL_GetWindowSurface(window);
-#else
-  screen = SDL_SetVideoMode(OrigWidth, OrigHeight, 0, fullscreen ?
-                            SDL_ANYFORMAT | SDL_FULLSCREEN : SDL_ANYFORMAT);
-  if (screen == NULL) {
-    trs_sdl_cleanup();
-    fatal("failed to set video mode: %s", SDL_GetError());
-  }
-  SDL_WarpMouse(OrigWidth / 2, OrigHeight / 2);
-#endif
+  SDL_SetWindowSize(window, OrigWidth * scale, OrigHeight * scale);
   SDL_ShowCursor(mousepointer ? SDL_ENABLE : SDL_DISABLE);
 
   if (image)
@@ -1400,12 +1376,7 @@ void trs_screen_init(void)
   light_orange  = SDL_MapRGB(screen->format, 0x40,0x28,0x00);
   bright_orange = SDL_MapRGB(screen->format, 0xff,0xa0,0x00);
 #endif
-
-#ifdef SDL2
   SDL_SetPaletteColors(image->format->palette,colors,0,2);
-#else
-  SDL_SetPalette(image,SDL_LOGPAL,colors,0,2);
-#endif
 
   TrsBlitMap(image->format->palette, screen->format);
   bitmap_init();
@@ -1427,7 +1398,6 @@ static void addToDrawList(SDL_Rect *rect)
     drawnRects[drawnRectCount++] = *rect;
 }
 
-#if defined(SDL2) || !defined(NOX)
 static void DrawSelectionRectangle(int orig_x, int orig_y, int copy_x, int copy_y)
 {
   int i,y;
@@ -1659,18 +1629,15 @@ void trs_select_all()
 {
   requestSelectAll = TRUE;
 }
-#endif
 
 /*
  * Flush SDL output
  */
 void trs_sdl_flush()
 {
-#if defined(SDL2) || !defined(NOX)
   if (!trs_emu_mouse || copyStatus != COPY_OFF)
     ProcessCopySelection(requestSelectAll);
   requestSelectAll = FALSE;
-#endif
   if (drawnRectCount == 0)
     return;
 
@@ -1680,24 +1647,18 @@ void trs_sdl_flush()
 
     rect.x = 0;
     rect.w = OrigWidth;
-    rect.h = scale;
+    rect.h = 1;
 
-    for (y = 0; y < screen_height; y += (scale * 2)) {
+    for (y = 0; y < screen_height; y += 2) {
       rect.y = y;
       SDL_FillRect(screen, &rect, background);
     }
   }
 
-  if (drawnRectCount == MAX_RECTS)
-#ifdef SDL2
-    SDL_UpdateWindowSurface(window);
-  else
-    SDL_UpdateWindowSurfaceRects(window,drawnRects,drawnRectCount);
-#else
-    SDL_UpdateRect(screen,0,0,0,0);
-  else
-    SDL_UpdateRects(screen,drawnRectCount,drawnRects);
-#endif
+  SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
+  SDL_RenderCopy(render, texture, NULL, NULL);
+  SDL_RenderPresent(render);
+
   drawnRectCount = 0;
 }
 
@@ -1738,13 +1699,12 @@ void trs_sdl_cleanup(void)
     for (ch = 0; ch < 64; ch++)
       SDL_FreeSurface(trs_box[i][ch]);
   SDL_FreeSurface(image);
-#ifdef SDL2
+  SDL_DestroyTexture(texture);
+  SDL_DestroyRenderer(render);
   SDL_DestroyWindow(window);
-#endif
   SDL_Quit(); /* Will free screen */
 }
 
-#if defined(SDL2) || !defined(NOX)
 static char *trs_get_copy_data()
 {
   static char copy_data[2500];
@@ -1810,7 +1770,6 @@ static char *trs_get_copy_data()
   *curr_data = 0;
   return copy_data;
 }
-#endif
 
 static void call_function(int function)
 {
@@ -1832,9 +1791,7 @@ static void call_function(int function)
     trs_exit(0);
   else {
     SDL_PauseAudio(1);
-#if defined(SDL2) || !defined(NOX)
     copyStatus = COPY_OFF;
-#endif
     switch (function) {
     case GUI:
       trs_gui();
@@ -1890,9 +1847,7 @@ static void call_function(int function)
       break;
     }
     SDL_PauseAudio(0);
-#if defined(SDL2) || !defined(NOX)
     copyStatus = COPY_IDLE;
-#endif
     trs_screen_refresh();
     trs_sdl_flush();
   }
@@ -1908,14 +1863,10 @@ static void call_function(int function)
 void trs_get_event(int wait)
 {
   SDL_Event event;
-#ifdef SDL2
   SDL_Keysym keysym;
   int text_char = 0;
 
   SDL_StartTextInput();
-#else
-  SDL_keysym keysym;
-#endif
   Uint32 keyup;
 
   if (trs_model > 1)
@@ -1927,7 +1878,6 @@ void trs_get_event(int wait)
     trs_screen_caption();
 
   do {
-#if defined(SDL2) || !defined(NOX)
     if (paste_state != PASTE_IDLE) {
       static unsigned short paste_key_uni;
 
@@ -1960,7 +1910,6 @@ void trs_get_event(int wait)
           paste_state = PASTE_GETNEXT;
       }
     }
-#endif
 
     if (wait) {
       SDL_WaitEvent(&event);
@@ -1971,25 +1920,14 @@ void trs_get_event(int wait)
       case SDL_QUIT:
         trs_exit(0);
         break;
-#ifdef SDL2
       case SDL_WINDOWEVENT:
         if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
-#else
-      case SDL_ACTIVEEVENT:
-        if (event.active.state & SDL_APPACTIVE) {
-          if (event.active.gain) {
-#endif
 #if XDEBUG
             debug("Active\n");
 #endif
             trs_screen_refresh();
-#if defined(SDL2) || !defined(NOX)
             copyStatus = COPY_IDLE;
-#endif
-          }
-#ifndef SDL2
         }
-#endif
         break;
 
       case SDL_KEYDOWN:
@@ -1998,29 +1936,21 @@ void trs_get_event(int wait)
         debug("KeyDown: mod 0x%x, scancode 0x%x keycode 0x%x, unicode 0x%x\n",
             keysym.mod, keysym.scancode, keysym.sym, keysym.unicode);
 #endif
-#if defined(SDL2) || !defined(NOX)
         if (keysym.sym != SDLK_LALT) {
           if (copyStatus != COPY_IDLE) {
             copyStatus = COPY_CLEAR;
             trs_sdl_flush();
           }
         }
-#endif
 
         switch (keysym.sym) {
           /* Trap some function keys here */
           case SDLK_F7:
             call_function(GUI);
-#ifndef SDL2
-            keysym.unicode = 0;
-#endif
             keysym.sym = 0;
             break;
           case SDLK_F8:
             trs_exit(!(keysym.mod & KMOD_SHIFT));
-#ifndef SDL2
-            keysym.unicode = 0;
-#endif
             keysym.sym = 0;
             break;
           case SDLK_F9:
@@ -2031,9 +1961,6 @@ void trs_get_event(int wait)
             else
               if (!fullscreen)
                 trs_debug();
-#ifndef SDL2
-            keysym.unicode = 0;
-#endif
             keysym.sym = 0;
             break;
           case SDLK_F10:
@@ -2048,9 +1975,6 @@ void trs_get_event(int wait)
             }
             else
               trs_reset(0);
-#ifndef SDL2
-            keysym.unicode = 0;
-#endif
             keysym.sym = 0;
             break;
           case SDLK_F11:
@@ -2058,35 +1982,19 @@ void trs_get_event(int wait)
               call_function(SAVE_BMP);
             else
               call_function(KEYS);
-#ifndef SDL2
-            keysym.unicode = 0;
-#endif
             keysym.sym = 0;
             break;
           case SDLK_F12:
             timer_overclock = !timer_overclock;
             trs_screen_caption();
-#ifndef SDL2
-            keysym.unicode = 0;
-#endif
             keysym.sym = 0;
             break;
           case SDLK_PAUSE:
             call_function(PAUSE);
-#ifndef SDL2
-            keysym.unicode = 0;
-#endif
             keysym.sym = 0;
             break;
-#ifndef SDL2
-          case SDLK_PRINT:
-#else
           case SDLK_PRINTSCREEN:
-#endif
             call_function(SAVE_BMP);
-#ifndef SDL2
-            keysym.unicode = 0;
-#endif
             keysym.sym = 0;
             break;
           default:
@@ -2095,7 +2003,6 @@ void trs_get_event(int wait)
         /* Trap the alt keys here */
         if (keysym.mod & KMOD_LALT) {
           switch (keysym.sym) {
-#if defined(SDL2) || !defined(NOX)
             case SDLK_c:
               PasteManagerStartCopy(trs_get_copy_data());
               copyStatus = COPY_IDLE;
@@ -2106,7 +2013,6 @@ void trs_get_event(int wait)
             case SDLK_a:
               requestSelectAll = TRUE;
               break;
-#endif
 #ifdef _WIN32
             case SDLK_F4:
               trs_exit(1);
@@ -2116,16 +2022,14 @@ void trs_get_event(int wait)
               trs_reset(0);
               break;
             case SDLK_RETURN:
-              trs_flip_fullscreen();
-              trs_screen_refresh();
-              trs_sdl_flush();
+              fullscreen = !fullscreen;
+              SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
               break;
             case SDLK_HOME:
               fullscreen = 0;
               scale = 1;
-              trs_screen_init();
-              trs_screen_refresh();
-              trs_sdl_flush();
+              SDL_SetWindowSize(window, OrigWidth*scale, OrigHeight*scale);
+              SDL_SetWindowFullscreen(window, 0);
               break;
             case SDLK_PLUS:
             case SDLK_PAGEDOWN:
@@ -2133,9 +2037,8 @@ void trs_get_event(int wait)
               scale++;
               if (scale > MAX_SCALE)
                 scale = 1;
-              trs_screen_init();
-              trs_screen_refresh();
-              trs_sdl_flush();
+              SDL_SetWindowSize(window, OrigWidth*scale, OrigHeight*scale);
+              SDL_SetWindowFullscreen(window, 0);
               break;
             case SDLK_MINUS:
             case SDLK_PAGEUP:
@@ -2143,9 +2046,8 @@ void trs_get_event(int wait)
               scale--;
               if (scale < 1)
                 scale = MAX_SCALE;
-              trs_screen_init();
-              trs_screen_refresh();
-              trs_sdl_flush();
+              SDL_SetWindowSize(window, OrigWidth*scale, OrigHeight*scale);
+              SDL_SetWindowFullscreen(window, 0);
               break;
             case SDLK_PERIOD:
               mousepointer = !mousepointer;
@@ -2254,9 +2156,6 @@ void trs_get_event(int wait)
             default:
               break;
           }
-#ifndef SDL2
-          keysym.unicode = 0;
-#endif
           keysym.sym = 0;
           break;
         }
@@ -2272,13 +2171,8 @@ void trs_get_event(int wait)
               == (KMOD_CAPS|KMOD_LSHIFT) ||
               ((keysym.mod & (KMOD_CAPS|KMOD_RSHIFT))
                 == (KMOD_CAPS|KMOD_RSHIFT)))
-#ifdef SDL2
           && keysym.sym >= 'A' && keysym.sym <= 'Z')
             keysym.sym = (int) keysym.sym + 0x20;
-#else
-          && keysym.unicode >= 'A' && keysym.unicode <= 'Z')
-            keysym.unicode = (int) keysym.unicode + 0x20;
-#endif
         if (keysym.sym == SDLK_RSHIFT && trs_model == 1)
           keysym.sym = SDLK_LSHIFT;
 
@@ -2289,7 +2183,6 @@ void trs_get_event(int wait)
           else if (keysym.sym == SDLK_F4) keysym.sym = 0x122;
         }
 
-#ifdef SDL2
         /* Convert arrow/control/function/shift keys */
         switch (keysym.sym) {
           case SDLK_UP:
@@ -2359,12 +2252,6 @@ void trs_get_event(int wait)
             break;
           }
         }
-#else
-        if (keysym.sym < 0x100 && keysym.unicode >= 0x20 && keysym.unicode <= 0xFF) {
-          last_key[keysym.scancode] = keysym.unicode;
-          trs_xlate_keysym(keysym.unicode);
-        } else
-#endif
         if (keysym.sym != 0) {
           last_key[keysym.scancode] = keysym.sym;
           trs_xlate_keysym(keysym.sym);
@@ -2467,9 +2354,6 @@ void trs_get_event(int wait)
             trs_joy_button_down();
           else {
             call_function(key);
-#ifndef SDL2
-            keysym.unicode = 0;
-#endif
             keysym.sym = 0;
           }
         }
@@ -2477,14 +2361,12 @@ void trs_get_event(int wait)
           trs_joy_button_down();
         break;
 
-#ifdef SDL2
       case SDL_TEXTINPUT:
         if (text_char) {
           trs_xlate_keysym(event.text.text[0]);
           text_char = 0;
         }
         break;
-#endif
 
       default:
 #if XDEBUG
@@ -2497,9 +2379,7 @@ void trs_get_event(int wait)
         trs_gui_display_pause();
     }
   } while (!wait);
-#ifdef SDL2
   SDL_StopTextInput();
-#endif
 }
 
 void trs_screen_expanded(int flag)
@@ -2548,18 +2428,18 @@ static void trs_screen_640x240(int flag)
   if (flag) {
     row_chars = 80;
     col_chars = 24;
-    cur_char_height = TRS_CHAR_HEIGHT4 * (scale * 2);
+    cur_char_height = TRS_CHAR_HEIGHT4 * 2;
   } else {
     row_chars = 64;
     col_chars = 16;
-    cur_char_height = TRS_CHAR_HEIGHT * (scale * 2);
+    cur_char_height = TRS_CHAR_HEIGHT * 2;
   }
   screen_chars = row_chars * col_chars;
   if (resize)
     trs_screen_init();
   else {
     left_margin = cur_char_width * (80 - row_chars)/2 + border_width;
-    top_margin = (TRS_CHAR_HEIGHT4 * (scale * 2) * 24 -
+    top_margin = (TRS_CHAR_HEIGHT4 * 2 * 24 -
         cur_char_height * col_chars)/2 + border_width;
     if (left_margin > border_width || top_margin > border_width)
       SDL_FillRect(screen,NULL,background);
@@ -2701,28 +2581,28 @@ static void bitmap_init(void)
     }
     trs_char[0][i] =
       CreateSurfaceFromDataScale(trs_char_data[trs_charset][i],
-          foreground, background, scale, scale * 2);
+          foreground, background, 1, 2);
     if (trs_char[1][i]) {
       free(trs_char[1][i]->pixels);
       SDL_FreeSurface(trs_char[1][i]);
     }
     trs_char[1][i] =
       CreateSurfaceFromDataScale(trs_char_data[trs_charset][i],
-          foreground, background, scale * 2, scale * 2);
+          foreground, background, 2, 2);
     if (trs_char[2][i]) {
       free(trs_char[2][i]->pixels);
       SDL_FreeSurface(trs_char[2][i]);
     }
     trs_char[2][i] =
       CreateSurfaceFromDataScale(trs_char_data[trs_charset][i],
-          background, foreground, scale, scale * 2);
+          background, foreground, 1, 2);
     if (trs_char[3][i]) {
       free(trs_char[3][i]->pixels);
       SDL_FreeSurface(trs_char[3][i]);
     }
     trs_char[3][i] =
       CreateSurfaceFromDataScale(trs_char_data[trs_charset][i],
-          background, foreground, scale * 2, scale * 2);
+          background, foreground, 2, 2);
     if (trs_char[4][i]) {
       free(trs_char[4][i]->pixels);
       SDL_FreeSurface(trs_char[4][i]);
@@ -2731,11 +2611,11 @@ static void bitmap_init(void)
     if ((i>='[' && i<=']') || i>=128)
       trs_char[4][i] =
         CreateSurfaceFromDataScale(trs_char_data[0][i],
-            gui_foreground, gui_background, scale, scale * 2);
+            gui_foreground, gui_background, 1, 2);
     else
       trs_char[4][i] =
         CreateSurfaceFromDataScale(trs_char_data[trs_charset][i],
-            gui_foreground, gui_background, scale, scale * 2);
+            gui_foreground, gui_background, 1, 2);
     if (trs_char[5][i]) {
       free(trs_char[5][i]->pixels);
       SDL_FreeSurface(trs_char[5][i]);
@@ -2743,18 +2623,18 @@ static void bitmap_init(void)
     if ((i>='[' && i<=']') || i>=128)
       trs_char[5][i] =
         CreateSurfaceFromDataScale(trs_char_data[0][i],
-            gui_background, gui_foreground, scale, scale * 2);
+            gui_background, gui_foreground, 1, 2);
     else
       trs_char[5][i] =
         CreateSurfaceFromDataScale(trs_char_data[trs_charset][i],
-            gui_background, gui_foreground, scale, scale * 2);
+            gui_background, gui_foreground, 1, 2);
   }
   boxes_init(foreground, background,
-      cur_char_width, TRS_CHAR_HEIGHT * (scale * 2), 0);
+      cur_char_width, TRS_CHAR_HEIGHT * 2, 0);
   boxes_init(foreground, background,
-      cur_char_width*2, TRS_CHAR_HEIGHT * (scale * 2), 1);
+      cur_char_width*2, TRS_CHAR_HEIGHT * 2, 1);
   boxes_init(gui_foreground, gui_background,
-      cur_char_width, TRS_CHAR_HEIGHT * (scale * 2), 2);
+      cur_char_width, TRS_CHAR_HEIGHT * 2, 2);
 }
 
 void trs_screen_refresh()
@@ -2838,20 +2718,20 @@ void trs_disk_led(int drive, int on_off)
   unsigned int i;
   SDL_Rect rect;
 
-  rect.w = 16*scale;
-  rect.h = 2*(scale * 2);
+  rect.w = 16;
+  rect.h = 4;
   rect.y = OrigHeight - rect.h;
 
   if (drive == -1) {
     for (i=0;i<8;i++) {
-      rect.x = drive0_led_x + 24*scale*i;
+      rect.x = drive0_led_x + 24*i;
       SDL_FillRect(screen, &rect, light_red);
       addToDrawList(&rect);
     }
   }
   else if (on_off) {
     if (countdown[drive] == 0) {
-      rect.x = drive0_led_x + 24*scale*drive;
+      rect.x = drive0_led_x + 24*drive;
       SDL_FillRect(screen, &rect, bright_red);
       addToDrawList(&rect);
     }
@@ -2862,7 +2742,7 @@ void trs_disk_led(int drive, int on_off)
       if (countdown[i]) {
         countdown[i]--;
         if (countdown[i] == 0) {
-          rect.x = drive0_led_x + 24*scale*i;
+          rect.x = drive0_led_x + 24*i;
           SDL_FillRect(screen, &rect, light_red);
           addToDrawList(&rect);
         }
@@ -2874,24 +2754,24 @@ void trs_disk_led(int drive, int on_off)
 void trs_hard_led(int drive, int on_off)
 {
   static int countdown[4] = {0,0,0,0};
-  int const drive0_led_x = OrigWidth - border_width - 88*scale;
+  int const drive0_led_x = OrigWidth - border_width - 88;
   unsigned int i;
   SDL_Rect rect;
 
-  rect.w = 16*scale;
-  rect.h = 2*(scale * 2);
+  rect.w = 16;
+  rect.h = 4;
   rect.y = OrigHeight - rect.h;
 
   if (drive == -1) {
     for (i=0;i<4;i++) {
-      rect.x = drive0_led_x + 24*scale*i;
+      rect.x = drive0_led_x + 24*i;
       SDL_FillRect(screen, &rect, light_red);
       addToDrawList(&rect);
     }
   }
   else if (on_off) {
     if (countdown[drive] == 0) {
-      rect.x = drive0_led_x + 24*scale*drive;
+      rect.x = drive0_led_x + 24*drive;
       SDL_FillRect(screen, &rect, bright_red);
       addToDrawList(&rect);
     }
@@ -2902,7 +2782,7 @@ void trs_hard_led(int drive, int on_off)
       if (countdown[i]) {
         countdown[i]--;
         if (countdown[i] == 0) {
-          rect.x = drive0_led_x + 24*scale*i;
+          rect.x = drive0_led_x + 24*i;
           SDL_FillRect(screen, &rect, light_red);
           addToDrawList(&rect);
         }
@@ -2915,9 +2795,9 @@ void trs_turbo_led(void)
 {
   SDL_Rect rect;
 
-  rect.w = 16*scale;
-  rect.h = 2*(scale * 2);
-  rect.x = (OrigWidth - border_width) / 2 - 8 * scale;
+  rect.w = 16;
+  rect.h = 4;
+  rect.x = (OrigWidth - border_width) / 2 - 8;
   rect.y = OrigHeight - rect.h;
 
   if (timer_overclock)
@@ -3079,11 +2959,9 @@ void trs_screen_write_char(int position, int char_index)
 
 void trs_gui_refresh()
 {
-#ifdef SDL2
-  SDL_UpdateWindowSurface(window);
-#else
-  SDL_UpdateRect(screen,0,0,0,0);
-#endif
+  SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
+  SDL_RenderCopy(render, texture, NULL, NULL);
+  SDL_RenderPresent(render);
 }
 
 void trs_gui_write_char(int position, int char_index, int invert)
@@ -3766,11 +3644,7 @@ void trs_set_mouse_pos(int x, int y)
 #if MOUSEDEBUG
   debug("set_mouse %d %d -> %d %d\n", x, y, dest_x, dest_y);
 #endif
-#ifdef SDL2
   SDL_WarpMouseInWindow(window, dest_x, dest_y);
-#else
-  SDL_WarpMouse(dest_x, dest_y);
-#endif
 }
 
 void trs_get_mouse_max(int *x, int *y, unsigned int *sens)

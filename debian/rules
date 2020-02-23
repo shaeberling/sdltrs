@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-PACKAGE := sdltrs
+PACKAGE := sdl2trs
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1

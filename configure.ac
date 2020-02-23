@@ -1,5 +1,5 @@
 AC_PREREQ([2.61])
-AC_INIT([sdltrs], [1.2.7], [dbotw@gmx.net])
+AC_INIT([sdl2trs], [1.2.7], [dbotw@gmx.net])
 AC_CONFIG_SRCDIR([src/trs.h])
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_PROG_CC
@@ -11,14 +11,6 @@ case $host_os in
   *mingw*)
     AC_DEFINE([WIN32])
     ;;
-  *)
-    AS_IF([test "x$with_x" != "xno"],
-    [AC_PATH_XTRA
-     CFLAGS="$CFLAGS $X_CFLAGS"
-     LDFLAGS="$LDFLAGS $X_LIBS"
-     AC_CHECK_LIB([X11], [XOpenDisplay], [], AC_DEFINE([NOX]))],
-    [AC_DEFINE([NOX])])
-    ;;
 esac
 
 AC_ARG_ENABLE([readline],
@@ -27,19 +19,11 @@ AC_ARG_ENABLE([readline],
    AC_SEARCH_LIBS([readline], [readline], AC_DEFINE([READLINE]),
    AC_MSG_ERROR([Unable to find readline function]))])
 
-AC_ARG_ENABLE([sdl1],
-  [AS_HELP_STRING([--enable-sdl1], [SDL1 version])],
-  [SDL_VERS=SDL
-   SDL_CONF=sdl-config],
-  [AC_DEFINE([SDL2])
-   SDL_VERS=SDL2
-   SDL_CONF=sdl2-config])
+CFLAGS="$CFLAGS $( sdl2-config --cflags )"
+LIBS="$LIBS $( sdl2-config --libs)"
 
-CFLAGS="$CFLAGS $( $SDL_CONF --cflags )"
-LIBS="$LIBS $( $SDL_CONF --libs)"
-
-AC_CHECK_LIB([$SDL_VERS], [SDL_Init], [:],
-  AC_MSG_ERROR([Unable to find SDL_Init function in $SDL_VERS]))
+AC_CHECK_LIB([SDL2], [SDL_Init], [:],
+  AC_MSG_ERROR([Unable to find SDL_Init function in SDL2]))
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
