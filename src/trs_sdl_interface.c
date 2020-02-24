@@ -1321,7 +1321,7 @@ void trs_screen_init(void)
                               SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED,
                               800, 600,
-                              SDL_WINDOW_SHOWN);
+                              SDL_WINDOW_HIDDEN);
     if (window == NULL) {
       trs_sdl_cleanup();
       fatal("failed to create window: %s", SDL_GetError());
@@ -1345,6 +1345,8 @@ void trs_screen_init(void)
 
   SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
   SDL_SetWindowSize(window, OrigWidth * scale, OrigHeight * scale);
+  SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+  SDL_ShowWindow(window);
   SDL_ShowCursor(mousepointer ? SDL_ENABLE : SDL_DISABLE);
 
   if (image)
@@ -2033,8 +2035,9 @@ void trs_get_event(int wait)
             case SDLK_HOME:
               fullscreen = 0;
               scale = 1;
-              SDL_SetWindowSize(window, OrigWidth*scale, OrigHeight*scale);
               SDL_SetWindowFullscreen(window, 0);
+              SDL_SetWindowSize(window, OrigWidth*scale, OrigHeight*scale);
+              SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
               break;
             case SDLK_PLUS:
             case SDLK_PAGEDOWN:
@@ -2042,8 +2045,9 @@ void trs_get_event(int wait)
               scale++;
               if (scale > MAX_SCALE)
                 scale = 1;
-              SDL_SetWindowSize(window, OrigWidth*scale, OrigHeight*scale);
               SDL_SetWindowFullscreen(window, 0);
+              SDL_SetWindowSize(window, OrigWidth*scale, OrigHeight*scale);
+              SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
               break;
             case SDLK_MINUS:
             case SDLK_PAGEUP:
@@ -2051,8 +2055,9 @@ void trs_get_event(int wait)
               scale--;
               if (scale < 1)
                 scale = MAX_SCALE;
-              SDL_SetWindowSize(window, OrigWidth*scale, OrigHeight*scale);
               SDL_SetWindowFullscreen(window, 0);
+              SDL_SetWindowSize(window, OrigWidth*scale, OrigHeight*scale);
+              SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
               break;
             case SDLK_PERIOD:
               mousepointer = !mousepointer;
