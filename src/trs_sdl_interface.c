@@ -2655,6 +2655,7 @@ void trs_screen_refresh()
 #if XDEBUG
   debug("trs_screen_refresh\n");
 #endif
+  screen = SDL_GetWindowSurface(window);
   if (grafyx_enable && !grafyx_overlay) {
     srcx = cur_char_width * grafyx_xoffset;
     srcy = grafyx_yoffset * 2;
