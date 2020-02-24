@@ -1538,8 +1538,8 @@ static void ProcessCopySelection(int selectAll)
       DrawSelectionRectangle(orig_x, orig_y, end_x, end_y);
     orig_x = 0;
     orig_y = 0;
-    copy_x = end_x = screen->w - scale;
-    copy_y = end_y = screen->h - scale;
+    copy_x = end_x = OrigWidth - scale;
+    copy_y = end_y = OrigHeight - scale;
     DrawSelectionRectangle(orig_x, orig_y, end_x, end_y);
     drawnRectCount = MAX_RECTS;
     copyStatus = COPY_DEFINED;
@@ -1548,7 +1548,12 @@ static void ProcessCopySelection(int selectAll)
     selectionEndX = copy_x - left_margin;
     selectionEndY = copy_y - top_margin;
   } else {
+    int win_w, win_h;
+
     mouse = SDL_GetMouseState(&copy_x, &copy_y);
+    SDL_GetRendererOutputSize(render, &win_w, &win_h);
+    copy_x = copy_x / (float)(win_w / OrigWidth);
+    copy_y = copy_y / (float)(win_h / OrigHeight);
     if ((copyStatus == COPY_IDLE) &&
         ((mouse & SDL_BUTTON(SDL_BUTTON_LEFT)) == 0)) {
       return;
