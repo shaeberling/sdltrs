@@ -186,7 +186,7 @@ static int requestSelectAll = FALSE;
 /* True size of graphics memory -- some is offscreen */
 #define G_XSIZE 128
 #define G_YSIZE 256
-static char grafyx[(2*G_YSIZE*MAX_SCALE) * (G_XSIZE*MAX_SCALE)];
+static char grafyx[(G_YSIZE * 2) * G_XSIZE];
 static unsigned char grafyx_unscaled[G_YSIZE][G_XSIZE];
 
 static unsigned char grafyx_microlabs = 0;
@@ -1349,7 +1349,7 @@ void trs_screen_init(void)
 
   if (image)
     SDL_FreeSurface(image);
-  memset(grafyx,0,(2*G_YSIZE*MAX_SCALE) * (G_XSIZE*MAX_SCALE));
+  memset(grafyx,0,(G_YSIZE * 2) * G_XSIZE);
   image = SDL_CreateRGBSurfaceFrom(grafyx, imageSize.width, imageSize.height, 1,
                                    imageSize.bytes_per_line, 1, 1, 1, 0);
 
@@ -2647,7 +2647,7 @@ void trs_screen_refresh()
 #endif
   if (grafyx_enable && !grafyx_overlay) {
     srcx = cur_char_width * grafyx_xoffset;
-    srcy = (scale * 2) * grafyx_yoffset;
+    srcy = grafyx_yoffset * 2;
     srcRect.x = srcx;
     srcRect.y = srcy;
     srcRect.w = cur_char_width*row_chars;
@@ -2926,8 +2926,8 @@ void trs_screen_write_char(int position, int char_index)
     int srcx, srcy, duny;
 
     srcx = ((col+grafyx_xoffset) % G_XSIZE)*cur_char_width;
-    srcy = (row*cur_char_height + grafyx_yoffset*(scale * 2))
-      % (G_YSIZE*(scale * 2));
+    srcy = (row*cur_char_height + grafyx_yoffset * 2)
+      % (G_YSIZE * 2);
     srcRect.x = srcx;
     srcRect.y = srcy;
     srcRect.w = cur_char_width;
@@ -3021,21 +3021,20 @@ void trs_gui_write_char(int position, int char_index, int invert)
 
 static void grafyx_write_byte(int x, int y, char byte)
 {
-  char exp[MAX_SCALE];
-  int i, j;
+  int i;
   int const screen_x = ((x - grafyx_xoffset + G_XSIZE) % G_XSIZE);
   int const screen_y = ((y - grafyx_yoffset + G_YSIZE) % G_YSIZE);
   int const on_screen = screen_x < row_chars &&
-    screen_y < col_chars*cur_char_height/(scale * 2);
+    screen_y < col_chars*cur_char_height / 2;
   SDL_Rect srcRect, destRect;
 
   if (grafyx_enable && grafyx_overlay && on_screen) {
     srcRect.x = x*cur_char_width;
-    srcRect.y = y*(scale * 2);
+    srcRect.y = y * 2;
     srcRect.w = cur_char_width;
-    srcRect.h = (scale * 2);
+    srcRect.h = 2;
     destRect.x = left_margin + screen_x*cur_char_width;
-    destRect.y = top_margin + screen_y*(scale * 2);
+    destRect.y = top_margin + screen_y * 2;
     destRect.w = srcRect.w;
     destRect.h = srcRect.h;
     /* Erase old byte, preserving text */
@@ -3044,44 +3043,17 @@ static void grafyx_write_byte(int x, int y, char byte)
 
   /* Save new byte in local memory */
   grafyx_unscaled[y][x] = byte;
-  switch (scale) {
-    case 1:
-    default:
-      exp[0] = byte;
-      break;
-    case 2:
-      exp[1] = ((byte & 0x01) + ((byte & 0x02) << 1)
-             + ((byte & 0x04) << 2) + ((byte & 0x08) << 3)) * 3;
-      exp[0] = (((byte & 0x10) >> 4) + ((byte & 0x20) >> 3)
-             + ((byte & 0x40) >> 2) + ((byte & 0x80) >> 1)) * 3;
-      break;
-    case 3:
-      exp[2] = ((byte & 0x01) + ((byte & 0x02) << 2)
-             + ((byte & 0x04) << 4)) * 7;
-      exp[1] = (((byte & 0x08) >> 2) + (byte & 0x10)
-             + ((byte & 0x20) << 2)) * 7 + ((byte & 0x04) >> 2);
-      exp[0] = (((byte & 0x40) >> 4) + ((byte & 0x80) >> 2)) * 7
-             + ((byte & 0x20) >> 5) * 3;
-      break;
-    case 4:
-      exp[3] = ((byte & 0x01) + ((byte & 0x02) << 3)) * 15;
-      exp[2] = (((byte & 0x04) >> 2) + ((byte & 0x08) << 1)) * 15;
-      exp[1] = (((byte & 0x10) >> 4) + ((byte & 0x20) >> 1)) * 15;
-      exp[0] = (((byte & 0x40) >> 6) + ((byte & 0x80) >> 3)) * 15;
-      break;
-  }
-  for (j=0; j<(scale * 2); j++)
-    for (i=0; i<scale; i++)
-      grafyx[(y*(scale * 2) + j)*imageSize.bytes_per_line + x*scale + i] = exp[i];
+  for (i = 0; i < 2; i++)
+    grafyx[(y * 2 + i) * imageSize.bytes_per_line + x] = byte;
 
   if (grafyx_enable && on_screen) {
     /* Draw new byte */
     srcRect.x = x*cur_char_width;
-    srcRect.y = y*(scale * 2);
+    srcRect.y = y * 2;
     srcRect.w = cur_char_width;
-    srcRect.h = (scale * 2);
+    srcRect.h = 2;
     destRect.x = left_margin + screen_x*cur_char_width;
-    destRect.y = top_margin + screen_y*(scale * 2);
+    destRect.y = top_margin + screen_y * 2;
     destRect.w = srcRect.w;
     destRect.h = srcRect.h;
     addToDrawList(&destRect);
@@ -3092,42 +3064,14 @@ static void grafyx_write_byte(int x, int y, char byte)
 static void grafyx_redraw(void)
 {
   char byte;
-  char exp[MAX_SCALE];
-  int i, j;
+  int i;
   int x, y;
 
   for (y=0;y<G_YSIZE;y++) {
     for (x=0;x<G_XSIZE;x++) {
       byte = grafyx_unscaled[y][x];
-      switch (scale) {
-        default:
-        case 1:
-          exp[0] = byte;
-          break;
-        case 2:
-          exp[1] = ((byte & 0x01) + ((byte & 0x02) << 1)
-                 + ((byte & 0x04) << 2) + ((byte & 0x08) << 3)) * 3;
-          exp[0] = (((byte & 0x10) >> 4) + ((byte & 0x20) >> 3)
-                 + ((byte & 0x40) >> 2) + ((byte & 0x80) >> 1)) * 3;
-          break;
-        case 3:
-          exp[2] = ((byte & 0x01) + ((byte & 0x02) << 2)
-                 + ((byte & 0x04) << 4)) * 7;
-          exp[1] = (((byte & 0x08) >> 2) + (byte & 0x10)
-                 + ((byte & 0x20) << 2)) * 7 + ((byte & 0x04) >> 2);
-          exp[0] = (((byte & 0x40) >> 4) + ((byte & 0x80) >> 2)) * 7
-                 + ((byte & 0x20) >> 5) * 3;
-          break;
-        case 4:
-          exp[3] = ((byte & 0x01) + ((byte & 0x02) << 3)) * 15;
-          exp[2] = (((byte & 0x04) >> 2) + ((byte & 0x08) << 1)) * 15;
-          exp[1] = (((byte & 0x10) >> 4) + ((byte & 0x20) >> 1)) * 15;
-          exp[0] = (((byte & 0x40) >> 6) + ((byte & 0x80) >> 3)) * 15;
-          break;
-      }
-      for (j=0; j<(scale * 2); j++)
-        for (i=0; i<scale; i++)
-          grafyx[(y*(scale * 2) + j)*imageSize.bytes_per_line + x*scale + i] = exp[i];
+      for (i = 0; i < 2; i++)
+        grafyx[(y * 2 + i) * imageSize.bytes_per_line + x] = byte;
     }
   }
 }
