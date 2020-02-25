@@ -1553,9 +1553,9 @@ static void ProcessCopySelection(int selectAll)
     int win_w, win_h;
 
     mouse = SDL_GetMouseState(&copy_x, &copy_y);
-    SDL_GetRendererOutputSize(render, &win_w, &win_h);
-    copy_x = copy_x / (float)(win_w / OrigWidth);
-    copy_y = copy_y / (float)(win_h / OrigHeight);
+    SDL_GetWindowSize(window, &win_w, &win_h);
+    copy_x /= ((float)win_w / (float)OrigWidth);
+    copy_y /= ((float)win_h / (float)OrigHeight);
     if (copy_x > OrigWidth - scale)
       copy_x = OrigWidth - scale;
     if (copy_y > screen_height - scale)
