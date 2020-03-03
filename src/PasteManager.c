@@ -9,7 +9,7 @@ static char *pasteString;
 static int pasteStringLength = 0;
 
 /* Extern emulator routines */
-extern int trs_paste_started();
+extern void trs_paste_started();
 extern void trs_end_copy();
 
 int PasteManagerGetChar(unsigned short *character)
