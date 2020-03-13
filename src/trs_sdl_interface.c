@@ -1184,8 +1184,6 @@ void trs_screen_caption(void)
              trs_paused ? "PAUSED " : "",
              trs_sound ? "" : "(Mute)");
   SDL_SetWindowTitle(window, title);
-  if (trs_show_led)
-    trs_turbo_led();
 }
 
 void trs_screen_init(void)
@@ -1927,6 +1925,8 @@ void trs_get_event(int wait)
           case SDLK_F12:
             timer_overclock = !timer_overclock;
             trs_screen_caption();
+            if (trs_show_led)
+              trs_turbo_led();
             keysym.sym = 0;
             break;
           case SDLK_PAUSE:
@@ -2037,6 +2037,8 @@ void trs_get_event(int wait)
             case SDLK_n:
               timer_overclock = !timer_overclock;
               trs_screen_caption();
+              if (trs_show_led)
+                trs_turbo_led();
               break;
             case SDLK_o:
               call_function(OTHER);
