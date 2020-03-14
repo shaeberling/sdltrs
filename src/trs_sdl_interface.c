@@ -1657,7 +1657,7 @@ static char *trs_get_copy_data()
 
   if (grafyx_enable && !grafyx_overlay) {
     copy_data[0] = 0;
-    return(copy_data);
+    return copy_data;
   }
 
   if (selectionStartX < 0)
@@ -1902,8 +1902,7 @@ void trs_get_event(int wait)
             keysym.sym = 0;
             break;
           case SDLK_F10:
-            if (keysym.mod & KMOD_SHIFT)
-            {
+            if (keysym.mod & KMOD_SHIFT) {
               trs_reset(1);
               if (trs_show_led) {
                 trs_disk_led(-1, 0);
@@ -2503,12 +2502,12 @@ static SDL_Surface *CreateSurfaceFromDataScale(char *data,
 
   free(mypixels);
 
-  return(SDL_CreateRGBSurfaceFrom(mydata, TRS_CHAR_WIDTH * scale_x,
+  return SDL_CreateRGBSurfaceFrom(mydata, TRS_CHAR_WIDTH * scale_x,
          TRS_CHAR_HEIGHT * scale_y, 32, TRS_CHAR_WIDTH * scale_x * 4,
 #if defined(big_endian) && !defined(__linux)
-         0x000000ff, 0x0000ff00, 0x00ff0000, 0));
+         0x000000ff, 0x0000ff00, 0x00ff0000, 0);
 #else
-         0x00ff0000, 0x0000ff00, 0x000000ff, 0));
+         0x00ff0000, 0x0000ff00, 0x000000ff, 0);
 #endif
 }
 
@@ -2525,6 +2524,7 @@ static void bitmap_init(void)
     trs_char[0][i] =
       CreateSurfaceFromDataScale(trs_char_data[trs_charset][i],
           foreground, background, 1, 2);
+
     if (trs_char[1][i]) {
       free(trs_char[1][i]->pixels);
       SDL_FreeSurface(trs_char[1][i]);
@@ -2532,6 +2532,7 @@ static void bitmap_init(void)
     trs_char[1][i] =
       CreateSurfaceFromDataScale(trs_char_data[trs_charset][i],
           foreground, background, 2, 2);
+
     if (trs_char[2][i]) {
       free(trs_char[2][i]->pixels);
       SDL_FreeSurface(trs_char[2][i]);
@@ -2539,6 +2540,7 @@ static void bitmap_init(void)
     trs_char[2][i] =
       CreateSurfaceFromDataScale(trs_char_data[trs_charset][i],
           background, foreground, 1, 2);
+
     if (trs_char[3][i]) {
       free(trs_char[3][i]->pixels);
       SDL_FreeSurface(trs_char[3][i]);
@@ -2546,6 +2548,7 @@ static void bitmap_init(void)
     trs_char[3][i] =
       CreateSurfaceFromDataScale(trs_char_data[trs_charset][i],
           background, foreground, 2, 2);
+
     if (trs_char[4][i]) {
       free(trs_char[4][i]->pixels);
       SDL_FreeSurface(trs_char[4][i]);
@@ -2559,6 +2562,7 @@ static void bitmap_init(void)
       trs_char[4][i] =
         CreateSurfaceFromDataScale(trs_char_data[trs_charset][i],
             gui_foreground, gui_background, 1, 2);
+
     if (trs_char[5][i]) {
       free(trs_char[5][i]->pixels);
       SDL_FreeSurface(trs_char[5][i]);
@@ -2796,7 +2800,7 @@ void trs_screen_write_char(int position, int char_index)
   } else {
     /* Use regular character bitmap */
     if (trs_model > 1 && char_index >= 0xc0 &&
-        (currentmode & (ALTERNATE+INVERSE)) == 0) {
+        (currentmode & (ALTERNATE + INVERSE)) == 0) {
       char_index -= 0x40;
     }
     if ((currentmode & INVERSE) && (char_index & 0x80)) {
@@ -2893,7 +2897,7 @@ void trs_gui_write_char(int position, int char_index, int invert)
   } else {
     /* Draw character using a builtin bitmap */
     if (trs_model > 1 && char_index >= 0xc0 &&
-        (currentmode & (ALTERNATE+INVERSE)) == 0)
+        (currentmode & (ALTERNATE + INVERSE)) == 0)
       char_index -= 0x40;
     if (invert)
       SDL_BlitSurface(trs_char[5][char_index], &srcRect, screen, &destRect);
