@@ -18,16 +18,11 @@ int PasteManagerGetChar(unsigned short *character)
     *character = pasteString[pasteStringLength - charCount];
     charCount--;
     if (charCount)
-      return(1);
-    else {
-      free(pasteString);
-      return(0);
-    }
+      return 1;
   }
-  else {
-    free(pasteString);
-    return(0);
-  }
+
+  free(pasteString);
+  return 0;
 }
 
 int PasteManagerStartPaste(void)
@@ -46,7 +41,7 @@ int PasteManagerStartPaste(void)
 }
 
 
-void PasteManagerStartCopy(char *string)
+void PasteManagerStartCopy(const char *string)
 {
   SDL_SetClipboardText(string);
   trs_end_copy();
