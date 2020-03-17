@@ -2928,15 +2928,8 @@ void trs_gui_get_virtual_key(void)
 {
   int key = trs_gui_virtual_keyboard();
 
-  if (key != -1) {
-    SDL_Event event;
-
-    event.type = SDL_KEYDOWN;
-    event.key.keysym.sym = key;
-    event.key.keysym.mod = 0;
-    event.key.keysym.scancode = 0;
-    SDL_PushEvent(&event);
-  }
+  if (key != -1)
+    trs_xlate_keysym(key);
 }
 
 void trs_gui_joy_gui(void)
