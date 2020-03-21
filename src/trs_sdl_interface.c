@@ -1580,16 +1580,13 @@ void trs_sdl_flush(void)
 
   if (scanlines) {
     SDL_Rect rect;
-    int y;
 
     rect.x = 0;
     rect.w = OrigWidth;
     rect.h = 1;
 
-    for (y = 0; y < screen_height; y += 2) {
-      rect.y = y;
+    for (rect.y = 0; rect.y < screen_height; rect.y += 2)
       SDL_FillRect(screen, &rect, background);
-    }
   }
 
   SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
