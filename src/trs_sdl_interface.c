@@ -2116,8 +2116,15 @@ void trs_get_event(int wait)
           else if (keysym.sym == SDLK_F4) keysym.sym = 0x122;
         }
 
+        /* Convert numeric keypad */
+        if (keysym.sym >= SDLK_KP_1 && keysym.sym <= SDLK_KP_9)
+          keysym.sym = (keysym.sym - SDLK_KP_1) + 0x101;
+        else
         /* Convert arrow/control/function/shift keys */
         switch (keysym.sym) {
+          case SDLK_KP_0:
+            keysym.sym = 0x100;
+            break;
           case SDLK_UP:
             keysym.sym = 0x111;
             break;
