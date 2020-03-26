@@ -8,10 +8,6 @@ static int charCount = 0;
 static char *pasteString;
 static int pasteStringLength = 0;
 
-/* Extern emulator routines */
-extern void trs_paste_started();
-extern void trs_end_copy();
-
 int PasteManagerGetChar(unsigned short *character)
 {
   if (charCount) {
@@ -30,7 +26,6 @@ int PasteManagerStartPaste(void)
   charCount = pasteStringLength;
 
   if (charCount) {
-    trs_paste_started();
     return 1;
   } else {
     free(pasteString);
@@ -42,5 +37,4 @@ int PasteManagerStartPaste(void)
 void PasteManagerStartCopy(const char *string)
 {
   SDL_SetClipboardText(string);
-  trs_end_copy();
 }
