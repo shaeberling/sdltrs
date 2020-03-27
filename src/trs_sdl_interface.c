@@ -1844,11 +1844,12 @@ void trs_get_event(int wait)
         break;
       case SDL_WINDOWEVENT:
         if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
+          SDL_RaiseWindow(window);
 #if XDEBUG
-            debug("Active\n");
+          debug("Active\n");
 #endif
-            trs_screen_refresh();
-            copyStatus = COPY_IDLE;
+          trs_screen_refresh();
+          copyStatus = COPY_IDLE;
         }
         break;
 
