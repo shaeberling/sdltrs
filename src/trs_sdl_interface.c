@@ -1948,6 +1948,7 @@ void trs_get_event(int wait)
               copyStatus = COPY_IDLE;
               break;
             case SDLK_v:
+            case SDLK_INSERT:
               PasteManagerStartPaste();
               paste_state = PASTE_GETNEXT;
               break;
