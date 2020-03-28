@@ -1,2 +1,3 @@
 diskimages/*		/usr/share/sdl2trs/
 bin/sdl2trs.png		/usr/share/pixmaps/
+sdl2trs.desktop		/usr/share/applications/
