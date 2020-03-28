@@ -1863,11 +1863,11 @@ void trs_get_event(int wait)
         if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
           SDL_FlushEvent(SDL_KEYDOWN);
 #if XDEBUG
-            debug("Active\n");
+          debug("Active\n");
 #endif
-            trs_screen_refresh();
-            clear_key_queue();
-            copyStatus = COPY_IDLE;
+          trs_screen_refresh();
+          clear_key_queue();
+          copyStatus = COPY_IDLE;
         }
         break;
 
