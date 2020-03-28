@@ -1,4 +1,4 @@
-PROG	 = sdltrs2
+PROG	 = sdl2trs
 
 SRCS	+= blit.c
 SRCS	+= debug.c
