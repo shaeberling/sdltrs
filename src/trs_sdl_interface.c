@@ -1865,6 +1865,7 @@ void trs_get_event(int wait)
             debug("Active\n");
 #endif
             trs_screen_refresh();
+            clear_key_queue();
             copyStatus = COPY_IDLE;
         }
         break;
