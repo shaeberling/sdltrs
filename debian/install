@@ -1,2 +1,2 @@
-diskimages/*		/usr/share/sdltrs/
-bin/sdltrs.png		/usr/share/pixmaps/
+diskimages/*		/usr/share/sdl2trs/
+bin/sdl2trs.png		/usr/share/pixmaps/
