@@ -1869,7 +1869,7 @@ void trs_get_event(int wait)
         trs_exit(0);
         break;
       case SDL_WINDOWEVENT:
-        if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
+        if (event.window.event & SDL_WINDOWEVENT_EXPOSED) {
           SDL_FlushEvent(SDL_KEYDOWN);
 #if XDEBUG
           debug("Active\n");
