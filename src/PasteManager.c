@@ -8,7 +8,7 @@ static int charCount = 0;
 static char *pasteString;
 static int pasteStringLength = 0;
 
-int PasteManagerGetChar(unsigned short *character)
+int PasteManagerGetChar(unsigned char *character)
 {
   if (charCount) {
     *character = pasteString[pasteStringLength - charCount];

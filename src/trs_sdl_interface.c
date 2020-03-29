@@ -172,7 +172,7 @@ static int  paste_state = PASTE_IDLE;
 static int  paste_lastkey = FALSE;
 extern int  PasteManagerStartPaste(void);
 extern void PasteManagerStartCopy(const char *string);
-extern int  PasteManagerGetChar(unsigned short *character);
+extern int  PasteManagerGetChar(unsigned char *character);
 
 #define COPY_IDLE     0
 #define COPY_STARTED  1
@@ -1816,7 +1816,7 @@ void trs_get_event(int wait)
     trs_screen_caption();
 
   if (paste_state != PASTE_IDLE) {
-    static unsigned short paste_key;
+    static unsigned char paste_key;
 
     if (SDL_PollEvent(&event)) {
       if (event.type == SDL_KEYDOWN) {
