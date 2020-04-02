@@ -155,7 +155,6 @@ static SDL_Surface *trs_char[6][MAXCHARS];
 static SDL_Surface *trs_box[3][64];
 static SDL_Surface *image;
 static SDL_Surface *screen;
-static SDL_Rect drawnRects[MAX_RECTS];
 static SDL_Window *window = NULL;
 static SDL_Renderer *render = NULL;
 static SDL_Texture *texture = NULL;
@@ -1344,12 +1343,6 @@ void trs_screen_init(void)
 
   grafyx_redraw();
   drawnRectCount = MAX_RECTS; /* Will force redraw of whole screen */
-}
-
-static void addToDrawList(SDL_Rect *rect)
-{
-  if (drawnRectCount < MAX_RECTS)
-    drawnRects[drawnRectCount++] = *rect;
 }
 
 static void DrawSelectionRectangle(int orig_x, int orig_y, int copy_x, int copy_y)
@@ -2645,7 +2638,7 @@ void trs_screen_refresh(void)
     destRect.w = srcRect.w;
     destRect.h = srcRect.h;
     SDL_BlitSurface(image, &srcRect, screen, &destRect);
-    addToDrawList(&destRect);
+    drawnRectCount = MAX_RECTS;
     /* Draw wrapped portions if any */
     if (dunx < cur_char_width * row_chars) {
       srcRect.x = 0;
@@ -2657,7 +2650,7 @@ void trs_screen_refresh(void)
       destRect.w = srcRect.w;
       destRect.h = srcRect.h;
       SDL_BlitSurface(image, &srcRect, screen, &destRect);
-      addToDrawList(&destRect);
+      drawnRectCount = MAX_RECTS;
     }
     if (duny < cur_char_height * col_chars) {
       srcRect.x = srcx;
@@ -2669,7 +2662,7 @@ void trs_screen_refresh(void)
       destRect.w = srcRect.w;
       destRect.h = srcRect.h;
       SDL_BlitSurface(image, &srcRect, screen, &destRect);
-      addToDrawList(&destRect);
+      drawnRectCount = MAX_RECTS;
       if (dunx < cur_char_width * row_chars) {
         srcRect.x = 0;
         srcRect.y = 0;
@@ -2680,7 +2673,7 @@ void trs_screen_refresh(void)
         destRect.w = srcRect.w;
         destRect.h = srcRect.h;
         SDL_BlitSurface(image, &srcRect, screen, &destRect);
-        addToDrawList(&destRect);
+        drawnRectCount = MAX_RECTS;
       }
     }
   } else {
@@ -2713,14 +2706,14 @@ void trs_disk_led(int drive, int on_off)
     for (i = 0; i < 8; i++) {
       rect.x = border_width + 24 * i;
       SDL_FillRect(screen, &rect, light_red);
-      addToDrawList(&rect);
+      drawnRectCount = MAX_RECTS;
     }
   }
   else if (on_off) {
     if (countdown[drive] == 0) {
       rect.x = border_width + 24 * drive;
       SDL_FillRect(screen, &rect, bright_red);
-      addToDrawList(&rect);
+      drawnRectCount = MAX_RECTS;
     }
     countdown[drive] = 2 * timer_hz;
   }
@@ -2731,7 +2724,7 @@ void trs_disk_led(int drive, int on_off)
         if (countdown[i] == 0) {
           rect.x = border_width + 24 * i;
           SDL_FillRect(screen, &rect, light_red);
-          addToDrawList(&rect);
+          drawnRectCount = MAX_RECTS;
         }
       }
     }
@@ -2753,14 +2746,14 @@ void trs_hard_led(int drive, int on_off)
     for (i = 0; i < 4; i++) {
       rect.x = drive0_led_x + 24 * i;
       SDL_FillRect(screen, &rect, light_red);
-      addToDrawList(&rect);
+      drawnRectCount = MAX_RECTS;
     }
   }
   else if (on_off) {
     if (countdown[drive] == 0) {
       rect.x = drive0_led_x + 24 * drive;
       SDL_FillRect(screen, &rect, bright_red);
-      addToDrawList(&rect);
+      drawnRectCount = MAX_RECTS;
     }
     countdown[drive] = timer_hz / 2;
   }
@@ -2771,7 +2764,7 @@ void trs_hard_led(int drive, int on_off)
         if (countdown[i] == 0) {
           rect.x = drive0_led_x + 24 * i;
           SDL_FillRect(screen, &rect, light_red);
-          addToDrawList(&rect);
+          drawnRectCount = MAX_RECTS;
         }
       }
     }
@@ -2791,7 +2784,7 @@ void trs_turbo_led(void)
     SDL_FillRect(screen, &rect, bright_orange);
   else
     SDL_FillRect(screen, &rect, light_orange);
-  addToDrawList(&rect);
+  drawnRectCount = MAX_RECTS;
 }
 
 void trs_screen_write_char(int position, int char_index)
@@ -2835,7 +2828,7 @@ void trs_screen_write_char(int position, int char_index)
     destRect.w = srcRect.w;
     destRect.h = srcRect.h;
     SDL_BlitSurface(trs_box[expanded][char_index - 0x80], &srcRect, screen, &destRect);
-    addToDrawList(&destRect);
+    drawnRectCount = MAX_RECTS;
   } else {
     /* Use regular character bitmap */
     if (trs_model > 1 && char_index >= 0xc0 &&
@@ -2855,7 +2848,7 @@ void trs_screen_write_char(int position, int char_index)
     destRect.w = srcRect.w;
     destRect.h = srcRect.h;
     SDL_BlitSurface(trs_char[expanded][char_index], &srcRect, screen, &destRect);
-    addToDrawList(&destRect);
+    drawnRectCount = MAX_RECTS;
   }
 
   /* Overlay grafyx on character */
@@ -2875,7 +2868,7 @@ void trs_screen_write_char(int position, int char_index)
     destRect.w = srcRect.w;
     destRect.h = srcRect.h;
     TrsSoftBlit(image, &srcRect, screen, &destRect, 1);
-    addToDrawList(&destRect);
+    drawnRectCount = MAX_RECTS;
     /* Draw wrapped portion if any */
     if (duny < cur_char_height) {
       srcRect.x = srcx;
@@ -2887,7 +2880,7 @@ void trs_screen_write_char(int position, int char_index)
       destRect.w = srcRect.w;
       destRect.h = srcRect.h;
       TrsSoftBlit(image, &srcRect, screen, &destRect, 1);
-      addToDrawList(&destRect);
+      drawnRectCount = MAX_RECTS;
     }
   }
   if (hrg_enable)
@@ -2983,7 +2976,7 @@ static void grafyx_write_byte(int x, int y, char byte)
     destRect.w = srcRect.w;
     destRect.h = srcRect.h;
     TrsSoftBlit(image, &srcRect, screen, &destRect, grafyx_overlay);
-    addToDrawList(&destRect);
+    drawnRectCount = MAX_RECTS;
   }
 }
 
