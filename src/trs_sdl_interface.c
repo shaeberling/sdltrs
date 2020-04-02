@@ -1343,6 +1343,8 @@ void trs_screen_init(void)
 
   grafyx_redraw();
   drawnRectCount = MAX_RECTS; /* Will force redraw of whole screen */
+  trs_screen_refresh();
+  trs_sdl_flush();
 }
 
 static void DrawSelectionRectangle(int orig_x, int orig_y, int copy_x, int copy_y)
@@ -2023,8 +2025,6 @@ void trs_get_event(int wait)
             case SDLK_b:
               trs_show_led = !trs_show_led;
               trs_screen_init();
-              trs_screen_refresh();
-              trs_sdl_flush();
               break;
             case SDLK_d:
             case SDLK_f:
@@ -2051,8 +2051,6 @@ void trs_get_event(int wait)
             case SDLK_l:
               call_function(LOAD);
               trs_screen_init();
-              trs_screen_refresh();
-              trs_sdl_flush();
               break;
             case SDLK_m:
               call_function(GUI);
@@ -2417,8 +2415,8 @@ static void trs_screen_640x240(int flag)
         cur_char_height * col_chars) / 2 + border_width;
     if (left_margin > border_width || top_margin > border_width)
       SDL_FillRect(screen, NULL, background);
+    trs_screen_refresh();
   }
-  trs_screen_refresh();
 }
 
 void trs_screen_80x24(int flag)
