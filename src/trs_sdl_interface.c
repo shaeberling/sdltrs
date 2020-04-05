@@ -89,6 +89,7 @@ extern int  key_queue_entries;
 extern int  trs_gui_exit_sdltrs(void);
 extern void trs_gui_keys_sdltrs(void);
 extern void trs_gui_model(void);
+extern unsigned int cycles_per_timer;
 
 /* Public data */
 int window_border_width;
@@ -2000,7 +2001,6 @@ void trs_get_event(int wait)
               SDL_SetWindowSize(window, OrigWidth*scale, OrigHeight*scale);
               SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
               break;
-            case SDLK_PLUS:
             case SDLK_PAGEDOWN:
               fullscreen = 0;
               scale++;
@@ -2010,7 +2010,6 @@ void trs_get_event(int wait)
               SDL_SetWindowSize(window, OrigWidth*scale, OrigHeight*scale);
               SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
               break;
-            case SDLK_MINUS:
             case SDLK_PAGEUP:
               fullscreen = 0;
               scale--;
@@ -2019,6 +2018,20 @@ void trs_get_event(int wait)
               SDL_SetWindowFullscreen(window, 0);
               SDL_SetWindowSize(window, OrigWidth*scale, OrigHeight*scale);
               SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+              break;
+            case SDLK_MINUS:
+              if (z80_state.clockMHz > 0.1) {
+                z80_state.clockMHz -= 0.1;
+                cycles_per_timer = z80_state.clockMHz * 1000000 / timer_hz;
+                trs_screen_caption();
+              }
+              break;
+            case SDLK_PLUS:
+              if (z80_state.clockMHz < 99.0) {
+                z80_state.clockMHz += 0.1;
+                cycles_per_timer = z80_state.clockMHz * 1000000 / timer_hz;
+                trs_screen_caption();
+              }
               break;
             case SDLK_PERIOD:
               mousepointer = !mousepointer;
