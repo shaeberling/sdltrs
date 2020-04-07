@@ -1582,9 +1582,10 @@ static void ProcessCopySelection(int selectAll)
 void trs_sdl_flush(void)
 {
   if (mousepointer) {
-    if (!trs_emu_mouse)
+    if (!trs_emu_mouse && paste_state == PASTE_IDLE) {
       ProcessCopySelection(requestSelectAll);
-    requestSelectAll = FALSE;
+      requestSelectAll = FALSE;
+    }
   }
   if (drawnRectCount == 0)
     return;
