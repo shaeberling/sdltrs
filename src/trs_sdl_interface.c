@@ -1281,7 +1281,7 @@ void trs_screen_init(void)
       fatal("failed to create window: %s", SDL_GetError());
     }
 
-    render = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    render = SDL_CreateRenderer(window, -1, 0);
     if (render == NULL) {
       trs_sdl_cleanup();
       fatal("failed to create renderer: %s", SDL_GetError());
