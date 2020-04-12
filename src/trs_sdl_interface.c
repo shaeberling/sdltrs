@@ -1636,14 +1636,18 @@ void trs_sdl_cleanup(void)
   unsigned int i, ch;
 
   /* SDL cleanup */
-  for (i = 0; i < 6; i++)
+  for (i = 0; i < 6; i++) {
     for (ch = 0; ch < MAXCHARS; ch++) {
-      free(trs_char[i][ch]->pixels);
-      SDL_FreeSurface(trs_char[i][ch]);
+      if (trs_char[i][ch]) {
+        free(trs_char[i][ch]->pixels);
+        SDL_FreeSurface(trs_char[i][ch]);
+      }
     }
+  }
   for (i = 0; i < 3; i++)
     for (ch = 0; ch < 64; ch++)
       SDL_FreeSurface(trs_box[i][ch]);
+
   SDL_FreeSurface(image);
   SDL_DestroyTexture(texture);
   SDL_DestroyRenderer(render);
