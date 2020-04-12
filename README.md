@@ -26,8 +26,8 @@ It should be considered as *experimental* ...
 
 ## Packages
 
-  * [sdl2trs_1.2.8-1_i386.deb]   (32-bit, SDL2)
-  * [sdl2trs_1.2.8-1_amd64.deb]  (64-bit, SDL2)
+  * [sdl2trs_1.2.9-1_i386.deb]   (32-bit, SDL2)
+  * [sdl2trs_1.2.9-1_amd64.deb]  (64-bit, SDL2)
 
 (Build on Debian 9/i386 & Ubuntu 18.04LTS/amd64)
 
@@ -44,5 +44,5 @@ It should be considered as *experimental* ...
 [SDLTRS]: http://sdltrs.sourceforge.net
 [sdl2trs.exe]: bin/sdl2trs.exe
 [sdl2trs64.exe]: bin/sdl2trs64.exe
-[sdl2trs_1.2.8-1_i386.deb]: bin/sdl2trs_1.2.8-1_i386.deb
-[sdl2trs_1.2.8-1_amd64.deb]: bin/sdl2trs_1.2.8-1_amd64.deb
+[sdl2trs_1.2.9-1_i386.deb]: bin/sdl2trs_1.2.9-1_i386.deb
+[sdl2trs_1.2.9-1_amd64.deb]: bin/sdl2trs_1.2.9-1_amd64.deb
