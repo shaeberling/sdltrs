@@ -1296,6 +1296,10 @@ void trs_screen_init(void)
                               SDL_PIXELFORMAT_ARGB8888,
                               SDL_TEXTUREACCESS_STREAMING,
                               OrigWidth, OrigHeight);
+  if (texture == NULL) {
+    trs_sdl_cleanup();
+    fatal("failed to create texture: %s", SDL_GetError());
+  }
 
   SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
   SDL_SetWindowSize(window, OrigWidth * scale, OrigHeight * scale);
