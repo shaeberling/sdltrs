@@ -1286,8 +1286,6 @@ void trs_screen_init(void)
       trs_sdl_cleanup();
       fatal("failed to create renderer: %s", SDL_GetError());
     }
-
-    screen = SDL_GetWindowSurface(window);
   }
 
   if (texture)
@@ -1306,6 +1304,8 @@ void trs_screen_init(void)
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_ShowWindow(window);
   SDL_ShowCursor(mousepointer ? SDL_ENABLE : SDL_DISABLE);
+  screen = SDL_GetWindowSurface(window);
+  SDL_FillRect(screen, NULL, background);
 
   if (image)
     SDL_FreeSurface(image);
@@ -2644,7 +2644,6 @@ void trs_screen_refresh(void)
 #if XDEBUG
   debug("trs_screen_refresh\n");
 #endif
-  screen = SDL_GetWindowSurface(window);
   if (grafyx_enable && !grafyx_overlay) {
     int srcx = cur_char_width * grafyx_xoffset;
     int srcy = grafyx_yoffset * 2;
