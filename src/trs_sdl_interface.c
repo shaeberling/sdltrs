@@ -1962,6 +1962,11 @@ void trs_get_event(int wait)
             call_function(SAVE_BMP);
             keysym.sym = 0;
             break;
+          case SDLK_NUMLOCKCLEAR:
+            trs_keypad_joystick = !trs_keypad_joystick;
+            trs_set_keypad_joystick();
+            keysym.sym = 0;
+            break;
           default:
             break;
         }
