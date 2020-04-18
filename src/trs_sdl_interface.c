@@ -1889,9 +1889,9 @@ void trs_get_event(int wait)
 #if XDEBUG
           debug("Active\n");
 #endif
-          trs_screen_refresh();
+          drawnRectCount = MAX_RECTS;
+          trs_sdl_flush();
           clear_key_queue();
-          copyStatus = COPY_IDLE;
         }
         break;
 
