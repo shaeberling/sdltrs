@@ -75,7 +75,7 @@
 #include "trs_sdl_keyboard.h"
 
 #define KEY_QUEUE_SIZE 32
-#define MAX_RECTS      2048
+#define MAX_RECTS      1
 #define WHITE          0xe0e0ff
 #define BLACK          0
 #define GREEN          0x344843
