@@ -1726,6 +1726,7 @@ static char *trs_get_copy_data()
 
 static void call_function(int function)
 {
+  SDL_PauseAudio(1);
   if (function == PAUSE) {
     trs_paused = !trs_paused;
     trs_screen_caption();
@@ -1743,7 +1744,6 @@ static void call_function(int function)
   else if (function == EXIT)
     trs_exit(0);
   else {
-    SDL_PauseAudio(1);
     switch (function) {
       case GUI:
         trs_gui();
@@ -1797,10 +1797,10 @@ static void call_function(int function)
         trs_gui_save_bmp();
         break;
     }
-    SDL_PauseAudio(0);
     trs_screen_refresh();
     trs_sdl_flush();
   }
+  SDL_PauseAudio(0);
 }
 
 /*
