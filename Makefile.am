@@ -34,3 +34,18 @@ sdl2trs_SOURCES=src/blit.c \
 		src/trs_uart.c \
 		src/z80.c \
 		src/PasteManager.c
+
+appicondir=	$(datadir)/icons/hicolor/scalable/apps
+appicon_DATA=	icons/sdl2trs.svg
+
+diskimagedir=	$(datadir)/@PACKAGE@
+diskimage_DATA=	diskimages/*.dsk
+
+desktopdir=	$(datadir)/applications
+desktop_DATA=	sdl2trs.desktop
+
+docdir=		$(datadir)/doc/@PACKAGE@
+nobase_doc_DATA=html/*.html html/images/*.png
+
+pixmapdir=	$(datadir)/pixmaps
+pixmap_DATA=	icons/sdl2trs.png
