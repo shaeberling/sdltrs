@@ -48,4 +48,4 @@ docdir=		$(datadir)/doc/@PACKAGE@
 nobase_doc_DATA=html/*.html html/images/*.png
 
 pixmapdir=	$(datadir)/pixmaps
-pixmap_DATA=	icons/sdl2trs.png
+pixmap_DATA=	icons/sdl2trs.png icons/sdl2trs.xpm
