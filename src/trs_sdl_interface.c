@@ -1350,6 +1350,10 @@ void trs_screen_init(void)
   SDL_ShowWindow(window);
   SDL_ShowCursor(mousepointer ? SDL_ENABLE : SDL_DISABLE);
   screen = SDL_GetWindowSurface(window);
+  if (screen == NULL) {
+    trs_sdl_cleanup();
+    fatal("failed SDL_GetWindowSurface: %s", SDL_GetError());
+  }
   SDL_FillRect(screen, NULL, background);
 
   if (image)
