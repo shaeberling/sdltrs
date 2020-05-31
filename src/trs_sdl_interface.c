@@ -2701,15 +2701,15 @@ void trs_screen_refresh(void)
     int const srcy = grafyx_yoffset * 2;
     int const dunx = imageSize.width - srcx;
     int const duny = imageSize.height - srcy;
-    SDL_Rect srcRect, destRect;
+    SDL_Rect srcRect, dstRect;
 
     srcRect.x = srcx;
     srcRect.y = srcy;
     srcRect.w = cur_char_width * row_chars;
     srcRect.h = cur_char_height * col_chars;
-    destRect.x = left_margin;
-    destRect.y = top_margin;
-    SDL_BlitSurface(image, &srcRect, screen, &destRect);
+    dstRect.x = left_margin;
+    dstRect.y = top_margin;
+    SDL_BlitSurface(image, &srcRect, screen, &dstRect);
     drawnRectCount = MAX_RECTS;
     /* Draw wrapped portions if any */
     if (dunx < cur_char_width * row_chars) {
@@ -2717,9 +2717,9 @@ void trs_screen_refresh(void)
       srcRect.y = srcy;
       srcRect.w = cur_char_width * row_chars - dunx;
       srcRect.h = cur_char_height * col_chars;
-      destRect.x = left_margin + dunx;
-      destRect.y = top_margin;
-      SDL_BlitSurface(image, &srcRect, screen, &destRect);
+      dstRect.x = left_margin + dunx;
+      dstRect.y = top_margin;
+      SDL_BlitSurface(image, &srcRect, screen, &dstRect);
       drawnRectCount = MAX_RECTS;
     }
     if (duny < cur_char_height * col_chars) {
@@ -2727,18 +2727,18 @@ void trs_screen_refresh(void)
       srcRect.y = 0;
       srcRect.w = cur_char_width * row_chars;
       srcRect.h = cur_char_height * col_chars - duny;
-      destRect.x = left_margin;
-      destRect.y = top_margin + duny;
-      SDL_BlitSurface(image, &srcRect, screen, &destRect);
+      dstRect.x = left_margin;
+      dstRect.y = top_margin + duny;
+      SDL_BlitSurface(image, &srcRect, screen, &dstRect);
       drawnRectCount = MAX_RECTS;
       if (dunx < cur_char_width * row_chars) {
         srcRect.x = 0;
         srcRect.y = 0;
         srcRect.w = cur_char_width * row_chars - dunx;
         srcRect.h = cur_char_height * col_chars - duny;
-        destRect.x = left_margin + dunx;
-        destRect.y = top_margin + duny;
-        SDL_BlitSurface(image, &srcRect, screen, &destRect);
+        dstRect.x = left_margin + dunx;
+        dstRect.y = top_margin + duny;
+        SDL_BlitSurface(image, &srcRect, screen, &dstRect);
         drawnRectCount = MAX_RECTS;
       }
     }
@@ -2856,7 +2856,7 @@ void trs_turbo_led(void)
 void trs_screen_write_char(int position, unsigned char char_index)
 {
   int row, col, destx, desty, expanded, width, height;
-  SDL_Rect srcRect, destRect;
+  SDL_Rect srcRect, dstRect;
 
   if (position >= screen_chars)
     return;
@@ -2889,9 +2889,9 @@ void trs_screen_write_char(int position, unsigned char char_index)
     srcRect.y = 0;
     srcRect.w = width;
     srcRect.h = height;
-    destRect.x = destx;
-    destRect.y = desty;
-    SDL_BlitSurface(trs_box[expanded][char_index - 0x80], &srcRect, screen, &destRect);
+    dstRect.x = destx;
+    dstRect.y = desty;
+    SDL_BlitSurface(trs_box[expanded][char_index - 0x80], &srcRect, screen, &dstRect);
     drawnRectCount = MAX_RECTS;
   } else {
     /* Use regular character bitmap */
@@ -2907,9 +2907,9 @@ void trs_screen_write_char(int position, unsigned char char_index)
     srcRect.y = 0;
     srcRect.w = width;
     srcRect.h = height;
-    destRect.x = destx;
-    destRect.y = desty;
-    SDL_BlitSurface(trs_char[expanded][char_index], &srcRect, screen, &destRect);
+    dstRect.x = destx;
+    dstRect.y = desty;
+    SDL_BlitSurface(trs_char[expanded][char_index], &srcRect, screen, &dstRect);
     drawnRectCount = MAX_RECTS;
   }
 
@@ -2925,11 +2925,11 @@ void trs_screen_write_char(int position, unsigned char char_index)
     srcRect.y = srcy;
     srcRect.w = width;
     srcRect.h = height;
-    destRect.x = destx;
-    destRect.y = desty;
-    destRect.w = srcRect.w;
-    destRect.h = srcRect.h;
-    TrsSoftBlit(image, &srcRect, screen, &destRect, 1);
+    dstRect.x = destx;
+    dstRect.y = desty;
+    dstRect.w = srcRect.w;
+    dstRect.h = srcRect.h;
+    TrsSoftBlit(image, &srcRect, screen, &dstRect, 1);
     drawnRectCount = MAX_RECTS;
     /* Draw wrapped portion if any */
     if (duny < cur_char_height) {
@@ -2937,11 +2937,11 @@ void trs_screen_write_char(int position, unsigned char char_index)
       srcRect.y = 0;
       srcRect.w = width;
       srcRect.h = height - duny;
-      destRect.x = destx;
-      destRect.y = desty + duny;
-      destRect.w = srcRect.w;
-      destRect.h = srcRect.h;
-      TrsSoftBlit(image, &srcRect, screen, &destRect, 1);
+      dstRect.x = destx;
+      dstRect.y = desty + duny;
+      dstRect.w = srcRect.w;
+      dstRect.h = srcRect.h;
+      TrsSoftBlit(image, &srcRect, screen, &dstRect, 1);
       drawnRectCount = MAX_RECTS;
     }
   }
@@ -2959,7 +2959,7 @@ void trs_gui_refresh(void)
 void trs_gui_write_char(unsigned int position, unsigned char char_index, int invert)
 {
   int row, col;
-  SDL_Rect srcRect, destRect;
+  SDL_Rect srcRect, dstRect;
 
   row = position >> 6;
   col = position - (row << 6);
@@ -2974,21 +2974,21 @@ void trs_gui_write_char(unsigned int position, unsigned char char_index, int inv
   srcRect.y = 0;
   srcRect.w = cur_char_width;
   srcRect.h = cur_char_height;
-  destRect.x = col * cur_char_width + left_margin;
-  destRect.y = row * cur_char_height + top_margin;
+  dstRect.x = col * cur_char_width + left_margin;
+  dstRect.y = row * cur_char_height + top_margin;
 
   if (trs_model == 1 && char_index >= 0xc0)
     /* On Model I, 0xc0-0xff is another copy of 0x80-0xbf */
     char_index -= 0x40;
   if (char_index >= 0x80 && char_index <= 0xbf && !(currentmode & INVERSE)) {
     /* Use graphics character bitmap instead of font */
-    SDL_BlitSurface(trs_box[2][char_index - 0x80], &srcRect, screen, &destRect);
+    SDL_BlitSurface(trs_box[2][char_index - 0x80], &srcRect, screen, &dstRect);
   } else {
     /* Draw character using a builtin bitmap */
     if (trs_model > 1 && char_index >= 0xc0 &&
         (currentmode & (ALTERNATE + INVERSE)) == 0)
       char_index -= 0x40;
-    SDL_BlitSurface(trs_char[invert ? 5 : 4][char_index], &srcRect, screen, &destRect);
+    SDL_BlitSurface(trs_char[invert ? 5 : 4][char_index], &srcRect, screen, &dstRect);
   }
 }
 
@@ -2999,19 +2999,19 @@ static void grafyx_write_byte(int x, int y, char byte)
   int const screen_y = ((y - grafyx_yoffset + G_YSIZE) % G_YSIZE);
   int const on_screen = screen_x < row_chars &&
     screen_y < col_chars*cur_char_height / 2;
-  SDL_Rect srcRect, destRect;
+  SDL_Rect srcRect, dstRect;
 
   if (grafyx_enable && grafyx_overlay && on_screen) {
     srcRect.x = x * cur_char_width;
     srcRect.y = y * 2;
     srcRect.w = cur_char_width;
     srcRect.h = 2;
-    destRect.x = left_margin + screen_x * cur_char_width;
-    destRect.y = top_margin + screen_y * 2;
-    destRect.w = srcRect.w;
-    destRect.h = srcRect.h;
+    dstRect.x = left_margin + screen_x * cur_char_width;
+    dstRect.y = top_margin + screen_y * 2;
+    dstRect.w = srcRect.w;
+    dstRect.h = srcRect.h;
     /* Erase old byte, preserving text */
-    TrsSoftBlit(image, &srcRect, screen, &destRect, 1);
+    TrsSoftBlit(image, &srcRect, screen, &dstRect, 1);
   }
 
   /* Save new byte in local memory */
@@ -3025,11 +3025,11 @@ static void grafyx_write_byte(int x, int y, char byte)
     srcRect.y = y * 2;
     srcRect.w = cur_char_width;
     srcRect.h = 2;
-    destRect.x = left_margin + screen_x * cur_char_width;
-    destRect.y = top_margin + screen_y * 2;
-    destRect.w = srcRect.w;
-    destRect.h = srcRect.h;
-    TrsSoftBlit(image, &srcRect, screen, &destRect, grafyx_overlay);
+    dstRect.x = left_margin + screen_x * cur_char_width;
+    dstRect.y = top_margin + screen_y * 2;
+    dstRect.w = srcRect.w;
+    dstRect.h = srcRect.h;
+    TrsSoftBlit(image, &srcRect, screen, &dstRect, grafyx_overlay);
     drawnRectCount = MAX_RECTS;
   }
 }
