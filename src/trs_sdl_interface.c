@@ -2709,8 +2709,6 @@ void trs_screen_refresh(void)
     srcRect.h = cur_char_height * col_chars;
     destRect.x = left_margin;
     destRect.y = top_margin;
-    destRect.w = srcRect.w;
-    destRect.h = srcRect.h;
     SDL_BlitSurface(image, &srcRect, screen, &destRect);
     drawnRectCount = MAX_RECTS;
     /* Draw wrapped portions if any */
@@ -2721,8 +2719,6 @@ void trs_screen_refresh(void)
       srcRect.h = cur_char_height * col_chars;
       destRect.x = left_margin + dunx;
       destRect.y = top_margin;
-      destRect.w = srcRect.w;
-      destRect.h = srcRect.h;
       SDL_BlitSurface(image, &srcRect, screen, &destRect);
       drawnRectCount = MAX_RECTS;
     }
@@ -2733,8 +2729,6 @@ void trs_screen_refresh(void)
       srcRect.h = cur_char_height * col_chars - duny;
       destRect.x = left_margin;
       destRect.y = top_margin + duny;
-      destRect.w = srcRect.w;
-      destRect.h = srcRect.h;
       SDL_BlitSurface(image, &srcRect, screen, &destRect);
       drawnRectCount = MAX_RECTS;
       if (dunx < cur_char_width * row_chars) {
@@ -2744,8 +2738,6 @@ void trs_screen_refresh(void)
         srcRect.h = cur_char_height * col_chars - duny;
         destRect.x = left_margin + dunx;
         destRect.y = top_margin + duny;
-        destRect.w = srcRect.w;
-        destRect.h = srcRect.h;
         SDL_BlitSurface(image, &srcRect, screen, &destRect);
         drawnRectCount = MAX_RECTS;
       }
@@ -2899,8 +2891,6 @@ void trs_screen_write_char(int position, unsigned char char_index)
     srcRect.h = height;
     destRect.x = destx;
     destRect.y = desty;
-    destRect.w = srcRect.w;
-    destRect.h = srcRect.h;
     SDL_BlitSurface(trs_box[expanded][char_index - 0x80], &srcRect, screen, &destRect);
     drawnRectCount = MAX_RECTS;
   } else {
@@ -2919,8 +2909,6 @@ void trs_screen_write_char(int position, unsigned char char_index)
     srcRect.h = height;
     destRect.x = destx;
     destRect.y = desty;
-    destRect.w = srcRect.w;
-    destRect.h = srcRect.h;
     SDL_BlitSurface(trs_char[expanded][char_index], &srcRect, screen, &destRect);
     drawnRectCount = MAX_RECTS;
   }
@@ -2988,8 +2976,6 @@ void trs_gui_write_char(unsigned int position, unsigned char char_index, int inv
   srcRect.h = cur_char_height;
   destRect.x = col * cur_char_width + left_margin;
   destRect.y = row * cur_char_height + top_margin;
-  destRect.w = srcRect.w;
-  destRect.h = srcRect.h;
 
   if (trs_model == 1 && char_index >= 0xc0)
     /* On Model I, 0xc0-0xff is another copy of 0x80-0xbf */
