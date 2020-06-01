@@ -1332,6 +1332,8 @@ void trs_screen_init(void)
       fatal("failed to create renderer: %s", SDL_GetError());
     }
 
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+
     screen = SDL_CreateRGBSurface(0, 800, 600, 32, 0, 0, 0, 0); 
     if (screen == NULL) {
       trs_sdl_cleanup();
