@@ -1320,7 +1320,7 @@ void trs_screen_init(void)
                               SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED,
                               800, 600,
-                              SDL_WINDOW_HIDDEN);
+                              SDL_WINDOW_HIDDEN|SDL_WINDOW_RESIZABLE);
     if (window == NULL) {
       trs_sdl_cleanup();
       fatal("failed to create window: %s", SDL_GetError());
