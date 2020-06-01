@@ -1703,11 +1703,12 @@ void trs_sdl_cleanup(void)
     for (ch = 0; ch < 64; ch++)
       SDL_FreeSurface(trs_box[i][ch]);
 
+  SDL_FreeSurface(screen);
   SDL_FreeSurface(image);
   SDL_DestroyTexture(texture);
   SDL_DestroyRenderer(render);
   SDL_DestroyWindow(window);
-  SDL_Quit(); /* Will free screen */
+  SDL_Quit();
 }
 
 static char *trs_get_copy_data()
