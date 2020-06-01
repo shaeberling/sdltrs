@@ -1331,6 +1331,12 @@ void trs_screen_init(void)
       trs_sdl_cleanup();
       fatal("failed to create renderer: %s", SDL_GetError());
     }
+
+    screen = SDL_CreateRGBSurface(0, 800, 600, 32, 0, 0, 0, 0); 
+    if (screen == NULL) {
+      trs_sdl_cleanup();
+      fatal("failed to create surface: %s", SDL_GetError());
+    }
   }
 
   if (texture)
@@ -1349,11 +1355,6 @@ void trs_screen_init(void)
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_ShowWindow(window);
   SDL_ShowCursor(mousepointer ? SDL_ENABLE : SDL_DISABLE);
-  screen = SDL_GetWindowSurface(window);
-  if (screen == NULL) {
-    trs_sdl_cleanup();
-    fatal("failed SDL_GetWindowSurface: %s", SDL_GetError());
-  }
   SDL_FillRect(screen, NULL, background);
 
   if (image)
