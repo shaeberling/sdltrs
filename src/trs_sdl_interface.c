@@ -1353,6 +1353,7 @@ void trs_screen_init(void)
     fatal("failed to create texture: %s", SDL_GetError());
   }
 
+  SDL_RenderSetLogicalSize(render, OrigWidth, OrigHeight);
   SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
   SDL_SetWindowSize(window, OrigWidth * scale, OrigHeight * scale);
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -1938,6 +1939,9 @@ void trs_get_event(int wait)
         trs_exit(0);
         break;
       case SDL_WINDOWEVENT:
+        if (event.window.event & SDL_WINDOWEVENT_RESIZED) {
+          SDL_RenderClear(render);
+        }
         if (event.window.event & SDL_WINDOWEVENT_EXPOSED) {
           SDL_FlushEvent(SDL_KEYDOWN);
 #if XDEBUG
@@ -2957,6 +2961,7 @@ void trs_screen_write_char(int position, unsigned char char_index)
 void trs_gui_refresh(void)
 {
   SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
+  SDL_RenderClear(render);
   SDL_RenderCopy(render, texture, NULL, NULL);
   SDL_RenderPresent(render);
 }
