@@ -1354,7 +1354,7 @@ void trs_screen_init(void)
   }
 
   SDL_RenderSetLogicalSize(render, OrigWidth, OrigHeight);
-  SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+  SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
   SDL_SetWindowSize(window, OrigWidth * scale, OrigHeight * scale);
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_ShowWindow(window);
@@ -2061,7 +2061,7 @@ void trs_get_event(int wait)
               break;
             case SDLK_RETURN:
               fullscreen = !fullscreen;
-              SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+              SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
               break;
             case SDLK_HOME:
               fullscreen = 0;
