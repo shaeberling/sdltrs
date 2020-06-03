@@ -1354,6 +1354,7 @@ void trs_screen_init(void)
   }
 
   SDL_RenderSetLogicalSize(render, OrigWidth, OrigHeight);
+  SDL_RenderClear(render);
   SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
   SDL_SetWindowSize(window, OrigWidth * scale, OrigHeight * scale);
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
