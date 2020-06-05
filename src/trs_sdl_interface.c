@@ -1950,7 +1950,6 @@ void trs_get_event(int wait)
 #endif
           drawnRectCount = MAX_RECTS;
           trs_sdl_flush();
-          clear_key_queue();
         }
         break;
 
