@@ -1733,7 +1733,8 @@ void trs_gui_display_management(void)
     switch (selection) {
       case 0:
         snprintf(input, 7, "%06X", background);
-        if (trs_gui_input_string("Enter Background RGB color (Hex, RRGGBB)", input, input, 6, 0) == 0) {
+        if (trs_gui_input_string("Enter Background RGB color (Hex, RRGGBB)",
+            input, input, 6, 0) == 0) {
           rgb_color = strtol(input, NULL, 16);
           if (rgb_color != background) {
             background = rgb_color;
@@ -1743,7 +1744,8 @@ void trs_gui_display_management(void)
         break;
       case 1:
         snprintf(input, 7, "%06X", foreground);
-        if (trs_gui_input_string("Enter Foreground RGB color (Hex, RRGGBB)", input, input, 6, 0) == 0) {
+        if (trs_gui_input_string("Enter Foreground RGB color (Hex, RRGGBB)",
+            input, input, 6, 0) == 0) {
           rgb_color = strtol(input, NULL, 16);
           if (rgb_color != foreground) {
             foreground = rgb_color;
@@ -1753,7 +1755,8 @@ void trs_gui_display_management(void)
         break;
       case 2:
         snprintf(input, 7, "%06X", gui_background);
-        if (trs_gui_input_string("Enter GUI Background RGB color (Hex, RRGGBB)", input, input, 6, 0) == 0) {
+        if (trs_gui_input_string("Enter GUI Background RGB color (Hex, RRGGBB)",
+            input, input, 6, 0) == 0) {
           rgb_color = strtol(input, NULL, 16);
           if (rgb_color != gui_background) {
             gui_background = rgb_color;
@@ -1763,7 +1766,8 @@ void trs_gui_display_management(void)
         break;
       case 3:
         snprintf(input, 7, "%06X", gui_foreground);
-        if (trs_gui_input_string("Enter GUI Foreground RGB color (Hex, RRGGBB)", input, input, 6, 0) == 0) {
+        if (trs_gui_input_string("Enter GUI Foreground RGB color (Hex, RRGGBB)",
+            input, input, 6, 0) == 0) {
           rgb_color = strtol(input, NULL, 16);
           if (rgb_color != gui_foreground) {
             gui_foreground = rgb_color;
@@ -2457,7 +2461,8 @@ void trs_gui_write_config(void)
 
 int trs_gui_read_config(void)
 {
-  if (trs_gui_file_browse(trs_config_file, trs_config_file, ".t8c", 0, "Configuration (.t8c)") >= 0) {
+  if (trs_gui_file_browse(trs_config_file, trs_config_file, ".t8c", 0,
+      "Configuration (.t8c)") >= 0) {
     if (trs_load_config_file() == 0) {
       trs_gui_new_machine();
       return 0;
@@ -2506,7 +2511,8 @@ void trs_gui_save_state(void)
 {
   filename[0] = 0;
   if (trs_gui_input_string("Save Emulator State, TAB selects directory",
-      init_state_file[0] != 0 ? init_state_file : trs_state_dir, filename, FILENAME_MAX - 5, 1) == 0) {
+      init_state_file[0] != 0 ? init_state_file : trs_state_dir, filename,
+      FILENAME_MAX - 5, 1) == 0) {
     trs_add_extension(filename, ".t8s");
     if (trs_gui_file_overwrite()) {
       if (trs_state_save(filename) == -1)
