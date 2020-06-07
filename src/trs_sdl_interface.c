@@ -2554,7 +2554,7 @@ boxes_init(int fg_color, int bg_color, int width, int height, int expanded)
     if (trs_box[expanded][graphics_char])
       SDL_FreeSurface(trs_box[expanded][graphics_char]);
     trs_box[expanded][graphics_char] =
-      SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32,
+      SDL_CreateRGBSurface(0, width, height, 32,
 #if defined(big_endian) && !defined(__linux)
                            0x000000ff, 0x0000ff00, 0x00ff0000, 0);
 #else
