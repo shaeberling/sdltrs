@@ -1675,7 +1675,7 @@ void trs_exit(int confirm)
   recursion = 1;
 
   if (confirm) {
-    buffer = SDL_ConvertSurface(screen, screen->format, SDL_SWSURFACE);
+    buffer = SDL_ConvertSurface(screen, screen->format, 0);
     if (!trs_gui_exit_sdltrs()) {
       SDL_BlitSurface(buffer, NULL, screen, NULL);
       SDL_FreeSurface(buffer);
