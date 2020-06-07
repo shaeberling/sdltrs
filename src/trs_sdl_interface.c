@@ -2721,7 +2721,6 @@ void trs_screen_refresh(void)
     dstRect.x = left_margin;
     dstRect.y = top_margin;
     SDL_BlitSurface(image, &srcRect, screen, &dstRect);
-    drawnRectCount = MAX_RECTS;
     /* Draw wrapped portions if any */
     if (dunx < cur_char_width * row_chars) {
       srcRect.x = 0;
@@ -2731,7 +2730,6 @@ void trs_screen_refresh(void)
       dstRect.x = left_margin + dunx;
       dstRect.y = top_margin;
       SDL_BlitSurface(image, &srcRect, screen, &dstRect);
-      drawnRectCount = MAX_RECTS;
     }
     if (duny < cur_char_height * col_chars) {
       srcRect.x = srcx;
@@ -2741,7 +2739,6 @@ void trs_screen_refresh(void)
       dstRect.x = left_margin;
       dstRect.y = top_margin + duny;
       SDL_BlitSurface(image, &srcRect, screen, &dstRect);
-      drawnRectCount = MAX_RECTS;
       if (dunx < cur_char_width * row_chars) {
         srcRect.x = 0;
         srcRect.y = 0;
@@ -2750,7 +2747,6 @@ void trs_screen_refresh(void)
         dstRect.x = left_margin + dunx;
         dstRect.y = top_margin + duny;
         SDL_BlitSurface(image, &srcRect, screen, &dstRect);
-        drawnRectCount = MAX_RECTS;
       }
     }
   } else {
@@ -2949,7 +2945,6 @@ void trs_screen_write_char(int position, unsigned char char_index)
       dstRect.x = destx;
       dstRect.y = desty + duny;
       TrsSoftBlit(image, &srcRect, screen, &dstRect, 1);
-      drawnRectCount = MAX_RECTS;
     }
   }
   if (hrg_enable)
