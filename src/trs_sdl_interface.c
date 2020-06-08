@@ -2999,7 +2999,7 @@ void trs_gui_write_char(unsigned int position, unsigned char char_index, int inv
 
 static void grafyx_write_byte(int x, int y, char byte)
 {
-  int i;
+  int const position = (y * 2) * imageSize.bytes_per_line + x;
   int const screen_x = ((x - grafyx_xoffset + G_XSIZE) % G_XSIZE);
   int const screen_y = ((y - grafyx_yoffset + G_YSIZE) % G_YSIZE);
   int const on_screen = screen_x < row_chars &&
@@ -3019,8 +3019,8 @@ static void grafyx_write_byte(int x, int y, char byte)
 
   /* Save new byte in local memory */
   grafyx_unscaled[y][x] = byte;
-  for (i = 0; i < 2; i++)
-    grafyx[(y * 2 + i) * imageSize.bytes_per_line + x] = byte;
+  grafyx[position] = byte;
+  grafyx[position + imageSize.bytes_per_line] = byte;
 
   if (grafyx_enable && on_screen) {
     /* Draw new byte */
