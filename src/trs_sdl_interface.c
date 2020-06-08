@@ -414,7 +414,6 @@ static const int num_options = sizeof(options) / sizeof(trs_opt);
 
 /* Private routines */
 static void bitmap_init(void);
-static void grafyx_redraw(void);
 
 static void stripWhitespace(char *inputStr)
 {
@@ -1364,7 +1363,6 @@ void trs_screen_init(void)
 
   if (image)
     SDL_FreeSurface(image);
-  memset(grafyx, 0, (G_YSIZE * 2) * G_XSIZE);
   image = SDL_CreateRGBSurfaceFrom(grafyx, imageSize.width, imageSize.height, 1,
                                    imageSize.bytes_per_line, 1, 1, 1, 0);
 
@@ -1404,7 +1402,6 @@ void trs_screen_init(void)
   }
 
   drawnRectCount = MAX_RECTS; /* Will force redraw of whole screen */
-  grafyx_redraw();
   trs_screen_refresh();
   trs_sdl_flush();
 }
@@ -2521,6 +2518,8 @@ void screen_init(void)
   /* initially, screen is blank (i.e. full of spaces) */
   for (i = 0; i < sizeof(trs_screen); i++)
     trs_screen[i] = ' ';
+
+  memset(grafyx, 0, (G_YSIZE * 2) * G_XSIZE);
 }
 
 static void
@@ -3030,21 +3029,6 @@ static void grafyx_write_byte(int x, int y, char byte)
     dstRect.y = top_margin + screen_y * 2;
     TrsSoftBlit(image, &srcRect, screen, &dstRect, grafyx_overlay);
     drawnRectCount = MAX_RECTS;
-  }
-}
-
-static void grafyx_redraw(void)
-{
-  char byte;
-  int i;
-  int x, y;
-
-  for (y = 0; y < G_YSIZE; y++) {
-    for (x = 0; x < G_XSIZE; x++) {
-      byte = grafyx_unscaled[y][x];
-      for (i = 0; i < 2; i++)
-        grafyx[(y * 2 + i) * imageSize.bytes_per_line + x] = byte;
-    }
   }
 }
 
