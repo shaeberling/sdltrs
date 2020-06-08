@@ -1339,6 +1339,17 @@ void trs_screen_init(void)
       trs_sdl_cleanup();
       fatal("failed to create surface: %s", SDL_GetError());
     }
+#if defined(big_endian) && !defined(__linux)
+    light_red     = SDL_MapRGB(screen->format, 0x00, 0x00, 0x40);
+    bright_red    = SDL_MapRGB(screen->format, 0x00, 0x00, 0xff);
+    light_orange  = SDL_MapRGB(screen->format, 0x40, 0x28, 0x40);
+    bright_orange = SDL_MapRGB(screen->format, 0x00, 0xa0, 0xff);
+#else
+    light_red     = SDL_MapRGB(screen->format, 0x40, 0x00, 0x00);
+    bright_red    = SDL_MapRGB(screen->format, 0xff, 0x00, 0x00);
+    light_orange  = SDL_MapRGB(screen->format, 0x40, 0x28, 0x00);
+    bright_orange = SDL_MapRGB(screen->format, 0xff, 0xa0, 0x00);
+#endif
   }
 
   if (texture)
@@ -1373,10 +1384,6 @@ void trs_screen_init(void)
   colors[1].r   = (foreground) & 0xFF;
   colors[1].g   = (foreground >> 8) & 0xFF;
   colors[1].b   = (foreground >> 16) & 0xFF;
-  light_red     = SDL_MapRGB(screen->format, 0x00, 0x00, 0x40);
-  bright_red    = SDL_MapRGB(screen->format, 0x00, 0x00, 0xff);
-  light_orange  = SDL_MapRGB(screen->format, 0x40, 0x28, 0x40);
-  bright_orange = SDL_MapRGB(screen->format, 0x00, 0xa0, 0xff);
 #else
   colors[0].r   = (background >> 16) & 0xFF;
   colors[0].g   = (background >> 8) & 0xFF;
@@ -1384,10 +1391,6 @@ void trs_screen_init(void)
   colors[1].r   = (foreground >> 16) & 0xFF;
   colors[1].g   = (foreground >> 8) & 0xFF;
   colors[1].b   = (foreground) & 0xFF;
-  light_red     = SDL_MapRGB(screen->format, 0x40, 0x00, 0x00);
-  bright_red    = SDL_MapRGB(screen->format, 0xff, 0x00, 0x00);
-  light_orange  = SDL_MapRGB(screen->format, 0x40, 0x28, 0x00);
-  bright_orange = SDL_MapRGB(screen->format, 0xff, 0xa0, 0x00);
 #endif
   SDL_SetPaletteColors(image->format->palette, colors, 0, 2);
 
