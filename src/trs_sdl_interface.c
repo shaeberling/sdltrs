@@ -1350,6 +1350,12 @@ void trs_screen_init(void)
     light_orange  = SDL_MapRGB(screen->format, 0x40, 0x28, 0x00);
     bright_orange = SDL_MapRGB(screen->format, 0xff, 0xa0, 0x00);
 #endif
+    image = SDL_CreateRGBSurfaceFrom(grafyx, imageSize.width, imageSize.height, 1,
+                                     imageSize.bytes_per_line, 1, 1, 1, 0);
+    if (image == NULL) {
+      trs_sdl_cleanup();
+      fatal("failed to create surface: %s", SDL_GetError());
+    }
   }
 
   if (texture)
@@ -1371,11 +1377,6 @@ void trs_screen_init(void)
   SDL_ShowWindow(window);
   SDL_ShowCursor(mousepointer ? SDL_ENABLE : SDL_DISABLE);
   SDL_FillRect(screen, NULL, background);
-
-  if (image)
-    SDL_FreeSurface(image);
-  image = SDL_CreateRGBSurfaceFrom(grafyx, imageSize.width, imageSize.height, 1,
-                                   imageSize.bytes_per_line, 1, 1, 1, 0);
 
 #if defined(big_endian) && !defined(__linux)
   colors[0].r   = (background) & 0xFF;
@@ -2523,6 +2524,7 @@ void screen_init(void)
     trs_screen[i] = ' ';
 
   memset(grafyx, 0, (G_YSIZE * 2) * G_XSIZE);
+  SDL_FillRect(image, NULL, background);
 }
 
 static void
