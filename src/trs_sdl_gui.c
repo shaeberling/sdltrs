@@ -2294,8 +2294,9 @@ void trs_gui_model(void)
           supermem = 0;
         break;
       case -1:
-        if (trs_model != (model_selection == 0 ? 1 : model_selection + 2)) {
-          trs_model = (model_selection == 0 ? 1 : model_selection + 2);
+        model_selection = (model_selection == 0 ? 1 : model_selection + 2);
+        if (trs_model != model_selection) {
+          trs_model = model_selection;
           trs_gui_new_machine();
         }
         return;
