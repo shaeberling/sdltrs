@@ -1244,10 +1244,7 @@ void trs_screen_init(void)
   else
     trs_charset = trs_charset4;
 
-  if (trs_model >= 4)
-    resize = resize4;
-  else
-    resize = resize3;
+  resize = (trs_model >= 4) ? resize4 : resize3;
 
   if (trs_model == 1) {
     if (trs_charset < 3)
@@ -1263,15 +1260,8 @@ void trs_screen_init(void)
       cur_char_height = TRS_CHAR_HEIGHT * 2;
   }
 
-  if (fullscreen)
-    border_width = 0;
-  else
-    border_width = window_border_width;
-
-  if (trs_show_led)
-    led_height = 8;
-  else
-    led_height = 0;
+  border_width = fullscreen ? 0 : window_border_width;
+  led_height = trs_show_led ? 0 : 8;
 
   if (trs_model >= 3  && !resize) {
     OrigWidth = cur_char_width * 80 + 2 * border_width;
