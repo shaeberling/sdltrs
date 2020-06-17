@@ -218,17 +218,6 @@ static unsigned char grafyx_xoffset = 0, grafyx_yoffset = 0;
 #define G3_COMMAND  0x20
 #define G3_YLOW(v)  (((v) & 0x1e) >> 1)
 
-typedef struct image_size_type {
-  unsigned int width;
-  unsigned int height;
-  unsigned int bytes_per_line;
-} IMAGE_SIZE_TYPE;
-
-IMAGE_SIZE_TYPE imageSize = {
-  /*width, height*/    8 * G_XSIZE, 2 * G_YSIZE,  /* if scale = 1 */
-  /*bytes_per_line*/   G_XSIZE,  /* if scale = 1 */
-};
-
 #define HRG_MEMSIZE (1024 * 12)        /* 12k * 8 bit graphics memory */
 static unsigned char hrg_screen[HRG_MEMSIZE];
 static int hrg_pixel_x[2][6 + 1];
@@ -1274,10 +1263,6 @@ void trs_screen_init(void)
       cur_char_height = TRS_CHAR_HEIGHT * 2;
   }
 
-  imageSize.width = 8 * G_XSIZE;
-  imageSize.height = 2 * G_YSIZE;
-  imageSize.bytes_per_line = G_XSIZE;
-
   if (fullscreen)
     border_width = 0;
   else
@@ -1337,8 +1322,8 @@ void trs_screen_init(void)
     light_orange  = SDL_MapRGB(screen->format, 0x40, 0x28, 0x00);
     bright_orange = SDL_MapRGB(screen->format, 0xff, 0xa0, 0x00);
 #endif
-    image = SDL_CreateRGBSurfaceFrom(grafyx, imageSize.width, imageSize.height, 1,
-                                     imageSize.bytes_per_line, 1, 1, 1, 0);
+    image = SDL_CreateRGBSurfaceFrom(grafyx, G_XSIZE * 8, G_YSIZE * 2, 1,
+                                     G_XSIZE, 1, 1, 1, 0);
     if (image == NULL) {
       trs_sdl_cleanup();
       fatal("failed to create surface: %s", SDL_GetError());
@@ -2704,8 +2689,8 @@ void trs_screen_refresh(void)
   if (grafyx_enable && !grafyx_overlay) {
     int const srcx = cur_char_width * grafyx_xoffset;
     int const srcy = grafyx_yoffset * 2;
-    int const dunx = imageSize.width - srcx;
-    int const duny = imageSize.height - srcy;
+    int const dunx = G_XSIZE * 8 - srcx;
+    int const duny = G_YSIZE * 2 - srcy;
     SDL_Rect srcRect, dstRect;
 
     srcRect.x = srcx;
@@ -2920,7 +2905,7 @@ void trs_screen_write_char(int position, unsigned char char_index)
     int const srcx = ((col + grafyx_xoffset) % G_XSIZE) * cur_char_width;
     int const srcy = (row * cur_char_height + grafyx_yoffset * 2)
       % (G_YSIZE * 2);
-    int const duny = imageSize.height - srcy;
+    int const duny = G_YSIZE * 2 - srcy;
 
     srcRect.x = srcx;
     srcRect.y = srcy;
@@ -2991,7 +2976,7 @@ void trs_gui_write_char(unsigned int position, unsigned char char_index, int inv
 
 static void grafyx_write_byte(int x, int y, char byte)
 {
-  int const position = (y * 2) * imageSize.bytes_per_line + x;
+  int const position = (y * 2) * G_XSIZE + x;
   int const screen_x = ((x - grafyx_xoffset + G_XSIZE) % G_XSIZE);
   int const screen_y = ((y - grafyx_yoffset + G_YSIZE) % G_YSIZE);
   int const on_screen = screen_x < row_chars &&
@@ -3012,7 +2997,7 @@ static void grafyx_write_byte(int x, int y, char byte)
   /* Save new byte in local memory */
   grafyx_unscaled[y][x] = byte;
   grafyx[position] = byte;
-  grafyx[position + imageSize.bytes_per_line] = byte;
+  grafyx[position + G_XSIZE] = byte;
 
   if (grafyx_enable && on_screen) {
     /* Draw new byte */
