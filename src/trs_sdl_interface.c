@@ -1261,7 +1261,7 @@ void trs_screen_init(void)
   }
 
   border_width = fullscreen ? 0 : window_border_width;
-  led_height = trs_show_led ? 0 : 8;
+  led_height = trs_show_led ? 8 : 0;
 
   if (trs_model >= 3  && !resize) {
     OrigWidth = cur_char_width * 80 + 2 * border_width;
