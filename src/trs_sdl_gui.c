@@ -2558,8 +2558,6 @@ void trs_gui_new_machine(void)
 {
   trs_screen_var_reset();
   romin = 0;
-  mem_init();
-  trs_timer_init();
   trs_screen_init();
   trs_reset(1);
 }
