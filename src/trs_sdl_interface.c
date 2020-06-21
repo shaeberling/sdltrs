@@ -1351,6 +1351,12 @@ void trs_screen_init(void)
   TrsBlitMap(image->format->palette, screen->format);
   bitmap_init();
 
+  if (trs_show_led) {
+    trs_disk_led(-1, 0);
+    trs_hard_led(-1, 0);
+    trs_turbo_led();
+  }
+
   trs_screen_caption();
   trs_screen_refresh();
   trs_sdl_flush();
@@ -1737,14 +1743,8 @@ static void call_function(int function)
     if (!trs_paused)
       trs_screen_refresh();
   }
-  else if (function == RESET) {
+  else if (function == RESET)
     trs_reset(1);
-    if (trs_show_led) {
-      trs_disk_led(-1, 0);
-      trs_hard_led(-1, 0);
-      trs_turbo_led();
-    }
-  }
   else if (function == EXIT)
     trs_exit(0);
   else {
@@ -1936,16 +1936,7 @@ void trs_get_event(int wait)
             keysym.sym = 0;
             break;
           case SDLK_F10:
-            if (SDL_GetModState() & KMOD_SHIFT) {
-              trs_reset(1);
-              if (trs_show_led) {
-                trs_disk_led(-1, 0);
-                trs_hard_led(-1, 0);
-                trs_turbo_led();
-              }
-            }
-            else
-              trs_reset(0);
+            trs_reset(!(SDL_GetModState() & KMOD_SHIFT));
             keysym.sym = 0;
             break;
           case SDLK_F11:
@@ -2709,13 +2700,6 @@ void trs_screen_refresh(void)
     for (i = 0; i < screen_chars; i++)
       trs_screen_write_char(i, trs_screen[i]);
   }
-
-  if (trs_show_led) {
-    trs_disk_led(-1, 0);
-    trs_hard_led(-1, 0);
-    trs_turbo_led();
-  }
-
   drawnRectCount = MAX_RECTS; /* Will force redraw of whole screen */
 }
 
