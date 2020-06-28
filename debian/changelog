@@ -1,3 +1,9 @@
+sd2ltrs (1.2.11-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Jens Guenther <Jenz.Guenther@T-Online.de>  Sun, 28 Jun 2020 12:19:36 +0100
+
 sdl2trs (1.2.10-1) unstable; urgency=medium
 
   * New upstream release
