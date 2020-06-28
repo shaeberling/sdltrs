@@ -20,6 +20,8 @@ Modified version of Mark Grebe's [SDLTRS] with bug fixes and patches:
 This branch contains the SDL2 version with hardware rendering support.
 Altough *experimental*, it's recommended for newer operating systems ...
 
+This version is available in Valerio Lupi's fork of the [RetroPie-Setup].
+
 ## Binaries
 
   * [sdl2trs.exe]    (32-bit, needs [SDL2.DLL])
@@ -43,6 +45,7 @@ Altough *experimental*, it's recommended for newer operating systems ...
 
 [BUILDING.md]: BUILDING.md
 [EtchedPixels]: https://www.github.com/EtchedPixels/xtrs
+[RetroPie-Setup]: https://github.com/valerino/RetroPie-Setup
 [SDL2.DLL]: https://www.libsdl.org/download-2.0.php
 [SDLTRS]: http://sdltrs.sourceforge.net
 [sdl2trs.exe]: bin/sdl2trs.exe
