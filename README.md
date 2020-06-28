@@ -29,8 +29,8 @@ Altough *experimental*, it's recommended for newer operating systems ...
 
 ## Packages
 
-  * [sdl2trs_1.2.10-1_i386.deb]   (32-bit, SDL2)
-  * [sdl2trs_1.2.10-1_amd64.deb]  (64-bit, SDL2)
+  * [sdl2trs_1.2.11-1_i386.deb]   (32-bit, SDL2)
+  * [sdl2trs_1.2.11-1_amd64.deb]  (64-bit, SDL2)
 
 (Build on Debian 9/i386 & Linux Mint 19.3/amd64)
 
@@ -47,5 +47,5 @@ Altough *experimental*, it's recommended for newer operating systems ...
 [SDLTRS]: http://sdltrs.sourceforge.net
 [sdl2trs.exe]: bin/sdl2trs.exe
 [sdl2trs64.exe]: bin/sdl2trs64.exe
-[sdl2trs_1.2.10-1_i386.deb]: bin/sdl2trs_1.2.10-1_i386.deb
-[sdl2trs_1.2.10-1_amd64.deb]: bin/sdl2trs_1.2.10-1_amd64.deb
+[sdl2trs_1.2.11-1_i386.deb]: bin/sdl2trs_1.2.11-1_i386.deb
+[sdl2trs_1.2.11-1_amd64.deb]: bin/sdl2trs_1.2.11-1_amd64.deb
