@@ -2253,7 +2253,6 @@ void trs_gui_model(void)
                 break;
             }
             trs_timer_init();
-            trs_screen_caption();
           }
         }
         break;
