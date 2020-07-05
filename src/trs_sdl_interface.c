@@ -2800,7 +2800,7 @@ void trs_turbo_led(void)
 
 void trs_screen_write_char(int position, unsigned char char_index)
 {
-  int row, col, destx, desty, expanded, width, height;
+  int row, col, expanded;
   SDL_Rect srcRect, dstRect;
 
   if (position >= screen_chars)
@@ -2818,11 +2818,15 @@ void trs_screen_write_char(int position, unsigned char char_index)
     row = position / 80;
     col = position - (row * 80);
   }
-  destx = col * cur_char_width + left_margin;
-  desty = row * cur_char_height + top_margin;
+
   expanded = (currentmode & EXPANDED) != 0;
-  width = cur_char_width * (expanded + 1);
-  height = cur_char_height;
+
+  srcRect.x = 0;
+  srcRect.y = 0;
+  srcRect.w = cur_char_width * (expanded + 1);
+  srcRect.h = cur_char_height;
+  dstRect.x = col * cur_char_width + left_margin;
+  dstRect.y = row * cur_char_height + top_margin;
 
   if (trs_model == 1 && char_index >= 0xc0) {
     /* On Model I, 0xc0-0xff is another copy of 0x80-0xbf */
@@ -2830,12 +2834,6 @@ void trs_screen_write_char(int position, unsigned char char_index)
   }
   if (char_index >= 0x80 && char_index <= 0xbf && !(currentmode & INVERSE)) {
     /* Use box graphics character bitmap */
-    srcRect.x = 0;
-    srcRect.y = 0;
-    srcRect.w = width;
-    srcRect.h = height;
-    dstRect.x = destx;
-    dstRect.y = desty;
     SDL_BlitSurface(trs_box[expanded][char_index - 0x80], &srcRect, screen, &dstRect);
   } else {
     /* Use regular character bitmap */
@@ -2847,12 +2845,6 @@ void trs_screen_write_char(int position, unsigned char char_index)
       expanded += 2;
       char_index &= 0x7f;
     }
-    srcRect.x = 0;
-    srcRect.y = 0;
-    srcRect.w = width;
-    srcRect.h = height;
-    dstRect.x = destx;
-    dstRect.y = desty;
     SDL_BlitSurface(trs_char[expanded][char_index], &srcRect, screen, &dstRect);
   }
 
@@ -2866,19 +2858,12 @@ void trs_screen_write_char(int position, unsigned char char_index)
 
     srcRect.x = srcx;
     srcRect.y = srcy;
-    srcRect.w = width;
-    srcRect.h = height;
-    dstRect.x = destx;
-    dstRect.y = desty;
     TrsSoftBlit(image, &srcRect, screen, &dstRect, 1);
     /* Draw wrapped portion if any */
     if (duny < cur_char_height) {
-      srcRect.x = srcx;
       srcRect.y = 0;
-      srcRect.w = width;
-      srcRect.h = height - duny;
-      dstRect.x = destx;
-      dstRect.y = desty + duny;
+      srcRect.h -= duny;
+      dstRect.y += duny;
       TrsSoftBlit(image, &srcRect, screen, &dstRect, 1);
     }
   }
