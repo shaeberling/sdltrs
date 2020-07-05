@@ -2837,7 +2837,6 @@ void trs_screen_write_char(int position, unsigned char char_index)
     dstRect.x = destx;
     dstRect.y = desty;
     SDL_BlitSurface(trs_box[expanded][char_index - 0x80], &srcRect, screen, &dstRect);
-    drawnRectCount = MAX_RECTS;
   } else {
     /* Use regular character bitmap */
     if (trs_model > 1 && char_index >= 0xc0 &&
@@ -2855,7 +2854,6 @@ void trs_screen_write_char(int position, unsigned char char_index)
     dstRect.x = destx;
     dstRect.y = desty;
     SDL_BlitSurface(trs_char[expanded][char_index], &srcRect, screen, &dstRect);
-    drawnRectCount = MAX_RECTS;
   }
 
   /* Overlay grafyx on character */
@@ -2873,7 +2871,6 @@ void trs_screen_write_char(int position, unsigned char char_index)
     dstRect.x = destx;
     dstRect.y = desty;
     TrsSoftBlit(image, &srcRect, screen, &dstRect, 1);
-    drawnRectCount = MAX_RECTS;
     /* Draw wrapped portion if any */
     if (duny < cur_char_height) {
       srcRect.x = srcx;
@@ -2885,8 +2882,11 @@ void trs_screen_write_char(int position, unsigned char char_index)
       TrsSoftBlit(image, &srcRect, screen, &dstRect, 1);
     }
   }
+
   if (hrg_enable)
     hrg_update_char(position);
+
+  drawnRectCount = MAX_RECTS;
 }
 
 void trs_gui_refresh(void)
