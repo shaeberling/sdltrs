@@ -25,7 +25,7 @@ AC_ARG_ENABLE([readline],
    AC_MSG_ERROR([Unable to find readline function]))])
 
 CFLAGS="$CFLAGS $( sdl2-config --cflags )"
-LIBS="$LIBS $( sdl2-config --libs)"
+LIBS="$LIBS $( sdl2-config --libs | sed 's/ -mwindows//' )"
 
 AC_CHECK_LIB([SDL2], [SDL_Init], [:],
   AC_MSG_ERROR([Unable to find SDL_Init function in SDL2]))
