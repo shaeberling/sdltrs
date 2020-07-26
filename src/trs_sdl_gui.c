@@ -274,6 +274,8 @@ int trs_gui_get_key(void)
               return SDLK_F9;
             case SDLK_DELETE:
               return SDLK_F10;
+            default:
+              break;
           }
         }
         else if (event.key.keysym.sym == SDLK_F8)
@@ -1832,6 +1834,8 @@ int trs_gui_joystick_get_button(void)
 #endif
             case SDLK_q:
               trs_exit(1);
+              break;
+            default:
               break;
           }
         }
