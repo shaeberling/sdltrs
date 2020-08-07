@@ -24,8 +24,16 @@ AC_ARG_ENABLE([readline],
    AC_SEARCH_LIBS([readline], [readline], AC_DEFINE([READLINE]),
    AC_MSG_ERROR([Unable to find readline function]))])
 
+AC_ARG_ENABLE([zbx],
+  [AS_HELP_STRING([--enable-zbx], [build with integrated Z80 debugger zbx])],
+  [AC_DEFINE([ZBX])])
+
 CFLAGS="$CFLAGS $( sdl2-config --cflags )"
-LIBS="$LIBS $( sdl2-config --libs | sed 's/ -mwindows//' )"
+LIBS="$LIBS $( sdl2-config --libs )"
+
+AS_IF([test "x$enable_zbx" = "xyes"],
+  [LIBS="$( echo $LIBS | sed 's/ -mwindows//' )"],
+  [AC_MSG_NOTICE([integrated Z80 debugger zbx DISABLED])])
 
 AC_CHECK_LIB([SDL2], [SDL_Init], [:],
   AC_MSG_ERROR([Unable to find SDL_Init function in SDL2]))
