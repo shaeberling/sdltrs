@@ -1612,6 +1612,12 @@ void trs_sdl_cleanup(void)
   SDL_Quit();
 }
 
+static void trs_flip_fullscreen(void)
+{
+  fullscreen = !fullscreen;
+  SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+}
+
 static char *trs_get_copy_data()
 {
   static char copy_data[2048];
@@ -1876,10 +1882,12 @@ void trs_get_event(int wait)
               cpu_panel = !cpu_panel;
               trs_screen_caption();
             }
-#ifdef ZBX
             else
+#ifdef ZBX
               if (!fullscreen)
                 trs_debug();
+#else
+            trs_flip_fullscreen();
 #endif
             keysym.sym = 0;
             break;
@@ -1952,8 +1960,7 @@ void trs_get_event(int wait)
               trs_reset(0);
               break;
             case SDLK_RETURN:
-              fullscreen = !fullscreen;
-              SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+              trs_flip_fullscreen();
               break;
             case SDLK_HOME:
               fullscreen = 0;
@@ -2072,12 +2079,14 @@ void trs_get_event(int wait)
               trs_screen_refresh();
               trs_sdl_flush();
               break;
-#ifdef ZBX
             case SDLK_z:
+#ifdef ZBX
               if (!fullscreen)
                 trs_debug();
-              break;
+#else
+              trs_flip_fullscreen();
 #endif
+              break;
             case SDLK_0:
             case SDLK_1:
             case SDLK_2:
