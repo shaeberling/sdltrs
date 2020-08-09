@@ -1841,8 +1841,6 @@ void trs_get_event(int wait)
 #if XDEBUG
           debug("Active\n");
 #endif
-          drawnRectCount = MAX_RECTS;
-          trs_sdl_flush();
           if (trs_model == 1)
             clear_key_queue();
         }
