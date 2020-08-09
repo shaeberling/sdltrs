@@ -21,6 +21,7 @@ This branch contains the SDL2 version with hardware rendering support.
 Altough *experimental*, it's recommended for newer operating systems ...
 
 This version is available in Valerio Lupi's fork of the [RetroPie-Setup].
+It has also been merged to the upstream of [RetroPie] since version 4.6.6 ...
 
 ## Binaries
 
@@ -45,6 +46,7 @@ This version is available in Valerio Lupi's fork of the [RetroPie-Setup].
 
 [BUILDING.md]: BUILDING.md
 [EtchedPixels]: https://www.github.com/EtchedPixels/xtrs
+[RetroPie]: https://github.com/RetroPie
 [RetroPie-Setup]: https://github.com/valerino/RetroPie-Setup
 [SDL2.DLL]: https://www.libsdl.org/download-2.0.php
 [SDLTRS]: http://sdltrs.sourceforge.net
