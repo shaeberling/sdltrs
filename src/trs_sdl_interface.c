@@ -2629,6 +2629,8 @@ void trs_disk_led(int drive, int on_off)
 
   if (drive == -1) {
     for (i = 0; i < 8; i++) {
+      if (on_off == -1)
+        countdown[i] = 0;
       rect.x = border_width + 24 * i;
       SDL_FillRect(screen, &rect, countdown[i] ? bright_red : light_red);
       drawnRectCount = MAX_RECTS;
@@ -2669,6 +2671,8 @@ void trs_hard_led(int drive, int on_off)
 
   if (drive == -1) {
     for (i = 0; i < 4; i++) {
+      if (on_off == -1)
+        countdown[i] = 0;
       rect.x = drive0_led_x + 24 * i;
       SDL_FillRect(screen, &rect, countdown[i] ? bright_red : light_red);
       drawnRectCount = MAX_RECTS;
