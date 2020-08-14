@@ -1758,6 +1758,8 @@ void trs_get_event(int wait)
       case SDL_WINDOWEVENT:
         if (event.window.event & SDL_WINDOWEVENT_RESIZED) {
           SDL_RenderClear(render);
+          SDL_RenderCopy(render, texture, NULL, NULL);
+          SDL_RenderPresent(render);
         }
         if (event.window.event & SDL_WINDOWEVENT_EXPOSED) {
           SDL_FlushEvent(SDL_KEYDOWN);
