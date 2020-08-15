@@ -1222,7 +1222,6 @@ void trs_screen_init(void)
   int led_height;
   SDL_Color colors[2];
 
-  copyStatus = COPY_IDLE;
   if (trs_model == 1) {
     trs_charset = trs_charset1;
     currentmode = NORMAL;
