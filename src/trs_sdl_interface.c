@@ -69,11 +69,11 @@
 #include "trs_stringy.h"
 #include "trs_uart.h"
 
-#define MAX_RECTS      1
-#define MAX_SCALE      4
-#define WHITE          0xe0e0ff
-#define BLACK          0
-#define GREEN          0x344843
+#define MAX_RECTS 1
+#define MAX_SCALE 4
+#define WHITE     0xe0e0ff
+#define BLACK     0
+#define GREEN     0x344843
 
 /* currentmode values */
 #ifdef _WIN32
@@ -1285,7 +1285,7 @@ void trs_screen_init(void)
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
-    screen = SDL_CreateRGBSurface(0, 800, 600, 32, 0, 0, 0, 0); 
+    screen = SDL_CreateRGBSurface(0, 800, 600, 32, 0, 0, 0, 0);
     if (screen == NULL) {
       trs_sdl_cleanup();
       fatal("failed to create surface: %s", SDL_GetError());
