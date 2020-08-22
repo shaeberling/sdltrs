@@ -112,6 +112,7 @@ int resize4;
 int scanlines;
 int window_border_width;
 int turbo_paste = 0;
+char scale_quality = '1';
 char romfile[FILENAME_MAX];
 char romfile3[FILENAME_MAX];
 char romfile4p[FILENAME_MAX];
@@ -264,6 +265,7 @@ static void trs_opt_printer(char *arg, int intarg, int *stringarg);
 static void trs_opt_rom(char *arg, int intarg, int *stringarg);
 static void trs_opt_samplerate(char *arg, int intarg, int *stringarg);
 static void trs_opt_scale(char *arg, int intarg, int *stringarg);
+static void trs_opt_scalequality(char *arg, int intarg, int *stringarg);
 static void trs_opt_selector(char *arg, int intarg, int *stringarg);
 static void trs_opt_shiftbracket(char *arg, int intarg, int *stringarg);
 static void trs_opt_sizemap(char *arg, int intarg, int *stringarg);
@@ -376,6 +378,7 @@ static const trs_opt options[] = {
   { "romfile4p",       trs_opt_string,        1, 0, romfile4p            },
   { "samplerate",      trs_opt_samplerate,    1, 0, NULL                 },
   { "scale",           trs_opt_scale,         1, 0, NULL                 },
+  { "scalequality",    trs_opt_scalequality,  1, 0, NULL                 },
   { "scanlines",       trs_opt_value,         0, 1, &scanlines           },
   { "selector",        trs_opt_selector,      0, 1, NULL                 },
   { "serial",          trs_opt_string,        1, 0, trs_uart_name        },
@@ -739,6 +742,19 @@ static void trs_opt_scale(char *arg, int intarg, int *stringarg)
     scale = 1;
   else if (scale > MAX_SCALE)
     scale = MAX_SCALE;
+}
+
+static void trs_opt_scalequality(char *arg, int intarg, int *stringarg)
+{
+  switch (*arg) {
+    case '0':
+    case '1':
+    case '2':
+      scale_quality = *arg;
+      break;
+    default:
+      error("unknown render scale quality: %s", arg);
+  }
 }
 
 static void trs_opt_selector(char *arg, int intarg, int *stringarg)
@@ -1115,6 +1131,7 @@ int trs_write_config_file(const char *filename)
   fprintf(config_file, "romfile4p=%s\n", romfile4p);
   fprintf(config_file, "samplerate=%d\n", cassette_default_sample_rate);
   fprintf(config_file, "scale=%d\n", scale);
+  fprintf(config_file, "scalequality=%c\n", scale_quality);
   fprintf(config_file, "%sscanlines\n", scanlines ? "" : "no");
   fprintf(config_file, "%sselector\n", selector ? "" : "no");
   fprintf(config_file, "serial=%s\n", trs_uart_name);
@@ -1255,7 +1272,7 @@ void trs_screen_init(void)
       fatal("failed to create renderer: %s", SDL_GetError());
     }
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, &scale_quality);
 
     screen = SDL_CreateRGBSurface(0, 800, 600, 32, 0, 0, 0, 0);
     if (screen == NULL) {
