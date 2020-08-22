@@ -37,6 +37,8 @@ It has also been merged to the upstream of [RetroPie] since version 4.6.6 ...
 
 (Build on Debian 9/i386 & Linux Mint 20/amd64)
 
+Thanks to Tércio Martins a package for Arch Linux is available in the [AUR].
+
 ## Screenshots
 
 ![screenshot](screenshots/sdltrs01.png)
@@ -44,6 +46,7 @@ It has also been merged to the upstream of [RetroPie] since version 4.6.6 ...
 ![screenshot](screenshots/sdltrs03.png)
 ![screenshot](screenshots/sdltrs04.png)
 
+[AUR]: https://aur.archlinux.org/packages/sdl2trs/
 [BUILDING.md]: BUILDING.md
 [EtchedPixels]: https://www.github.com/EtchedPixels/xtrs
 [RetroPie]: https://github.com/RetroPie
