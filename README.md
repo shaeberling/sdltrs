@@ -20,8 +20,8 @@ Modified version of Mark Grebe's [SDLTRS] with bug fixes and patches:
 This branch contains the SDL2 version with hardware rendering support.
 Altough *experimental*, it's recommended for newer operating systems ...
 
-This version is available in Valerio Lupi's fork of the [RetroPie-Setup].
-It has also been merged to the upstream of [RetroPie] since version 4.6.6 ...
+This version is available in [RetroPie] since version 4.6.6 and Valerio
+Lupi's fork of [RetroPie-Setup] ...
 
 ## Binaries
 
