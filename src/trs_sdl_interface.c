@@ -1319,19 +1319,19 @@ void trs_screen_init(void)
   SDL_FillRect(screen, NULL, background);
 
 #if defined(big_endian) && !defined(__linux)
-  colors[0].r   = (background) & 0xFF;
-  colors[0].g   = (background >> 8) & 0xFF;
-  colors[0].b   = (background >> 16) & 0xFF;
-  colors[1].r   = (foreground) & 0xFF;
-  colors[1].g   = (foreground >> 8) & 0xFF;
-  colors[1].b   = (foreground >> 16) & 0xFF;
+  colors[0].r = (background) & 0xFF;
+  colors[0].g = (background >> 8) & 0xFF;
+  colors[0].b = (background >> 16) & 0xFF;
+  colors[1].r = (foreground) & 0xFF;
+  colors[1].g = (foreground >> 8) & 0xFF;
+  colors[1].b = (foreground >> 16) & 0xFF;
 #else
-  colors[0].r   = (background >> 16) & 0xFF;
-  colors[0].g   = (background >> 8) & 0xFF;
-  colors[0].b   = (background) & 0xFF;
-  colors[1].r   = (foreground >> 16) & 0xFF;
-  colors[1].g   = (foreground >> 8) & 0xFF;
-  colors[1].b   = (foreground) & 0xFF;
+  colors[0].r = (background >> 16) & 0xFF;
+  colors[0].g = (background >> 8) & 0xFF;
+  colors[0].b = (background) & 0xFF;
+  colors[1].r = (foreground >> 16) & 0xFF;
+  colors[1].g = (foreground >> 8) & 0xFF;
+  colors[1].b = (foreground) & 0xFF;
 #endif
   SDL_SetPaletteColors(image->format->palette, colors, 0, 2);
 
