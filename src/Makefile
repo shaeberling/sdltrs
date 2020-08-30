@@ -49,6 +49,7 @@ depend:
 sdl2:	ENDIAN	 = $(shell echo "ab" | od -x | grep "6261" > /dev/null || echo "-Dbig_endian")
 sdl2:	INCS	 = $(shell sdl2-config --cflags)
 sdl2:	LIBS	 = $(shell sdl2-config --libs)
+sdl2:	READLINE?= -DREADLINE
 sdl2:	${PROG}
 
 win64:	MINGW64	 = C:\MinGW64
@@ -67,10 +68,9 @@ wsdl2:	MACROS	 = -DWIN32
 wsdl2:	PROG	 = sdl2trs.exe
 wsdl2:	${PROG}
 
-DEBUG		?= -Wall -Wextra -Wno-unused-parameter -O2
-READLINE	?= -DREADLINE
-READLINELIBS	:=$(if ${READLINE},-lreadline,)
+READLINELIBS	 =$(if ${READLINE},-lreadline,)
 ZBX		?= -DZBX
+DEBUG		?= -Wall -Wextra -Wno-unused-parameter -O2
 CFLAGS		+= ${DEBUG} ${INCS} ${ENDIAN} ${MACROS} ${READLINE} ${ZBX}
 
 ${PROG}: ${OBJS}
