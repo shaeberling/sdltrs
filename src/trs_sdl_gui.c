@@ -552,8 +552,8 @@ int trs_gui_file_browse(const char *path, char *name, const char *mask,
   struct stat st;
   const char *new_dir;
   int i, j, key;
-  int selection = 0;
-  int current_first = 0;
+  int selection;
+  int current_first;
   int drawcount;
   int redraw;
 
@@ -594,6 +594,7 @@ read_directory:
   trs_gui_write_text(title, 2, 0, 0);
 
   drawcount = filenamecount < 13 ? filenamecount : 13;
+  current_first = selection = 0;
   redraw = 1;
 
   while (1) {
@@ -675,9 +676,6 @@ read_directory:
             goto done;
           if (*filenamelist[current_first + selection] == '<') {
             new_dir = filenamelist[current_first + selection];
-            selection = 0;
-            current_first = 0;
-
             if (new_dir[1] == '.' && new_dir[2] == '.') {
               for (i = strlen(current_dir) - 2; i >= 0; i--) {
                 if (current_dir[i] == DIR_SLASH) {
@@ -707,8 +705,6 @@ read_directory:
           /* Select a new drive */
           else if (*filenamelist[current_first + selection] == '[') {
             new_dir = filenamelist[current_first + selection];
-            selection = 0;
-            current_first = 0;
             current_dir[0] = new_dir[1];
             current_dir[1] = new_dir[2];
             current_dir[2] = '\\';
