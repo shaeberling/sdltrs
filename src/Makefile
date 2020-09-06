@@ -34,7 +34,7 @@ all:
 	@echo "make (bsd|clean|clean-win|depend|sdl2|win64|wsdl2)"
 
 bsd:
-	make -f BSDMakefile
+	make -f BSDmakefile
 
 clean:
 	rm -f ${OBJS} ${PROG}
