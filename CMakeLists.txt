@@ -99,12 +99,15 @@ endif ()
 install(TARGETS sdl2trs		DESTINATION ${CMAKE_INSTALL_BINDIR}/)
 install(FILES src/sdl2trs.1	DESTINATION ${CMAKE_INSTALL_MANDIR}/man1/)
 install(FILES LICENSE		DESTINATION ${CMAKE_INSTALL_DOCDIR}/)
+
 if (HTMLDOC)
 install(DIRECTORY html		DESTINATION ${CMAKE_INSTALL_DOCDIR}/)
 endif ()
+
 if (DISKIMG)
 install(DIRECTORY diskimages/	DESTINATION ${CMAKE_INSTALL_DATADIR}/sdl2trs/)
 endif ()
+
 if (ICONS)
 install(FILES sdl2trs.desktop	DESTINATION ${CMAKE_INSTALL_DATADIR}/applications/)
 install(FILES icons/sdl2trs.png	DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/48x48/apps/)
