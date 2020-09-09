@@ -1365,13 +1365,13 @@ static void DrawSelectionRectangle(int orig_x, int orig_y, int copy_x, int copy_
   copy_y *= pitch;
   orig_y *= pitch;
 
-  for (y = orig_y; y < orig_y + pitch; y += pitch) {
+  for (y = orig_y; y <= orig_y; y += pitch) {
     pixel = pixels + y + orig_x;
     for (x = 0; x < copy_x - orig_x + bpp; x++)
       *pixel++ ^= 0xFF;
   }
   if (copy_y > orig_y) {
-    for (y = copy_y; y < copy_y + pitch; y += pitch) {
+    for (y = copy_y; y <= copy_y; y += pitch) {
       pixel = pixels + y + orig_x;
       for (x = 0; x < copy_x - orig_x + bpp; x++)
         *pixel++ ^= 0xFF;
