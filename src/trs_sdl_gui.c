@@ -1094,9 +1094,10 @@ int trs_gui_display_popup_matrix(const char* title, const char **entry,
 {
   int const entry_len = strlen(entry[0]) + 1;
   int const entry_count = rows * cols;
+  int const width = cols * entry_len - 1;
   int row, col;
   int i, j, key;
-  int width, x, y;
+  int x, y;
 
   if (selection < 0)
     selection = 0;
@@ -1105,8 +1106,6 @@ int trs_gui_display_popup_matrix(const char* title, const char **entry,
 
   row = selection / cols;
   col = selection % cols;
-
-  width = cols * entry_len - 1;
   x = (64 - width) / 2;
   y = (16 - rows) / 2;
 
