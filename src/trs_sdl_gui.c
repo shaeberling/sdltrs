@@ -2151,7 +2151,8 @@ void trs_gui_write_config(void)
 {
   filename[0] = 0;
   if (trs_gui_input_string("Write Configuration, TAB selects directory",
-      trs_config_file, filename, FILENAME_MAX - 5, 1) == 0) {
+      trs_config_file[0] != 0 ? trs_config_file : trs_state_dir, filename,
+      FILENAME_MAX - 5, 1) == 0) {
     trs_add_extension(filename, ".t8c");
     if (trs_gui_file_overwrite()) {
       if (trs_write_config_file(filename) == -1)
@@ -2511,7 +2512,7 @@ void trs_gui_default_dirs(void)
    {"   ", MENU_NORMAL_TYPE},
    {"Disk Set Directory:", MENU_TITLE_TYPE},
    {"   ", MENU_NORMAL_TYPE},
-   {"State Directory:", MENU_TITLE_TYPE},
+   {"State/Configuration Directory:", MENU_TITLE_TYPE},
    {"   ", MENU_NORMAL_TYPE},
    {"Printer Output/Screenshot Directory:", MENU_TITLE_TYPE},
    {"   ", MENU_NORMAL_TYPE},
@@ -2543,7 +2544,7 @@ void trs_gui_default_dirs(void)
         trs_gui_file_browse(trs_disk_set_dir, trs_disk_set_dir, NULL, 1, "Disk Set ");
         break;
       case 9:
-        trs_gui_file_browse(trs_state_dir, trs_state_dir, NULL, 1, "Saved State ");
+        trs_gui_file_browse(trs_state_dir, trs_state_dir, NULL, 1, "State/Configuration ");
         break;
       case 11:
         trs_gui_file_browse(trs_printer_dir, trs_printer_dir, NULL, 1, "Printer Output ");
