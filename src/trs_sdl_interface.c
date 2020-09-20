@@ -1758,12 +1758,10 @@ void trs_get_event(int wait)
           /* Trap some function keys here */
           case SDLK_F7:
             call_function(GUI);
-            keysym.sym = 0;
-            break;
+            continue;
           case SDLK_F8:
             trs_exit(!(SDL_GetModState() & KMOD_SHIFT));
-            keysym.sym = 0;
-            break;
+            continue;
           case SDLK_F9:
             if (SDL_GetModState() & KMOD_SHIFT) {
               cpu_panel = !cpu_panel;
@@ -1776,19 +1774,16 @@ void trs_get_event(int wait)
 #else
             trs_flip_fullscreen();
 #endif
-            keysym.sym = 0;
-            break;
+            continue;
           case SDLK_F10:
             trs_reset(!(SDL_GetModState() & KMOD_SHIFT));
-            keysym.sym = 0;
-            break;
+            continue;
           case SDLK_F11:
             if (SDL_GetModState() & KMOD_SHIFT)
               call_function(SAVE_BMP);
             else
               call_function(KEYS);
-            keysym.sym = 0;
-            break;
+            continue;
           case SDLK_F12:
             if (SDL_GetModState() & KMOD_SHIFT)
               trs_timer_init();
@@ -1798,21 +1793,17 @@ void trs_get_event(int wait)
                 trs_turbo_led();
             }
             trs_screen_caption();
-            keysym.sym = 0;
-            break;
+            continue;
           case SDLK_PAUSE:
             call_function(PAUSE);
-            keysym.sym = 0;
-            break;
+            continue;
           case SDLK_PRINTSCREEN:
             call_function(SAVE_BMP);
-            keysym.sym = 0;
-            break;
+            continue;
           case SDLK_NUMLOCKCLEAR:
             trs_keypad_joystick = !trs_keypad_joystick;
             trs_set_keypad_joystick();
-            keysym.sym = 0;
-            break;
+            continue;
           default:
             break;
         }
@@ -1997,8 +1988,7 @@ void trs_get_event(int wait)
             default:
               break;
           }
-          keysym.sym = 0;
-          break;
+          continue;
         }
         if (last_key[keysym.scancode])
         /*
@@ -2166,7 +2156,6 @@ void trs_get_event(int wait)
             trs_joy_button_down();
           else {
             call_function(key);
-            keysym.sym = 0;
           }
         }
         else
