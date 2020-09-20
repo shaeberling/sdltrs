@@ -1989,11 +1989,11 @@ void trs_get_event(int wait)
 
         /* Make Shift + CapsLock give lower case */
         if (((SDL_GetModState() & (KMOD_CAPS | KMOD_LSHIFT))
-              == (KMOD_CAPS | KMOD_LSHIFT) ||
-              ((SDL_GetModState() & (KMOD_CAPS | KMOD_RSHIFT))
-                == (KMOD_CAPS | KMOD_RSHIFT)))
-          && keysym.sym >= 'A' && keysym.sym <= 'Z')
-            keysym.sym = (int) keysym.sym + 0x20;
+            == (KMOD_CAPS | KMOD_LSHIFT) ||
+            ((SDL_GetModState() & (KMOD_CAPS | KMOD_RSHIFT))
+            == (KMOD_CAPS | KMOD_RSHIFT)))
+            && keysym.sym >= 'A' && keysym.sym <= 'Z')
+          keysym.sym = (int) keysym.sym + 0x20;
         if (keysym.sym == SDLK_RSHIFT && trs_model == 1)
           keysym.sym = SDLK_LSHIFT;
 
