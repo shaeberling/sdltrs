@@ -1657,7 +1657,6 @@ void trs_gui_cassette_management(void)
   FILE *cassette_file;
   char input[12];
   int selection = 0;
-  int ret;
   int value;
 
   while (1) {
@@ -1714,8 +1713,9 @@ void trs_gui_cassette_management(void)
               trs_add_extension(filename, ".wav");
               break;
           }
-          ret = 0;
           if (trs_gui_file_overwrite()) {
+            int ret = 0;
+
             if ((cassette_file = fopen(filename, "wb")) == NULL)
               ret = -1;
             else {
