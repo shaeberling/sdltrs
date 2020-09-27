@@ -34,7 +34,7 @@ LIBS	+= -lcurses -lreadline
 INCS	!= sdl2-config --cflags
 MACROS	 = -DREADLINE -DZBX
 DEBUG	?= -g
-CFLAGS	+= -Wall -Wextra -Wno-unused-parameter ${DEBUG} ${INCS} ${ENDIAN} ${MACROS}
+CFLAGS	+= -Wall ${DEBUG} ${INCS} ${ENDIAN} ${MACROS}
 
 ${PROG}: ${OBJS}
 	${CC} -o ${PROG} ${OBJS} ${LIBS} ${LDFLAGS}
