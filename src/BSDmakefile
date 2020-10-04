@@ -33,8 +33,8 @@ LIBS	!= sdl2-config --libs
 LIBS	+= -lcurses -lreadline
 INCS	!= sdl2-config --cflags
 MACROS	 = -DREADLINE -DZBX
-DEBUG	?= -g
-CFLAGS	+= -Wall ${DEBUG} ${INCS} ${ENDIAN} ${MACROS}
+DEBUG	?= -g -Wall
+CFLAGS	+= ${DEBUG} ${INCS} ${ENDIAN} ${MACROS}
 
 ${PROG}: ${OBJS}
 	${CC} -o ${PROG} ${OBJS} ${LIBS} ${LDFLAGS}
