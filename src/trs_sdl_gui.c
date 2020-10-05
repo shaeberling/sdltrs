@@ -1655,7 +1655,6 @@ void trs_gui_cassette_management(void)
   const char *image_type_choices[3] = {"   CAS", "   CPT", "   WAV"};
   static int image_type = 0;
   static int drive_insert = 1;
-  FILE *cassette_file;
   char input[12];
   int selection = 0;
   int value;
@@ -1715,6 +1714,7 @@ void trs_gui_cassette_management(void)
               break;
           }
           if (trs_gui_file_overwrite()) {
+            FILE *cassette_file;
             int ret = 0;
 
             if ((cassette_file = fopen(filename, "wb")) == NULL)
