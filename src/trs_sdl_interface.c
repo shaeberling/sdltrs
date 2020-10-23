@@ -1508,6 +1508,7 @@ void trs_sdl_flush(void)
   }
 
   SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
+  SDL_RenderClear(render);
   SDL_RenderCopy(render, texture, NULL, NULL);
   SDL_RenderPresent(render);
 
@@ -1716,9 +1717,7 @@ void trs_get_event(int wait)
         break;
       case SDL_WINDOWEVENT:
         if (event.window.event & SDL_WINDOWEVENT_RESIZED) {
-          SDL_RenderClear(render);
-          SDL_RenderCopy(render, texture, NULL, NULL);
-          SDL_RenderPresent(render);
+          drawnRectCount = MAX_RECTS;
         }
         if (event.window.event & SDL_WINDOWEVENT_EXPOSED) {
           SDL_FlushEvent(SDL_KEYDOWN);
