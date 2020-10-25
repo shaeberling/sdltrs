@@ -1,0 +1,29 @@
+before_script:
+ - apt-get update -qq
+
+build:
+ script:
+ - apt-get install -y -qq cmake libreadline-dev libsdl2-dev
+ - mkdir build
+ - cd build
+ - cmake ..
+ - cmake --build .
+
+build-32:
+ script:
+ - dpkg --add-architecture i386
+ - apt-get update -qq
+ - apt-get install -y cmake gcc-multilib libgcc1:i386 libreadline-dev:i386 libsdl2-dev:i386
+ - mkdir build
+ - cd build
+ - CFLAGS="-m32" cmake ..
+ - cmake --build .
+ - file sdl2trs
+
+build-clang:
+ script:
+ - apt-get install -y -qq clang cmake libreadline-dev libsdl2-dev
+ - mkdir build
+ - cd build
+ - CC="clang" cmake ..
+ - cmake --build .
