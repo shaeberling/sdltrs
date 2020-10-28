@@ -6,8 +6,9 @@ On *Debian* and *Ubuntu* based systems these can be installed with:
 sudo apt install libsdl2-dev libreadline-dev
 ```
 
-For *Win32/64* please install [MinGW], [MinGW-w64] or [MSYS2] and the
-[SDL] development library with the `mingw.tar.gz` file extension.
+For *Win32/64* please install [MinGW] or [MinGW-w64] and the [SDL]
+development library with the `mingw.tar.gz` file extension.
+It is recommended to use [MSYS2] to make things easier.
 
 ---
 
@@ -80,9 +81,10 @@ make bsd
 (or just `make` on *FreeBSD*/*OpenBSD*) to build on BSD with SDL2.
 
 For *Win32/64* please copy the header files of the SDL2 library to
-`\MinGW\include\SDL2`/`\MinGW64\include\SDL2`, and libraries to the
-`\MinGW\lib\`/`\MinGW64\lib` directory or edit the macros `LIBS` and
-`INCS` in `Makefile` to point to the location of the SDL installation:
+`\MinGW\include\SDL2` (or `\MinGW64\include\SDL2` for [MinGW-w64]),
+and libraries to the `\MinGW\lib\` (or `\MinGW64\lib`) directory,
+or edit the macros `LIBS` and `INCS` in `Makefile` to point to the
+location of the SDL installation:
 ```sh
 mingw32-make wsdl2
 ```
