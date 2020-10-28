@@ -1,29 +1,49 @@
+**SDL2TRS** needs the development files of `SDL2` and optional
+`GNU readline` for the integrated Z80 debugger zbx.
+
+On *Debian* and *Ubuntu* based systems these can be installed with:
+```sh
+sudo apt install libsdl2-dev libreadline-dev
+```
+
+For *Win32/64* please install [MinGW], [MinGW-w64] or [MSYS2] and the
+[SDL] development library with the `mingw.tar.gz` file extension.
+
+---
+
 To build with autotools:
 ------------------------
+
+Installation of `aclocal`, `autoconf` and `automake` is required:
+```sh
+sudo apt install autoconf automake autotools-dev
+```
+on *Debian* and *Ubuntu* systems.
 
 From the main directory, execute:
 ```sh
 ./autogen.sh
 ```
-which will generate the `configure` script. Installation of `aclocal`,
-`autoconf` and `automake` is needed for this.
+which will generate the `configure` script.
 
 To configure the build system, execute:
 ```sh
 ./configure
 ```
-To enable faster but not accurate Z80 block moves, execute:
+
+This should autodetect the configuration but some options may be passed:
 ```sh
 ./configure --enable-fastmove
 ```
-To build with the integrated Z80 debugger zbx, execute:
+to enable faster but not accurate Z80 block moves,
 ```
 ./configure --enable-zbx
 ```
-To enable `readline` support for the zbx debugger, execute:
+to build with the integrated Z80 debugger zbx,
 ```sh
 ./configure --enable-zbx --enable-readline
 ```
+to enable `readline` support for the zbx debugger.
 
 Start build of the program in the main directory by executing:
 ```sh
@@ -32,28 +52,45 @@ make
 
 ---
 
-To build with SDL2:
--------------------
+To build with CMake:
+--------------------
 
-**SDL2TRS** needs the development files of `SDL2` and `GNU readline`
-for the debugger. On *Debian* or *Ubuntu* these can be installed with:
+From the main directory, execute:
 ```sh
-sudo apt install libsdl2-dev libreadline-dev
-```
-From the `src` directory, execute:
-```sh
-make sdl2
+mkdir build
+cd build
+cmake ..
+cmake --build .
 ```
 
 ---
 
-To build on FreeBSD/NetBSD/OpenBSD:
------------------------------------
+To build with Makefiles:
+------------------------
 
 From the `src` directory, execute:
 ```sh
+make sdl2
+```
+to build the SDL2 version,
+
+```sh
 make bsd
 ```
+(or just `make` on *FreeBSD*/*OpenBSD*) to build on BSD with SDL2.
+
+For *Win32/64* please copy the header files of the SDL2 library to
+`\MinGW\include\SDL2`/`\MinGW64\include\SDL2`, and libraries to the
+`\MinGW\lib\`/`\MinGW64\lib` directory or edit the macros `LIBS` and
+`INCS` in `Makefile` to point to the location of the SDL installation:
+```sh
+mingw32-make wsdl2
+```
+to build the SDL2 version (`sdl2trs.exe`), or
+```sh
+mingw32-make win64
+```
+to build the 64-bit SDL2 version (`sdl2trs64.exe`).
 
 ---
 
@@ -71,28 +108,10 @@ In the main directory of the source, execute the following commands:
 ./configure --enable-readline
 make
 ```
-
 This will build the executable binary file called `sdl2trs`.
-
----
-
-To build on Win32:
-------------------
-
-**SDL2TRS** is designed to be build with [MinGW]. The [SDL2] development
-library is also required.
-
-The runtime library file `SDL2.DLL` should be copied to the directory of
-the **SDL2TRS** binary file, the header files of the library to `\MinGW\
-include\SDL2` and libraries to the `\MinGW\lib\` directory, or edit the
-macros `LIBS` and `INCS` in `Makefile` to point to the location of the
-SDL2 installation.
-
-From the `src` directory, execute:
-```sh
-mingw32-make wsdl2
-```
 
 [Homebrew]: https://brew.sh
 [MinGW]: http://www.mingw.org
-[SDL2]: https://www.libsdl.org
+[MinGW-w64]: http://mingw-w64.org
+[MSYS2]: https://www.msys2.org
+[SDL]: https://www.libsdl.org
