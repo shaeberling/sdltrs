@@ -1176,6 +1176,9 @@ void trs_screen_init(void)
 {
   int led_height;
   SDL_Color colors[2];
+#if XDEBUG
+  SDL_RendererInfo renderinfo = { 0 };
+#endif
 
   if (trs_model == 1) {
     trs_charset = trs_charset1;
@@ -1240,6 +1243,11 @@ void trs_screen_init(void)
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, &scale_quality);
 
+#if XDEBUG
+    SDL_GetRendererInfo(render, &renderinfo);
+    debug("SDL_VIDEODRIVER=%s\n", SDL_GetCurrentVideoDriver());
+    debug("SDL_RENDER_DRIVER=%s\n", renderinfo.name);
+#endif
     screen = SDL_CreateRGBSurface(0, 800, 600, 32, 0, 0, 0, 0);
     if (screen == NULL) {
       trs_sdl_cleanup();
