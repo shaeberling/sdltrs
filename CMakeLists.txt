@@ -48,11 +48,16 @@ option(DISKIMG	"Install disk images with utilities"	ON)
 option(FASTMOVE	"Fast inaccurate Z80 block moves"	OFF)
 option(HTMLDOC	"Install documentation in HTML format"	ON)
 option(ICONS	"Install icons and desktop file"	ON)
+option(OLDSCAN	"Display Scanlines using old method"	OFF)
 option(READLINE	"Readline support for zbx debugger"	ON)
 option(ZBX	"Build with integrated Z80 debugger"	ON)
 
 if (FASTMOVE)
 	add_definitions(-DFAST_MOVE)
+endif ()
+
+if (OLDSCAN)
+	add_definitions(-DOLD_SCANLINES)
 endif ()
 
 if (READLINE AND ZBX)

@@ -1501,6 +1501,16 @@ void trs_sdl_flush(void)
     return;
 
   if (scanlines) {
+#ifdef OLD_SCANLINES
+    SDL_Rect rect;
+
+    rect.x = 0;
+    rect.w = OrigWidth;
+    rect.h = 1;
+
+    for (rect.y = 0; rect.y < screen_height; rect.y += 2)
+      SDL_FillRect(screen, &rect, background);
+#else
     int const width = screen->format->BytesPerPixel * OrigWidth;
     Uint8 *pixels   = screen->pixels;
     Uint8 *pixel;
@@ -1513,6 +1523,7 @@ void trs_sdl_flush(void)
         *pixel++ &= scanshade;
     }
     SDL_UnlockSurface(screen);
+#endif
   }
 
   SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);

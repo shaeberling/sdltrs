@@ -37,6 +37,10 @@ This should autodetect the configuration but some options may be passed:
 ./configure --enable-fastmove
 ```
 to enable faster but not accurate Z80 block moves,
+```sh
+./configure --enable-oldscan
+```
+to enable old method to display Scanlines,
 ```
 ./configure --enable-zbx
 ```
