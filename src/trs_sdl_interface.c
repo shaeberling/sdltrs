@@ -86,6 +86,7 @@ int resize;
 int resize3;
 int resize4;
 int scanlines;
+int scanshade;
 int window_border_width;
 int turbo_paste = 0;
 char scale_quality = '1';
@@ -240,6 +241,7 @@ static void trs_opt_rom(char *arg, int intarg, int *stringarg);
 static void trs_opt_samplerate(char *arg, int intarg, int *stringarg);
 static void trs_opt_scale(char *arg, int intarg, int *stringarg);
 static void trs_opt_scalequality(char *arg, int intarg, int *stringarg);
+static void trs_opt_scanshade(char *arg, int intarg, int *stringarg);
 static void trs_opt_selector(char *arg, int intarg, int *stringarg);
 static void trs_opt_shiftbracket(char *arg, int intarg, int *stringarg);
 static void trs_opt_sizemap(char *arg, int intarg, int *stringarg);
@@ -358,6 +360,7 @@ static const trs_opt options[] = {
   { "scale",           trs_opt_scale,         1, 0, NULL                 },
   { "scalequality",    trs_opt_scalequality,  1, 0, NULL                 },
   { "scanlines",       trs_opt_value,         0, 1, &scanlines           },
+  { "scanshade",       trs_opt_scanshade,     1, 0, NULL                 },
   { "selector",        trs_opt_selector,      0, 1, NULL                 },
   { "serial",          trs_opt_string,        1, 0, trs_uart_name        },
   { "shiftbracket",    trs_opt_shiftbracket,  0, 1, NULL                 },
@@ -726,6 +729,11 @@ static void trs_opt_scalequality(char *arg, int intarg, int *stringarg)
   }
 }
 
+static void trs_opt_scanshade(char *arg, int intarg, int *stringarg)
+{
+  scanshade = atoi(arg) & 255;
+}
+
 static void trs_opt_selector(char *arg, int intarg, int *stringarg)
 {
   selector = intarg;
@@ -882,6 +890,7 @@ int trs_load_config_file(void)
   resize4 = 0;
   scale = 1;
   scanlines = 0;
+  scanshade = 127;
   strcpy(romfile, "level2.rom");
   strcpy(romfile3, "model3.rom");
   strcpy(romfile4p, "model4p.rom");
@@ -1101,6 +1110,7 @@ int trs_write_config_file(const char *filename)
   fprintf(config_file, "scale=%d\n", scale);
   fprintf(config_file, "scalequality=%c\n", scale_quality);
   fprintf(config_file, "%sscanlines\n", scanlines ? "" : "no");
+  fprintf(config_file, "scanshade=%d\n", scanshade);
   fprintf(config_file, "%sselector\n", selector ? "" : "no");
   fprintf(config_file, "serial=%s\n", trs_uart_name);
   fprintf(config_file, "%sshiftbracket\n", trs_kb_bracket_state ? "" : "no");
@@ -1491,14 +1501,18 @@ void trs_sdl_flush(void)
     return;
 
   if (scanlines) {
-    SDL_Rect rect;
+    int const width = screen->format->BytesPerPixel * OrigWidth;
+    Uint8 *pixels   = screen->pixels;
+    Uint8 *pixel;
+    int x, y;
 
-    rect.x = 0;
-    rect.w = OrigWidth;
-    rect.h = 1;
-
-    for (rect.y = 0; rect.y < screen_height; rect.y += 2)
-      SDL_FillRect(screen, &rect, background);
+    SDL_LockSurface(screen);
+    for (y = 0; y < screen->pitch * screen_height; y += screen->pitch * 2) {
+      pixel = pixels + y;
+      for (x = 0; x < width; x++)
+        *pixel++ &= scanshade;
+    }
+    SDL_UnlockSurface(screen);
   }
 
   SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
