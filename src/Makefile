@@ -53,7 +53,7 @@ sdl2:	READLINE?= -DREADLINE
 sdl2:	${PROG}
 
 win64:	MINGW64	?= \MinGW64
-win64:	CC	?= ${MINGW64}\bin\gcc.exe
+win64:	CC	 = ${MINGW64}\bin\gcc.exe
 win64:	INCS	 = -I${MINGW64}\include\SDL2
 win64:	LIBS	 = -L${MINGW64}\lib -lmingw32 -lSDL2main -lSDL2
 win64:	MACROS	+= -DWIN32
@@ -61,7 +61,7 @@ win64:	PROG	 = sdl2trs64.exe
 win64:	${PROG}
 
 wsdl2:	MINGW	?= \MinGW
-wsdl2:	CC	?= ${MINGW}\bin\gcc.exe
+wsdl2:	CC	 = ${MINGW}\bin\gcc.exe
 wsdl2:	INCS	 = -I${MINGW}\include\SDL2
 wsdl2:	LIBS	 = -L${MINGW}\lib -lmingw32 -lSDL2main -lSDL2
 wsdl2:	MACROS	+= -DWIN32
