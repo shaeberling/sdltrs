@@ -32,7 +32,7 @@ ENDIAN	!= echo; echo "ab" | od -x | grep "6261" > /dev/null || echo "-Dbig_endia
 LIBS	!= sdl2-config --libs
 LIBS	+= -lcurses -lreadline
 INCS	!= sdl2-config --cflags
-MACROS	 = -DREADLINE -DZBX
+MACROS	+= -DREADLINE -DZBX
 DEBUG	?= -g -Wall
 CFLAGS	+= ${DEBUG} ${INCS} ${ENDIAN} ${MACROS}
 
