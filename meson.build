@@ -1,0 +1,55 @@
+project('sdl2trs', 'c')
+
+srcs = ['src/blit.c',
+	'src/debug.c',
+	'src/dis.c',
+	'src/error.c',
+	'src/load_cmd.c',
+	'src/load_hex.c',
+	'src/main.c',
+	'src/trs_cassette.c',
+	'src/trs_chars.c',
+	'src/trs_disk.c',
+	'src/trs_hard.c',
+	'src/trs_imp_exp.c',
+	'src/trs_interrupt.c',
+	'src/trs_io.c',
+	'src/trs_memory.c',
+	'src/trs_mkdisk.c',
+	'src/trs_printer.c',
+	'src/trs_sdl_gui.c',
+	'src/trs_sdl_interface.c',
+	'src/trs_sdl_keyboard.c',
+	'src/trs_state_save.c',
+	'src/trs_stringy.c',
+	'src/trs_uart.c',
+	'src/z80.c',
+	'src/PasteManager.c']
+
+compiler = meson.get_compiler('c')
+readline = declare_dependency()
+sdl	 = dependency('sdl2', required : true)
+
+if get_option('FASTMOVE')
+	add_project_arguments('-DFAST_MOVE', language : 'c')
+	message('Fast inaccurate Z80 block moves')
+endif
+
+if get_option('OLDSCAN')
+	add_project_arguments('-DOLD_SCANLINES', language : 'c')
+	message('Display Scanlines using old method')
+endif
+
+if get_option('ZBX')
+	add_project_arguments('-DZBX', language : 'c')
+	message('Build with integrated Z80 debugger')
+	if get_option('READLINE')
+		readline = compiler.find_library('readline', required : false)
+		if readline.found()
+			add_project_arguments('-DREADLINE', language : 'c')
+			message('Readline support for zbx debugger')
+		endif
+	endif
+endif
+
+executable('sdl2trs', srcs, dependencies : [ readline, sdl])

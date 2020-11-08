@@ -1,0 +1,23 @@
+option('FASTMOVE',
+	type		: 'boolean',
+	value		: false,
+	description	: 'Fast inaccurate Z80 block moves'
+)
+
+option('OLDSCAN',
+	type		: 'boolean',
+	value		: false,
+	description	: 'Display Scanlines using old method'
+)
+
+option('READLINE',
+	type		: 'boolean',
+	value		: true,
+	description	: 'Readline support for zbx debugger'
+)
+
+option('ZBX',
+	type		: 'boolean',
+	value		: true,
+	description	: 'Build with integrated Z80 debugger'
+)
