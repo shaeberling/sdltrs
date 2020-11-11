@@ -1,6 +1,7 @@
 project('sdl2trs', 'c')
 
-srcs = ['src/blit.c',
+sources = files([
+	'src/blit.c',
 	'src/debug.c',
 	'src/dis.c',
 	'src/error.c',
@@ -24,7 +25,8 @@ srcs = ['src/blit.c',
 	'src/trs_stringy.c',
 	'src/trs_uart.c',
 	'src/z80.c',
-	'src/PasteManager.c']
+	'src/PasteManager.c'
+])
 
 compiler = meson.get_compiler('c')
 endian	 = host_machine.endian()
@@ -58,4 +60,4 @@ if get_option('ZBX')
 	endif
 endif
 
-executable('sdl2trs', srcs, dependencies : [ readline, sdl ])
+executable('sdl2trs', sources, dependencies : [ readline, sdl ])
