@@ -89,7 +89,6 @@ int scanlines;
 int scanshade;
 int window_border_width;
 int turbo_paste = 0;
-char scale_quality = '1';
 char romfile[FILENAME_MAX];
 char romfile3[FILENAME_MAX];
 char romfile4p[FILENAME_MAX];
@@ -106,6 +105,7 @@ char trs_printer_command[FILENAME_MAX];
 
 /* Private data */
 static unsigned char trs_screen[2048];
+static char scale_quality = '1';
 static int cpu_panel = 0;
 static int debugger = 0;
 static int screen_chars = 1024;
