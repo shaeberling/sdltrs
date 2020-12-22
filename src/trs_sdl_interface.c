@@ -1352,7 +1352,6 @@ void trs_screen_init(void)
 
   trs_screen_caption();
   trs_screen_refresh();
-  trs_sdl_flush();
 }
 
 static void DrawSelectionRectangle(int orig_x, int orig_y, int copy_x, int copy_y)
@@ -1990,7 +1989,6 @@ void trs_get_event(int wait)
             case SDLK_y:
               scanlines = !scanlines;
               trs_screen_refresh();
-              trs_sdl_flush();
               break;
             case SDLK_z:
 #ifdef ZBX
@@ -2017,7 +2015,6 @@ void trs_get_event(int wait)
                       "Floppy Disk Image") != -1)
                   trs_disk_insert(keysym.sym - SDLK_0, filename);
                 trs_screen_refresh();
-                trs_sdl_flush();
               }
               break;
             default:
@@ -2535,6 +2532,7 @@ void trs_screen_refresh(void)
     trs_turbo_led();
   }
   drawnRectCount = MAX_RECTS; /* Will force redraw of whole screen */
+  trs_sdl_flush();
 }
 
 void trs_disk_led(int drive, int on_off)
