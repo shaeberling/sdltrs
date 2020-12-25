@@ -2195,6 +2195,16 @@ void trs_get_event(int wait)
           trs_joy_button_down();
         break;
 
+      case SDL_MOUSEBUTTONDOWN:
+        if (!mousepointer)
+          trs_joy_button_down();
+        break;
+
+      case SDL_MOUSEBUTTONUP:
+        if (!mousepointer)
+          trs_joy_button_up();
+        break;
+
       case SDL_MOUSEMOTION:
         if (!mousepointer) {
           SDL_MouseMotionEvent motion = event.motion;
@@ -2203,11 +2213,6 @@ void trs_get_event(int wait)
             trs_joy_axis(0, motion.xrel, 1);
           if (motion.yrel != 0)
             trs_joy_axis(1, motion.yrel, 2);
-
-          if (motion.state == SDL_BUTTON_LMASK)
-            trs_joy_button_down();
-          else
-            trs_joy_button_up();
         }
         break;
 
