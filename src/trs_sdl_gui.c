@@ -271,12 +271,16 @@ int trs_gui_get_key(void)
         trs_screen_update();
         break;
       case SDL_MOUSEBUTTONDOWN:
-        if (event.button.button == SDL_BUTTON_LEFT)
-          return SDLK_RETURN;
-        else if (event.button.button == SDL_BUTTON_MIDDLE)
-          return SDLK_TAB;
-        else if (event.button.button == SDL_BUTTON_RIGHT)
-          return SDLK_ESCAPE;
+        switch (event.button.button) {
+          case SDL_BUTTON_LEFT:
+            return SDLK_RETURN;
+          case SDL_BUTTON_MIDDLE:
+            return SDLK_TAB;
+          case SDL_BUTTON_RIGHT:
+            return SDLK_ESCAPE;
+          default:
+            break;
+        }
         break;
       case SDL_MOUSEWHEEL:
         if (event.wheel.y > 0)
