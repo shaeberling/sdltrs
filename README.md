@@ -38,10 +38,10 @@ Lupi's fork of [RetroPie-Setup] ...
 
 ## Packages
 
-  * [sdl2trs_1.2.14-1_i386.deb]   (32-bit, SDL2)
-  * [sdl2trs_1.2.14-1_amd64.deb]  (64-bit, SDL2)
+  * [sdl2trs_1.2.15-1_i386.deb]   (32-bit, SDL2)
+  * [sdl2trs_1.2.15-1_amd64.deb]  (64-bit, SDL2)
 
-(Build on Debian 9/i386 & Linux Mint 20/amd64)
+(Build on Debian 9/i386 & Linux Mint 20.1/amd64)
 
 Thanks to Tércio Martins a package for Arch Linux is available in the [AUR].
 
@@ -63,5 +63,5 @@ Thanks to Tércio Martins a package for Arch Linux is available in the [AUR].
 [SDLTRS]: http://sdltrs.sourceforge.net
 [sdl2trs.exe]: bin/sdl2trs.exe
 [sdl2trs64.exe]: bin/sdl2trs64.exe
-[sdl2trs_1.2.14-1_i386.deb]: bin/sdl2trs_1.2.14-1_i386.deb
-[sdl2trs_1.2.14-1_amd64.deb]: bin/sdl2trs_1.2.14-1_amd64.deb
+[sdl2trs_1.2.15-1_i386.deb]: bin/sdl2trs_1.2.15-1_i386.deb
+[sdl2trs_1.2.15-1_amd64.deb]: bin/sdl2trs_1.2.15-1_amd64.deb
