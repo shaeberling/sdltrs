@@ -1824,10 +1824,8 @@ void trs_get_event(int wait)
               trs_timer_init();
             else {
               timer_overclock = !timer_overclock;
-              if (trs_show_led)
-                trs_turbo_led();
+              trs_turbo_mode();
             }
-            trs_screen_caption();
             continue;
           case SDLK_PAUSE:
             call_function(PAUSE);
@@ -1955,9 +1953,7 @@ void trs_get_event(int wait)
               break;
             case SDLK_n:
               timer_overclock = !timer_overclock;
-              trs_screen_caption();
-              if (trs_show_led)
-                trs_turbo_led();
+              trs_turbo_mode();
               break;
             case SDLK_o:
               call_function(OTHER);
