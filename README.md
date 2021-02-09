@@ -1,4 +1,4 @@
-Modified version of Mark Grebe's [SDLTRS] with bug fixes and patches:
+Fork version of Mark Grebe's [SDLTRS] with bug fixes and patches:
 
   * Included all patches by [EtchedPixels]: banked memory support, Lowe LE18
   * Fixed various SegFaults: ROM Selection Menu, Scaling in Fullscreen
@@ -16,6 +16,7 @@ Modified version of Mark Grebe's [SDLTRS] with bug fixes and patches:
   * Support for Sprinter II/III speed-up kits
   * Change Z80 CPU default MHz of each TRS-80 Model
   * More accurate emulation of Z80 block instructions
+  * Joystick emulation with Mouse
 
 ## License
 
@@ -24,7 +25,7 @@ Modified version of Mark Grebe's [SDLTRS] with bug fixes and patches:
 ## SDL2
 
 This branch contains the SDL2 version with hardware rendering support.
-Although *experimental*, it's recommended for newer operating systems ...
+Although *experimental*, it's recommended for newer systems ...
 
 This version is available in [RetroPie] since version 4.6.6 and Valerio
 Lupi's fork of [RetroPie-Setup] ...
