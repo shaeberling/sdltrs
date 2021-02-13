@@ -1960,6 +1960,7 @@ void trs_get_event(int wait)
               call_function(PAUSE);
               break;
             case SDLK_q:
+            case SDLK_END:
               trs_exit(1);
               break;
             case SDLK_r:
