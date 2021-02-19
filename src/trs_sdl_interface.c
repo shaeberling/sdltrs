@@ -3210,7 +3210,7 @@ hrg_write_data(int data)
     int n0 = 0;
     int n1 = 0;
     int flag = 0;
-    int i, j, b;
+    int j, b;
     SDL_Rect rect0[3];    /* 6 bits => max. 3 groups of adjacent "0" bits */
     SDL_Rect rect1[3];
 
@@ -3246,10 +3246,11 @@ hrg_write_data(int data)
         flag = 0;
       }
     }
-    for (i = 0; i < n0; i++)
-      SDL_FillRect(screen, &rect0[i], background);
-    for (i = 0; i < n1; i++)
-      SDL_FillRect(screen, &rect0[i], foreground);
+    if (n0 != 0)
+      SDL_FillRects(screen, &rect0[0], n0, background);
+    if (n1 != 0)
+      SDL_FillRects(screen, &rect1[0], n1, foreground);
+    drawnRectCount = MAX_RECTS;
   }
   else {
     /* Unfortunately, HRG1B combines text and graphics with an
@@ -3316,8 +3317,7 @@ hrg_update_char(int position)
     }
     prev_byte = byte;
   }
-  for (i = 0; i <n; i++)
-    SDL_FillRect(screen, &rect[i], foreground);
+  SDL_FillRects(screen, &rect[0], n, foreground);
 }
 
 
