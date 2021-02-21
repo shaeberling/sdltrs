@@ -2674,10 +2674,7 @@ void trs_turbo_led(void)
   rect.x = (OrigWidth - border_width) / 2 - 8;
   rect.y = OrigHeight - rect.h;
 
-  if (timer_overclock)
-    SDL_FillRect(screen, &rect, bright_orange);
-  else
-    SDL_FillRect(screen, &rect, light_orange);
+  SDL_FillRect(screen, &rect, timer_overclock ? bright_orange : light_orange);
   drawnRectCount = MAX_RECTS;
 }
 
