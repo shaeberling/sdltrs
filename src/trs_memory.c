@@ -297,6 +297,7 @@ void trs_reset(int poweron)
 	/* Initialize memory, ROM & timer */
 	memset(&memory, 0, sizeof(memory));
 	memset(&rom, 0, sizeof(rom));
+	memset(&cp500_rom, 0, sizeof(cp500_rom));
 	memset(&video, 0, sizeof(video));
 
 	if (trs_model < 4)
