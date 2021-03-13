@@ -877,6 +877,7 @@ void trs_mem_save(FILE *file)
 {
   trs_save_uchar(file, memory, 0x200001);
   trs_save_uchar(file, rom, MAX_ROM_SIZE + 1);
+  trs_save_uchar(file, cp500_rom, CP500_ROM_SIZE + 1);
   trs_save_uchar(file, video, MAX_VIDEO_SIZE + 1);
   trs_save_int(file, &trs_rom_size, 1);
   trs_save_int(file, &trs_video_size, 1);
@@ -891,12 +892,14 @@ void trs_mem_save(FILE *file)
   trs_save_int(file, &supermem, 1);
   trs_save_int(file, &selector, 1);
   trs_save_int(file, &selector_reg, 1);
+  trs_save_int(file, &m_a11_flipflop, 1);
 }
 
 void trs_mem_load(FILE *file)
 {
   trs_load_uchar(file, memory, 0x200001);
   trs_load_uchar(file, rom, MAX_ROM_SIZE + 1);
+  trs_load_uchar(file, cp500_rom, CP500_ROM_SIZE + 1);
   trs_load_uchar(file, video, MAX_VIDEO_SIZE + 1);
   trs_load_int(file, &trs_rom_size, 1);
   trs_load_int(file, &trs_video_size, 1);
@@ -911,5 +914,6 @@ void trs_mem_load(FILE *file)
   trs_load_int(file, &supermem, 1);
   trs_load_int(file, &selector, 1);
   trs_load_int(file, &selector_reg, 1);
+  trs_load_int(file, &m_a11_flipflop, 1);
 }
 
