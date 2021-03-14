@@ -143,6 +143,8 @@ static void trs_load_compiled_rom(int address, int size, const unsigned char rom
 
 void trs_rom_init(void)
 {
+  trs_rom_size = 0;
+
   switch (trs_model) {
     case 1:
       if (trs_load_rom(romfile) != 0)
