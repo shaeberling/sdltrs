@@ -168,7 +168,7 @@ static char *clipboard = NULL;
 
 /* Emulator specific variables */
 static int charCount = 0;
-static unsigned char *pasteString;
+static char *pasteString;
 static int pasteStringLength = 0;
 static int firstTime = 1;
 
@@ -500,7 +500,7 @@ int PasteManagerStartPaste(void)
      firstTime = 0;
   }
 
-  get_scrap(&pasteStringLength, (char**)&pasteString);
+  get_scrap(&pasteStringLength, &pasteString);
 
   charCount = pasteStringLength;
   if (charCount) {

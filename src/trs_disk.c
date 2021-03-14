@@ -3624,7 +3624,7 @@ static void trs_fdc_save(FILE *file, FDCState *fdc)
   trs_save_int(file, &fdc->density, 1);
   trs_save_uchar(file, &fdc->controller, 1);
   trs_save_int(file, &fdc->last_readadr, 1);
-  trs_save_uint64(file, (unsigned long long *) &fdc->motor_timeout, 1);
+  trs_save_uint64(file, &fdc->motor_timeout, 1);
 }
 
 static void trs_fdc_load(FILE *file, FDCState *fdc)
@@ -3647,7 +3647,7 @@ static void trs_fdc_load(FILE *file, FDCState *fdc)
   trs_load_int(file, &fdc->density, 1);
   trs_load_uchar(file, &fdc->controller, 1);
   trs_load_int(file, &fdc->last_readadr, 1);
-  trs_load_uint64(file, (unsigned long long *) &fdc->motor_timeout, 1);
+  trs_load_uint64(file, &fdc->motor_timeout, 1);
 }
 
 static void trs_save_sectorid(FILE *file, SectorId *id)
