@@ -408,7 +408,7 @@ void do_emt_opendir(void)
   char *dirname;
   for (i = 0; i < MAX_OPENDIR; i++) {
     if (dir[i].dir == NULL) break;
-   }
+  }
   if (i == MAX_OPENDIR) {
     Z80_DE = 0xffff;
     Z80_A = EMFILE;
@@ -754,10 +754,10 @@ void do_emt_closedisk(void)
   if (Z80_DE == 0xffff) {
     for (i = 0; i < MAX_OPENDISK; i++) {
       if (od[i].inuse) {
-    do_emt_closefd(i);
-	od[i].inuse = 0;
-    od[i].xtrshard = 0;
-    od[i].filename[0] = 0;
+        do_emt_closefd(i);
+        od[i].inuse = 0;
+        od[i].xtrshard = 0;
+        od[i].filename[0] = 0;
       }
     }
     Z80_A = 0;
