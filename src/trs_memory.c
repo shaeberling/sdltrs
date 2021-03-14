@@ -241,6 +241,33 @@ void selector_out(unsigned char value)
 		bank_base = 0;
 }
 
+static void mem_init(void)
+{
+/* Initialize RAM, ROM & Video memory */
+    memset(&memory, 0, sizeof(memory));
+    memset(&rom, 0, sizeof(rom));
+    memset(&cp500_rom, 0, sizeof(cp500_rom));
+    memset(&video, 0, sizeof(video));
+
+    if (trs_model < 4)
+        trs_video_size = 1024;
+    else
+        trs_video_size = MAX_VIDEO_SIZE;
+
+    /* We map the SuperMem separately, otherwise it can get really
+      confusing when combining with other stuff */
+    if (supermem_ram == NULL)
+        supermem_ram = (Uchar *) calloc(MAX_SUPERMEM_SIZE + 1, 1);
+    else
+        memset(supermem_ram, 0, MAX_SUPERMEM_SIZE + 1);
+    mem_map(0);
+    mem_bank(0);
+    mem_video_page(0);
+    if (trs_model == 5) {
+        z80_out(0x9C, 1);
+    }
+}
+
 /* Handle reset button if poweron=0;
    handle hard reset or initial poweron if poweron=1 */
 void trs_reset(int poweron)
@@ -294,29 +321,7 @@ void trs_reset(int poweron)
     if (poweron || trs_model >= 4) {
         /* Reset processor */
 	z80_reset();
-	/* Initialize memory, ROM & timer */
-	memset(&memory, 0, sizeof(memory));
-	memset(&rom, 0, sizeof(rom));
-	memset(&cp500_rom, 0, sizeof(cp500_rom));
-	memset(&video, 0, sizeof(video));
-
-	if (trs_model < 4)
-	    trs_video_size = 1024;
-	else
-	    trs_video_size = MAX_VIDEO_SIZE;
-
-	/* We map the SuperMem separately, otherwise it can get really
-	   confusing when combining with other stuff */
-	if (supermem_ram == NULL)
-	    supermem_ram = (Uchar *) calloc(MAX_SUPERMEM_SIZE + 1, 1);
-	else
-	    memset(supermem_ram, 0, MAX_SUPERMEM_SIZE + 1);
-	mem_map(0);
-	mem_bank(0);
-	mem_video_page(0);
-	if (trs_model == 5) {
-	    z80_out(0x9C, 1);
-	}
+	mem_init();
 	trs_rom_init();
 	trs_timer_init();
 	if (trs_show_led) {
