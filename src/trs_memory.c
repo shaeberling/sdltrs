@@ -92,6 +92,9 @@ int selector = 0;
 
 /* private data */
 static Uchar video[MAX_VIDEO_SIZE + 1];
+/* We map the SuperMem separately, otherwise it can get really
+   confusing when combining with other stuff */
+static Uchar supermem_ram[MAX_SUPERMEM_SIZE + 1];
 static int trs_video_size;
 static int memory_map = 0;
 static int bank_offset[2];
@@ -100,7 +103,6 @@ static int bank_offset[2];
 static int video_offset = (-VIDEO_START + VIDEO_PAGE_0);
 static unsigned int bank_base = 0x10000;
 static unsigned char mem_command = 0;
-static Uchar *supermem_ram = NULL;
 static int supermem_base;
 static unsigned int supermem_hi;
 static int selector_reg = 0;
@@ -256,12 +258,6 @@ static void mem_init(void)
     else
         trs_video_size = MAX_VIDEO_SIZE;
 
-    /* We map the SuperMem separately, otherwise it can get really
-       confusing when combining with other stuff */
-    if (supermem_ram == NULL)
-        supermem_ram = (Uchar *) calloc(MAX_SUPERMEM_SIZE + 1, 1);
-    else
-        memset(supermem_ram, 0, MAX_SUPERMEM_SIZE + 1);
     mem_map(0);
     mem_bank(0);
     mem_video_page(0);
@@ -773,7 +769,7 @@ Uchar *mem_pointer(int address, int writing)
     /* The SuperMem sits between the system and the Z80 */
     if (supermem) {
       if (!((address ^ supermem_hi) & 0x8000))
-          return supermem_ram + supermem_base + (address & 0x7FFF);
+          return &supermem_ram[supermem_base + (address & 0x7FFF)];
       /* Otherwise the request comes from the system */
     }
 
