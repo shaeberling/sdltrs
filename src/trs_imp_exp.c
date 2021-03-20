@@ -66,7 +66,6 @@ typedef struct {
   int oflag;
   int xtrshard;
   int xtrshard_unit;
-  char filename[FILENAME_MAX];
 } OpenDisk;
 
 #define MAX_OPENDISK 32
@@ -269,13 +268,7 @@ void do_emt_write(void)
   int size;
   int i;
 
-  if (trs_emtsafe) {
-    error("emt_write: potentially dangerous emulator trap blocked");
-    Z80_A = EACCES;
-    Z80_F &= ~ZERO_MASK;
-    return;
-  }
- if (Z80_HL + Z80_BC > 0x10000) {
+  if (Z80_HL + Z80_BC > 0x10000) {
     Z80_A = EFAULT;
     Z80_F &= ~ZERO_MASK;
     Z80_BC = 0xFFFF;
@@ -618,12 +611,6 @@ void do_emt_ftruncate(void)
 {
   int i, result;
   off_t offset;
-  if (trs_emtsafe) {
-    error("emt_ftruncate: potentially dangerous emulator trap blocked");
-    Z80_A = EACCES;
-    Z80_F &= ~ZERO_MASK;
-    return;
-  }
   if (Z80_HL + 8 > 0x10000) {
     Z80_A = EFAULT;
     Z80_F &= ~ZERO_MASK;
@@ -647,48 +634,29 @@ void do_emt_ftruncate(void)
   }
 }
 
+/*
+ * In xtrs 4.9d and earlier, you could open any filename through this
+ * API in any mode, with an API similar to emt_open -- filename
+ * (relative to trs_disk_dir) in HL, flags in BC, mode in DE.  Now
+ * instead we take the unit number in the three low-order bits of A
+ * and open the same filename that trs_hard.c would open.  This keeps
+ * compatibility with xtrshard, the only existing client of the API,
+ * because xtrshard conveniently happens to leave the unit number
+ * there.  The new API works better with SDLTRS where the user
+ * selects the hard drive name from the Hard Disk menu.  It is also
+ * safer; it does not need to be restricted by emt_safe.
+ *
+ * This API could be improved further (better integration with
+ * trs_hard.c, handle write-protect better, reduce the amount of Z80
+ * code in xtrshard, etc.), but I prefer to keep compatibility with
+ * the old xtrshard.
+ */
 void do_emt_opendisk(void)
 {
-  char *name = (char *)mem_pointer(Z80_HL, 0);
-  char *qname;
+  int drive = Z80_A % TRS_HARD_MAXDRIVES;
   int i;
-  int oflag, eoflag;
+  int readonly = 0;
 
-  eoflag = Z80_BC;
-  switch (eoflag & EO_ACCMODE) {
-  case EO_RDONLY:
-  default:
-    oflag = O_RDONLY;
-    break;
-  case EO_WRONLY:
-    oflag = O_WRONLY;
-    break;
-  case EO_RDWR:
-    oflag = O_RDWR;
-    break;
-  }
-  if (eoflag & EO_CREAT)  oflag |= O_CREAT;
-  if (eoflag & EO_EXCL)   oflag |= O_EXCL;
-  if (eoflag & EO_TRUNC)  oflag |= O_TRUNC;
-  if (eoflag & EO_APPEND) oflag |= O_APPEND;
-
-  if (trs_emtsafe && oflag != O_RDONLY) {
-    error("emt_opendisk: potentially dangerous emulator trap blocked");
-    Z80_A = EACCES;
-    Z80_F &= ~ZERO_MASK;
-    return;
-  }
-
-  if (*name == DIR_SLASH || *trs_disk_dir == '\0') {
-    qname = strdup(name);
-  } else {
-    int const len = strlen(trs_disk_dir) + strlen(name) + 2;
-    if ((qname = (char *)malloc(len)) == NULL) {
-      trs_sdl_cleanup();
-      fatal("emt_opendisk: failed to allocate memory");
-    }
-    snprintf(qname, len, "%s%c%s", trs_disk_dir, DIR_SLASH, name);
-  }
   for (i = 0; i < MAX_OPENDISK; i++) {
     if (!od[i].inuse) break;
   }
@@ -696,35 +664,14 @@ void do_emt_opendisk(void)
     Z80_DE = 0xffff;
     Z80_A = EMFILE;
     Z80_F &= ~ZERO_MASK;
-    free(qname);
     return;
   }
-  /* Check if this is a XTRSHARD open request, and if so, redirect
-     to the hardisk files in trs_hard.c */
-  if ((((strncmp(name, "hard1-", 6) == 0) ||
-        (strncmp(name, "hard3-", 6) == 0) ||
-        (strncmp(name, "hard4-", 6) == 0)) &&
-        (strlen(name) == 7)) ||
-      ((strncmp(name, "hard4p-", 7) == 0) &&
-        (strlen(name) == 8))) {
-    int hard_unit = name[strlen(name) -1] - '0';
-    if (hard_unit >= 0 && hard_unit <= 3) {
-      snprintf(od[i].filename, FILENAME_MAX, "%s", trs_hard_getfilename(hard_unit));
-      od[i].fd = open(od[i].filename, oflag, Z80_DE);
-      od[i].oflag = oflag;
-      if (od[i].fd >= 0)
-        od[i].xtrshard = 1;
-      xtrshard_fd[hard_unit] = od[i].fd;
-      od[i].xtrshard_unit = hard_unit;
-    } else {
-      od[i].fd = -1;
-    }
-  } else {
-    od[i].fd = open(qname, oflag, Z80_DE);
-    snprintf(od[i].filename, FILENAME_MAX, "%s", qname);
-    od[i].xtrshard = 0;
+  od[i].fd = open(trs_hard_getfilename(drive), O_RDWR);
+  if (od[i].fd < 0) {
+    od[i].fd = open(trs_hard_getfilename(drive), O_RDONLY);
+    readonly = 1;
   }
-  free(qname);
+
   if (od[i].fd >= 0) {
     od[i].inuse = 1;
     Z80_A = 0;
@@ -734,6 +681,7 @@ void do_emt_opendisk(void)
     Z80_F &= ~ZERO_MASK;
   }
   Z80_DE = od[i].fd;
+  Z80_BC = readonly;
 }
 
 int do_emt_closefd(int odindex)
@@ -757,7 +705,6 @@ void do_emt_closedisk(void)
         do_emt_closefd(i);
         od[i].inuse = 0;
         od[i].xtrshard = 0;
-        od[i].filename[0] = 0;
       }
     }
     Z80_A = 0;
@@ -775,7 +722,6 @@ void do_emt_closedisk(void)
   }
   od[i].inuse = 0;
   od[i].xtrshard = 0;
-  od[i].filename[0] = 0;
   if (do_emt_closefd(i) >= 0) {
     Z80_A = 0;
     Z80_F |= ZERO_MASK;
@@ -794,7 +740,6 @@ void do_emt_resetdisk(void)
       do_emt_closefd(i);
       od[i].inuse = 0;
       od[i].xtrshard = 0;
-      od[i].filename[0] = 0;
     }
   }
 }
@@ -818,7 +763,6 @@ void trs_imp_exp_save(FILE *file)
     trs_save_int(file, &od[i].oflag, 1);
     trs_save_int(file, &od[i].xtrshard, 1);
     trs_save_int(file, &od[i].xtrshard_unit, 1);
-    trs_save_filename(file, od[i].filename);
   }
 }
 
@@ -850,7 +794,6 @@ void trs_imp_exp_load(FILE *file)
     trs_load_int(file, &od[i].oflag, 1);
     trs_load_int(file, &od[i].xtrshard, 1);
     trs_load_int(file, &od[i].xtrshard_unit, 1);
-    trs_load_filename(file, od[i].filename);
   }
   /* Reopen the files */
   for (i = 0; i < 4; i++)
@@ -861,7 +804,7 @@ void trs_imp_exp_load(FILE *file)
   }
   for (i = 0; i < MAX_OPENDISK; i++) {
     if (od[i].inuse) {
-      od[i].fd = open(od[i].filename, od[i].oflag);
+      od[i].fd = open(trs_hard_getfilename(i), od[i].oflag);
       if (od[i].xtrshard)
         xtrshard_fd[od[i].xtrshard_unit] = od[i].fd;
     }
@@ -869,15 +812,14 @@ void trs_imp_exp_load(FILE *file)
 }
 
 void
-trs_impexp_xtrshard_attach(int drive, const char *filename)
+trs_impexp_xtrshard_attach(int drive)
 {
   int i;
 
   for (i = 0; i < MAX_OPENDISK; i++) {
     if (od[i].inuse && od[i].xtrshard && (od[i].xtrshard_unit == drive)) {
       close(od[i].fd);
-      snprintf(od[i].filename, FILENAME_MAX, "%s", filename);
-      od[i].fd = open(filename, od[i].oflag);
+      od[i].fd = open(trs_hard_getfilename(i), od[i].oflag);
       xtrshard_fd[od[i].xtrshard_unit] = od[i].fd;
     }
   }
