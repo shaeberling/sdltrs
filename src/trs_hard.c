@@ -127,7 +127,7 @@ void trs_hard_attach(int drive, const char *diskname)
   if (open_drive(drive) < 0) {
     trs_hard_remove(drive);
   }
-  trs_impexp_xtrshard_attach(drive, diskname);
+  trs_impexp_xtrshard_attach(drive);
 }
 
 void trs_hard_remove(int drive)
