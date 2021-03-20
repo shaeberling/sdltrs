@@ -58,6 +58,8 @@
 #define MAX_VIDEO_SIZE	(0x0800)
 #define CP500_ROM_SIZE	(0x4000)
 
+#define MAX_MEMORY_SIZE	(0x200000)
+
 /* 512K is the largest we support. There were it seems 1MByte
    options at some point which is the full range of the mapping.
    How the mapping register worked for > 1MB is not known */
@@ -77,7 +79,7 @@
 
 /* We allow for 2MB of banked memory via port 0x94. That is the extreme limit
    of the port mods rather than anything normal (512K might be more 'normal' */
-Uchar memory[0x200001]; /* +1 so strings from mem_pointer are NUL-terminated */
+Uchar memory[MAX_MEMORY_SIZE + 1]; /* +1 so strings from mem_pointer are NUL-terminated */
 Uchar rom[MAX_ROM_SIZE + 1];
 Uchar cp500_rom[CP500_ROM_SIZE + 1];
 int trs_rom_size;
@@ -881,7 +883,7 @@ Uchar *mem_pointer(int address, int writing)
 
 void trs_mem_save(FILE *file)
 {
-  trs_save_uchar(file, memory, 0x200001);
+  trs_save_uchar(file, memory, MAX_MEMORY_SIZE + 1);
   trs_save_uchar(file, rom, MAX_ROM_SIZE + 1);
   trs_save_uchar(file, cp500_rom, CP500_ROM_SIZE + 1);
   trs_save_uchar(file, video, MAX_VIDEO_SIZE + 1);
@@ -903,7 +905,7 @@ void trs_mem_save(FILE *file)
 
 void trs_mem_load(FILE *file)
 {
-  trs_load_uchar(file, memory, 0x200001);
+  trs_load_uchar(file, memory, MAX_MEMORY_SIZE + 1);
   trs_load_uchar(file, rom, MAX_ROM_SIZE + 1);
   trs_load_uchar(file, cp500_rom, CP500_ROM_SIZE + 1);
   trs_load_uchar(file, video, MAX_VIDEO_SIZE + 1);
