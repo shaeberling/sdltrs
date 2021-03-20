@@ -880,6 +880,7 @@ Uchar *mem_pointer(int address, int writing)
 void trs_mem_save(FILE *file)
 {
   trs_save_uchar(file, memory, MAX_MEMORY_SIZE + 1);
+  trs_save_uchar(file, supermem_ram, MAX_SUPERMEM_SIZE + 1);
   trs_save_uchar(file, rom, MAX_ROM_SIZE + 1);
   trs_save_uchar(file, cp500_rom, CP500_ROM_SIZE + 1);
   trs_save_uchar(file, video, MAX_VIDEO_SIZE + 1);
@@ -902,6 +903,7 @@ void trs_mem_save(FILE *file)
 void trs_mem_load(FILE *file)
 {
   trs_load_uchar(file, memory, MAX_MEMORY_SIZE + 1);
+  trs_load_uchar(file, supermem_ram, MAX_SUPERMEM_SIZE + 1);
   trs_load_uchar(file, rom, MAX_ROM_SIZE + 1);
   trs_load_uchar(file, cp500_rom, CP500_ROM_SIZE + 1);
   trs_load_uchar(file, video, MAX_VIDEO_SIZE + 1);
