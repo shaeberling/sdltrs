@@ -249,6 +249,7 @@ static void mem_init(void)
 {
     /* Initialize RAM, ROM & Video memory */
     memset(&memory, 0, sizeof(memory));
+    memset(&supermem_ram, 0, sizeof(supermem_ram));
     memset(&rom, 0, sizeof(rom));
     memset(&cp500_rom, 0, sizeof(cp500_rom));
     memset(&video, 0, sizeof(video));
