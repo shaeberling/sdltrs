@@ -456,6 +456,10 @@ trs_disk_init(int poweron)
   stringy_init();
   trs_cancel_event();
 
+/*
+ * Emulate no controller if there is no disk in drive 0 at reset time,
+ * except for model 4.
+ */
   trs_disk_nocontroller = (trs_model < 5 && disk[0].file == NULL);
 }
 
