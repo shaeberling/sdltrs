@@ -280,6 +280,9 @@ void trs_reset(int poweron)
     trs_cassette_reset();
     trs_disk_init(poweron); /* also inits trs_hard and trs_stringy */
 
+    bank_base = 0x10000;
+    memory_map = 0;
+    mem_command = 0;
     supermem_base = 0;
     supermem_hi = 0x8000;
 
