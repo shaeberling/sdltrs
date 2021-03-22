@@ -174,10 +174,6 @@ void z80_out(int port, int value)
   } else {
     /* Next, Models III/4/4P only */
     switch (port) {
-    case 0x43: /* Alpha Technologies SuperMem */
-      if (trs_model == 3)
-          mem_bank_base(value);
-      break;
     case 0x5f: /* Sprinter III */
       if (trs_model == 3)
           trs_timer_speed(value);
@@ -452,9 +448,6 @@ int z80_in(int port)
     case 0x04: /* HRG read data byte */
       value = hrg_read_data();
       goto done;
-    case 0x43: /* Supermem memory expansion */
-      value = mem_read_bank_base();
-      goto done;
     case 0xEC:
       return lowe_le18_read();
       break;
@@ -480,10 +473,6 @@ int z80_in(int port)
   } else {
     /* Models III/4/4P only */
     switch (port) {
-    case 0x43: /* Supermem memory expansion */
-      if (trs_model == 3)
-          value = mem_read_bank_base();
-      goto done;
     case 0x82:
       if (trs_model >= 3) {
 	value = grafyx_read_data();
