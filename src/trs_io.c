@@ -236,7 +236,7 @@ void z80_out(int port, int value)
     case 0x90:
       /* HyperMem uses bits 4-1 of this port, 0 is the existing
          sound */
-      if (hypermem && trs_model >= 4)
+      if (trs_model >= 4 && hypermem)
         mem_bank_base(value);
       /* Fall through - we affect the sound as well */
     case 0x91:
