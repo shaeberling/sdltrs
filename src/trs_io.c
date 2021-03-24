@@ -95,10 +95,9 @@ void z80_out(int port, int value)
     trs_uart_data_out(value);
     break;
   case 0x43: /* Alpha Technologies SuperMem */
-      if (trs_model < 4) {
-        mem_bank_base(value);
-        break;
-      }
+    if (trs_model < 4 && supermem)
+      mem_bank_base(value);
+    break;
   }
 
   if (trs_model == 1) {
@@ -430,7 +429,7 @@ int z80_in(int port)
     value = trs_uart_data_in();
     goto done;
   case 0x43: /* Supermem memory expansion */
-    if (trs_model < 4) {
+    if (trs_model < 4 && supermem) {
       value = mem_read_bank_base();
       goto done;
     }
