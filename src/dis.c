@@ -2124,7 +2124,7 @@ int disassemble(unsigned short pc)
 	printf("%02x ", mem_read(addr + i));
     for (; i < 4; i++)
 	printf("   ");
-    printf(" ");
+    putchar (' ');
     switch (code->args) {
       case A_16: /* 16-bit number */
 	printf (code->name, mem_read(pc + 1), mem_read(pc));

@@ -380,14 +380,14 @@ static void print_memory(Ushort address, int num_bytes)
 	    byte = mem_read(address + i);
 	    if(isprint(byte))
 	    {
-		printf("%c", byte);
+		putchar(byte);
 	    }
 	    else
 	    {
-		printf(".");
+		putchar('.');
 	    }
 	}
-	printf("\n");
+	putchar('\n');
 	num_bytes -= bytes_to_print;
 	address += bytes_to_print;
     }
@@ -498,7 +498,7 @@ void debug_shell(void)
 
     while(!done)
     {
-	printf("\n");
+	putchar('\n');
 	disassemble(Z80_PC);
 
 #ifdef READLINE
