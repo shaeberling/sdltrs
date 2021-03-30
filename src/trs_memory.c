@@ -274,6 +274,23 @@ void trs_reset(int poweron)
     trs_emu_mouse = FALSE;
     m_a11_flipflop = 0;
 
+    if (poweron || trs_model >= 4) {
+        /* Reset processor */
+	z80_reset();
+	mem_init();
+	trs_rom_init();
+	trs_timer_init();
+	if (trs_show_led) {
+	  trs_disk_led(-1, -1);
+	  trs_hard_led(-1, -1);
+	  trs_turbo_led();
+	}
+    } else {
+	trs_timer_speed(0);
+	/* Signal a nonmaskable interrupt. */
+	trs_reset_button_interrupt(1);
+	trs_schedule_event(trs_reset_button_interrupt, 0, 2000);
+    }
     /* Close disks opened by Z80 programs */
     do_emt_resetdisk();
     /* Reset devices (Model I SYSRES, Model III/4 RESET) */
@@ -315,23 +332,6 @@ void trs_reset(int poweron)
 
     trs_cancel_event();
     trs_timer_interrupt(0);
-    if (poweron || trs_model >= 4) {
-        /* Reset processor */
-	z80_reset();
-	mem_init();
-	trs_rom_init();
-	trs_timer_init();
-	if (trs_show_led) {
-	  trs_disk_led(-1, -1);
-	  trs_hard_led(-1, -1);
-	  trs_turbo_led();
-	}
-    } else {
-	trs_timer_speed(0);
-	/* Signal a nonmaskable interrupt. */
-	trs_reset_button_interrupt(1);
-	trs_schedule_event(trs_reset_button_interrupt, 0, 2000);
-    }
     /* Clear screen */
     screen_init();
 }
