@@ -1228,8 +1228,6 @@ void trs_screen_init(void)
       trs_charset = trs_charset4;
   }
 
-  resize = (trs_model >= 4) ? resize4 : resize3;
-
   if (trs_model == 1) {
     if (trs_charset < 3)
       cur_char_width = 6 * scale;
@@ -1247,6 +1245,7 @@ void trs_screen_init(void)
   border_width = fullscreen ? 0 : window_border_width;
   led_width = trs_show_led ? 8 : 0;
   led_height = led_width * scale;
+  resize = (trs_model >= 4) ? resize4 : resize3;
 
   if (trs_model >= 3  && !resize) {
     OrigWidth = cur_char_width * 80 + 2 * border_width;

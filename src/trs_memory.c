@@ -270,6 +270,10 @@ void trs_reset(int poweron)
 {
     trs_emu_mouse = FALSE;
     m_a11_flipflop = 0;
+    bank_base = 0x10000;
+    mem_command = 0;
+    supermem_base = 0;
+    supermem_hi = 0x8000;
 
     if (poweron || trs_model >= 4) {
         /* Reset processor */
@@ -293,11 +297,6 @@ void trs_reset(int poweron)
     /* Reset devices (Model I SYSRES, Model III/4 RESET) */
     trs_cassette_reset();
     trs_disk_init(poweron); /* also inits trs_hard and trs_stringy */
-
-    bank_base = 0x10000;
-    mem_command = 0;
-    supermem_base = 0;
-    supermem_hi = 0x8000;
 
     if (trs_model == 5) {
         /* Switch in boot ROM */
