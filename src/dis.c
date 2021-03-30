@@ -63,7 +63,7 @@ struct opcode {
 	const int	args;
 };
 
-static struct opcode major[256] = {
+static const struct opcode major[256] = {
 	{ "nop",		A_0 },		/* 00 */
 	{ "ld	bc,%02x%02xh",	A_16 },		/* 01 */
 	{ "ld	(bc),a",	A_0 },		/* 02 */
@@ -353,7 +353,7 @@ static struct opcode major[256] = {
 	{ "rst	38h",		A_0 },		/* ff */
 };
 
-static struct opcode minor[6][256] = {
+static const struct opcode minor[6][256] = {
     {							/* cb */
 	{ "rlc	b",		A_0 },		/* cb00 */
 	{ "rlc	c",		A_0 },		/* cb01 */
@@ -2097,7 +2097,7 @@ static struct opcode minor[6][256] = {
 int disassemble(unsigned short pc)
 {
     int	i, j;
-    struct opcode	*code;
+    const struct opcode	*code;
     int	addr;
 
     addr = pc;
