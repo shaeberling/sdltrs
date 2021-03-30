@@ -120,7 +120,6 @@ extern int trs_kb_bracket_state;
 
 extern int romin;
 extern int scale;
-extern int resize;
 extern int resize3;
 extern int resize4;
 extern int trs_uart_switches;
