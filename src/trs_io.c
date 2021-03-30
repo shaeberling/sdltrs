@@ -449,8 +449,8 @@ int z80_in(int port)
       value = hrg_read_data();
       goto done;
     case 0xEC:
-      return lowe_le18_read();
-      break;
+      value = lowe_le18_read();
+      goto done;
     case 0xF0:
     case 0xF1:
     case 0xF2:
