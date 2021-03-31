@@ -428,10 +428,8 @@ trs_timer_on(void)
 void
 trs_timer_speed(int fast)
 {
-  if (trs_model >= 4) {
-    timer_hz = fast ? TIMER_HZ_4 : TIMER_HZ_3;
-    z80_state.clockMHz = fast ? clock_mhz_4 : clock_mhz_3;
-  } else if (trs_model == 1) {
+  switch (trs_model) {
+    case 1:
       switch (speedup) {
         case 1: /*Archbold*/
           z80_state.clockMHz = clock_mhz_1 * ((fast & 1) + 1);
@@ -440,9 +438,16 @@ trs_timer_speed(int fast)
           z80_state.clockMHz = 10.6445 / (((fast + 4) & 7) + 2);
           break;
       }
-  } else if (trs_model == 3) {
-    /* Switch to fastest possible speed of Sprinter III */
-    z80_state.clockMHz = (fast & 1) ? 5.07 /* 3.4 */ : clock_mhz_3;
+      break;
+    case 3:
+      /* Switch to fastest possible speed of Sprinter III */
+      z80_state.clockMHz = (fast & 1) ? 5.07 /* 3.4 */ : clock_mhz_3;
+      break;
+    case 4:
+    case 5:
+      timer_hz = fast ? TIMER_HZ_4 : TIMER_HZ_3;
+      z80_state.clockMHz = fast ? clock_mhz_4 : clock_mhz_3;
+      break;
   }
   cycles_per_timer = z80_state.clockMHz * 1000000 / timer_hz;
   trs_turbo_mode(-1);
