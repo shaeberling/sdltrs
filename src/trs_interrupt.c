@@ -434,7 +434,7 @@ trs_timer_speed(int fast)
         case 1: /*Archbold*/
           z80_state.clockMHz = clock_mhz_1 * ((fast & 1) + 1);
           break;
-        case 2: /*Sprinter*/
+        case 2: /*Holmes Sprinter II*/
           z80_state.clockMHz = 10.6445 / (((fast + 4) & 7) + 2);
           break;
       }
