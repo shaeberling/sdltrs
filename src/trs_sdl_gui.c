@@ -1778,7 +1778,7 @@ void trs_gui_emulator_settings(void)
    {"CPU Clock Speed                                             ", MENU_NORMAL_TYPE},
    {"Exatron Stringy Floppy Emulation for Model I                ", MENU_NORMAL_TYPE},
    {"Lowercase Modification for Model I                          ", MENU_NORMAL_TYPE},
-   {"Speedup Kit Emulation for Model I                           ", MENU_NORMAL_TYPE},
+   {"Speedup Kit Emulation for Model I/III/4/4P                  ", MENU_NORMAL_TYPE},
    {"", MENU_TITLE_TYPE},
    {"Grafyx Solution (Micro-Labs) III/4/4P Graphics              ", MENU_NORMAL_TYPE},
    {"LE18 (Lowe Electronics) Graphics for Model I                ", MENU_NORMAL_TYPE},
@@ -1792,7 +1792,7 @@ void trs_gui_emulator_settings(void)
                                    "TRS-80 Model III",
                                    "  TRS-80 Model 4",
                                    " TRS-80 Model 4P"};
-  const char *speed_choices[3] =  {"      None", "  Archbold", "    Holmes"};
+  const char *speed_choices[4] =  {"      None", "  Archbold", "    Holmes","Seatronics"};
   float clock_mhz[4];
   char input[8];
   int selection = 0;
@@ -1854,7 +1854,7 @@ void trs_gui_emulator_settings(void)
         lowercase = trs_gui_display_popup("Lowercase", yes_no_choices, 2, lowercase);
         break;
       case 4:
-        speedup = trs_gui_display_popup("Speedup", speed_choices, 3, speedup);
+        speedup = trs_gui_display_popup("Speedup", speed_choices, 4, speedup);
         break;
       case 6:
         grafyx_set_microlabs(trs_gui_display_popup("Grafyx", yes_no_choices, 2,

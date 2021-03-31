@@ -425,6 +425,18 @@ trs_timer_on(void)
   }
 }
 
+static float
+trs_timer_seatronics(int value)
+{
+  if (((value & 0x80) >> 7) && ((value & 0x40) >> 6))
+    return 8.11008;
+  if (((value & 0x80) >> 7) && !((value & 0x40) >> 6))
+    return 5.06880;
+  if ((value & 0x40) >> 6)
+    return 4.05504;
+  return 2.02752;
+}
+
 void
 trs_timer_speed(int fast)
 {
@@ -437,16 +449,33 @@ trs_timer_speed(int fast)
         case 2: /*Holmes Sprinter II*/
           z80_state.clockMHz = 10.6445 / (((fast + 4) & 7) + 2);
           break;
+        case 3: /*Seatronics Super Speed-Up*/
+          z80_state.clockMHz = trs_timer_seatronics(fast);
+          break;
+        default:
+          break;
       }
       break;
     case 3:
-      /* Switch to fastest possible speed of Sprinter III */
-      z80_state.clockMHz = (fast & 1) ? 5.07 /* 3.4 */ : clock_mhz_3;
+      switch (speedup) {
+        case 2:
+          /* Switch to fastest possible speed of Sprinter III */
+          z80_state.clockMHz = (fast & 1) ? 5.07 /* 3.4 */ : clock_mhz_3;
+          break;
+        case 3:
+          z80_state.clockMHz = trs_timer_seatronics(fast);
+          break;
+        default:
+          break;
+      }
       break;
     case 4:
     case 5:
-      timer_hz = fast ? TIMER_HZ_4 : TIMER_HZ_3;
-      z80_state.clockMHz = fast ? clock_mhz_4 : clock_mhz_3;
+      timer_hz = ((fast & 0x40) >> 6) ? TIMER_HZ_4 : TIMER_HZ_3;
+      if (speedup == 3)
+        z80_state.clockMHz = trs_timer_seatronics(fast);
+      else
+        z80_state.clockMHz = ((fast & 0x40) >> 6) ? clock_mhz_4 : clock_mhz_3;
       break;
   }
   cycles_per_timer = z80_state.clockMHz * 1000000 / timer_hz;

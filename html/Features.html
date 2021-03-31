@@ -965,6 +965,32 @@ uses the following values:</p>
 even numbers to the port sets the speed back to normal, odd numbers sets the
 clock frequency to 5.07 MHz.</p>
 
+<p>The "Seatronics Super Speed-Up" uses port <code>0xEC</code> on all TRS-80
+Models to select the Z80 CPU speed:</p>
+
+<table border="0" cellpadding="5" cellspacing="0">
+  <tr>
+    <td>COMMAND</td>
+    <td>CLOCK FREQUENCY</td>
+  </tr>
+  <tr align="center">
+    <td>OUT 236, 0</td>
+    <td>2.02 MHz</td>
+  </tr>
+  <tr align="center">
+    <td>OUT 236, 64</td>
+    <td>4.05 MHz</td>
+  </tr>
+  <tr align="center">
+    <td>OUT 236, 128</td>
+    <td>5.06 MHz</td>
+  </tr>
+  <tr align="center">
+    <td>OUT 236, 192</td>
+    <td>8.11 MHz</td>
+  </tr>
+</table>
+
 <p>The speed (clock rate) of the Z80 CPU can be adjusted on the fly with
 <b>Alt-'-'</b> or <b>Alt-'+'</b>, but use this with CAUTION: overclocking the
 Z80 will result in all forms of "timing errors"!</p>
