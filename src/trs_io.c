@@ -128,7 +128,10 @@ void z80_out(int port, int value)
       trs_orch90_out(2, value);
       break;
     case 0xEC:
-      lowe_le18_write_data(value);
+      if (lowe_le18)
+        lowe_le18_write_data(value);
+      else if (speedup == 3) /* Seatronics Super Speed-Up */
+        trs_timer_speed(value);
       break;
     case 0xED:
       lowe_le18_write_x(value);
@@ -277,8 +280,7 @@ void z80_out(int port, int value)
       /* alternate char set is on D3 */
       trs_screen_alternate(!((modeimage & 0x08) >> 3));
       /* clock speed is on D6; it affects timer HZ too */
-      if (trs_model >= 4)
-        trs_timer_speed((modeimage & 0x40) >> 6);
+      trs_timer_speed(modeimage);
       break;
     case TRSDISK3_COMMAND: /* 0xF0 */
       trs_disk_command_write(value);

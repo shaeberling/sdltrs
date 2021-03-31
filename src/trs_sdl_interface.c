@@ -777,6 +777,9 @@ static void trs_opt_speedup(char *arg, int intarg, int *stringarg)
     case 'h': /*Holmes*/
       speedup = 2;
       break;
+    case 's': /*Seatronics*/
+      speedup = 3;
+      break;
     default:
       error("unknown speedup kit: %s", arg);
   }
@@ -1147,6 +1150,9 @@ int trs_write_config_file(const char *filename)
       break;
     case 2:
       fprintf(config_file, "holmes\n");
+      break;
+    case 3:
+      fprintf(config_file, "seatronics\n");
       break;
   }
   fprintf(config_file, "statedir=%s\n", trs_state_dir);
