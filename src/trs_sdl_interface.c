@@ -774,7 +774,7 @@ static void trs_opt_speedup(char *arg, int intarg, int *stringarg)
     case 'a': /*Archbold*/
       speedup = 1;
       break;
-    case 's': /*Sprinter*/
+    case 'h': /*Holmes*/
       speedup = 2;
       break;
     default:
@@ -1146,7 +1146,7 @@ int trs_write_config_file(const char *filename)
       fprintf(config_file, "archbold\n");
       break;
     case 2:
-      fprintf(config_file, "sprinter\n");
+      fprintf(config_file, "holmes\n");
       break;
   }
   fprintf(config_file, "statedir=%s\n", trs_state_dir);
