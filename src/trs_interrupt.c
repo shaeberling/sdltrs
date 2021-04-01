@@ -425,69 +425,55 @@ trs_timer_on(void)
   }
 }
 
-/* The Seatronics Super Speed-Up uses bits 7 and 6
- * of port 0xec to select the Z80 CPU clock rate:
- *
- * Bit 7:  Bit 6:
- *   1       1     = 8 MHz
- *   1       0     = 5 MHz
- *   0       1     = 4 MHz
- *   0       0     = 2 MHz
- */
-static float
-trs_timer_seatronics(int value)
-{
-  if ((value & 0x80) >> 7) {
-    if ((value & 0x40) >> 6)
-      return 8.11008;
-    else
-      return 5.06880;
-  }
-  if ((value & 0x40) >> 6)
-    return 4.05504;
-  return 2.02752;
-}
-
 void
 trs_timer_speed(int fast)
 {
-  switch (trs_model) {
-    case 1:
-      switch (speedup) {
+  if (speedup == 3) {
+    /* The Seatronics Super Speed-Up uses bits 7 and 6
+     * of port 0xec to select the Z80 CPU clock rate:
+     *
+     * Bit 7:  Bit 6:
+     *   1       1     = 8 MHz
+     *   1       0     = 5 MHz
+     *   0       1     = 4 MHz
+     *   0       0     = 2 MHz
+     */
+    if ((fast & 0x80) >> 7) {
+      if ((fast & 0x40) >> 6)
+        z80_state.clockMHz = 8.11008;
+      else
+        z80_state.clockMHz = 5.06880;
+    } else {
+      if ((fast & 0x40) >> 6)
+        z80_state.clockMHz = 4.05504;
+      else
+        z80_state.clockMHz = 2.02752;
+    }
+  } else {
+    switch (trs_model) {
+      case 1:
+        switch (speedup) {
         case 1: /*Archbold*/
           z80_state.clockMHz = clock_mhz_1 * ((fast & 1) + 1);
           break;
         case 2: /*Holmes Sprinter II*/
           z80_state.clockMHz = 10.6445 / (((fast + 4) & 7) + 2);
           break;
-        case 3: /*Seatronics Super Speed-Up*/
-          z80_state.clockMHz = trs_timer_seatronics(fast);
-          break;
         default:
           break;
-      }
-      break;
-    case 3:
-      switch (speedup) {
-        case 2:
+        }
+        break;
+      case 3:
+        if (speedup == 2)
           /* Switch to fastest possible speed of Sprinter III */
           z80_state.clockMHz = (fast & 1) ? 5.07 /* 3.4 */ : clock_mhz_3;
-          break;
-        case 3:
-          z80_state.clockMHz = trs_timer_seatronics(fast);
-          break;
-        default:
-          break;
-      }
-      break;
-    case 4:
-    case 5:
-      timer_hz = ((fast & 0x40) >> 6) ? TIMER_HZ_4 : TIMER_HZ_3;
-      if (speedup == 3)
-        z80_state.clockMHz = trs_timer_seatronics(fast);
-      else
+        break;
+      case 4:
+      case 5:
+        timer_hz = ((fast & 0x40) >> 6) ? TIMER_HZ_4 : TIMER_HZ_3;
         z80_state.clockMHz = ((fast & 0x40) >> 6) ? clock_mhz_4 : clock_mhz_3;
       break;
+    }
   }
   cycles_per_timer = z80_state.clockMHz * 1000000 / timer_hz;
   trs_turbo_mode(-1);
