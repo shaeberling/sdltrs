@@ -470,10 +470,15 @@ trs_timer_speed(int fast)
         break;
       case 4:
       case 5:
-        timer_hz = ((fast & 0x40) >> 6) ? TIMER_HZ_4 : TIMER_HZ_3;
         z80_state.clockMHz = ((fast & 0x40) >> 6) ? clock_mhz_4 : clock_mhz_3;
       break;
     }
+  }
+  if (trs_model >= 4) {
+    if (((fast & 0x80) >> 7) || ((fast & 0x40) >> 6))
+      timer_hz = TIMER_HZ_4;
+    else
+      timer_hz = TIMER_HZ_3;
   }
   cycles_per_timer = z80_state.clockMHz * 1000000 / timer_hz;
   trs_turbo_mode(-1);
