@@ -425,6 +425,15 @@ trs_timer_on(void)
   }
 }
 
+/* The Seatronics Super Speed-Up uses bits 7 and 6
+ * of port 0xec to select the Z80 CPU clock rate:
+ *
+ * Bit 7:  Bit 6:
+ *   1       1     = 8 MHz
+ *   1       0     = 5 MHz
+ *   0       1     = 4 MHz
+ *   0       0     = 2 MHz
+ */
 static float
 trs_timer_seatronics(int value)
 {
