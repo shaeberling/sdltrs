@@ -428,10 +428,12 @@ trs_timer_on(void)
 static float
 trs_timer_seatronics(int value)
 {
-  if (((value & 0x80) >> 7) && ((value & 0x40) >> 6))
-    return 8.11008;
-  if (((value & 0x80) >> 7) && !((value & 0x40) >> 6))
-    return 5.06880;
+  if ((value & 0x80) >> 7) {
+    if ((value & 0x40) >> 6)
+      return 8.11008;
+    else
+      return 5.06880;
+  }
   if ((value & 0x40) >> 6)
     return 4.05504;
   return 2.02752;
