@@ -47,9 +47,7 @@ Thanks to Tércio Martins a package for Arch Linux is available in the [AUR].
 ## SDL2
 
 The [SDL2] branch contains the SDL2 version with hardware rendering support.
-Although considered as *experimental*, it is recommended for newer systems
-(SDL2 binaries and packages above are build on the *master* branch, which
-uses software rendering).
+SDL2 binaries and packages above are build on the SDL2 branch, not *master*.
 
 The SDL2 version is available in [RetroPie] since version 4.6.6 and Valerio
 Lupi's fork of [RetroPie-Setup] ...
