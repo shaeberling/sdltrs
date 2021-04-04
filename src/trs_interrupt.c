@@ -358,13 +358,16 @@ trs_timer_init(void)
   struct tm *lt;
   time_t tt;
 
-  if (trs_model == 1) {
+  switch (trs_model) {
+    case 1:
       timer_hz = TIMER_HZ_1;
       z80_state.clockMHz = clock_mhz_1;
-  } else if (trs_model == 3) {
+      break;
+    case 3:
       timer_hz = TIMER_HZ_3;
       z80_state.clockMHz = clock_mhz_3;
-  } else {
+      break;
+    default:
       timer_hz = TIMER_HZ_4;
       z80_state.clockMHz = clock_mhz_4;
   }
