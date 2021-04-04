@@ -28,24 +28,9 @@ Updated version of Mark Grebe's [SDLTRS]:
 ## SDL2
 
 This branch contains the SDL2 version with hardware rendering support.
-Although *experimental*, it's recommended for newer systems ...
 
 This version is available in [RetroPie] since version 4.6.6 and Valerio
 Lupi's fork of [RetroPie-Setup] ...
-
-## Binaries
-
-  * [sdl2trs.exe]    (32-bit, needs [SDL2.DLL])
-  * [sdl2trs64.exe]  (64-bit, needs [SDL2.DLL])
-
-(Build with [MinGW] & [MinGW-w64])
-
-## Packages
-
-  * [sdl2trs_1.2.16-1_i386.deb]   (32-bit, SDL2)
-  * [sdl2trs_1.2.16-1_amd64.deb]  (64-bit, SDL2)
-
-(Build on Debian 9/i386 & Linux Mint 20.1/amd64)
 
 Thanks to Tércio Martins a package for Arch Linux is available in the [AUR].
 
@@ -59,13 +44,6 @@ Thanks to Tércio Martins a package for Arch Linux is available in the [AUR].
 [AUR]: https://aur.archlinux.org/packages/sdl2trs/
 [BUILDING.md]: BUILDING.md
 [EtchedPixels]: https://www.github.com/EtchedPixels/xtrs
-[MinGW]: http://www.mingw.org
-[MinGW-w64]: http://mingw-w64.org
 [RetroPie]: https://github.com/RetroPie
 [RetroPie-Setup]: https://github.com/valerino/RetroPie-Setup
-[SDL2.DLL]: https://www.libsdl.org/download-2.0.php
 [SDLTRS]: http://sdltrs.sourceforge.net
-[sdl2trs.exe]: bin/sdl2trs.exe
-[sdl2trs64.exe]: bin/sdl2trs64.exe
-[sdl2trs_1.2.16-1_i386.deb]: bin/sdl2trs_1.2.16-1_i386.deb
-[sdl2trs_1.2.16-1_amd64.deb]: bin/sdl2trs_1.2.16-1_amd64.deb
