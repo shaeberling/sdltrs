@@ -18,6 +18,8 @@ Updated version of Mark Grebe's [SDLTRS]:
   * Change Z80 CPU default MHz of each TRS-80 Model
   * More accurate emulation of Z80 block instructions
   * Joystick emulation with Mouse
+  * Support for Prologica CP-300/500 16kB ROM (extra 2kB Z80 monitor)
+  * Support for Seatronics Super Speed-Up Board (all TRS-80 Models)
 
 ## License
 
