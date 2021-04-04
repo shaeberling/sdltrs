@@ -1,3 +1,9 @@
+## Version 1.2.17 Release 04-04-2021:
+
+  * Added support for Prologica CP-300/500 16kB ROM.
+  * Added support for Seatronics Super Speed-Up Board.
+  * Added SuperMem RAM and Prologica ROM to state file.
+
 ## Version 1.2.16 Release 02-28-2021:
 
   * Added joystick hat support in GUI.
