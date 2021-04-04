@@ -1,5 +1,5 @@
 project('sdl2trs', 'c',
-	version: '1.2.16',
+	version: '1.2.17',
 	license: 'BSD',
 	default_options: [ 'buildtype=debugoptimized', 'c_std=gnu89' ],
 	meson_version: '>= 0.36.0'
