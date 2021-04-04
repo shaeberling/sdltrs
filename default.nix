@@ -1,19 +1,20 @@
 { stdenv
+, lib
 , fetchFromGitLab
 , cmake
 , readline
 , SDL2 }:
 
-with stdenv.lib;
+with lib;
 stdenv.mkDerivation rec {
   pname   = "sdltrs";
-  version = "1.2.16";
+  version = "1.2.17";
 
   src = fetchFromGitLab {
     owner  = "jengun";
     repo   = "sdltrs";
     rev    = version;
-    sha256 = "0wjgf6d1hj4ahql9g1anhgxsilsa6w8c95115jsin5ng6jrz6i8s";
+    sha256 = "158jvwx4xmbx71dg23q08zgh8vlcdfcq9v1xn42kg71vh0yjgxsh";
   };
 
   nativeBuildInputs = [ cmake ];
@@ -41,6 +42,6 @@ stdenv.mkDerivation rec {
     '';
     maintainers = [ maintainers.jengun ];
     license     = licenses.bsd2;
-    platforms   = stdenv.lib.platforms.all;
+    platforms   = lib.platforms.all;
   };
 }
