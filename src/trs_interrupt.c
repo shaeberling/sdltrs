@@ -471,8 +471,8 @@ trs_timer_speed(int fast)
           /* Switch to fastest possible speed of Sprinter III */
           z80_state.clockMHz = (fast & 1) ? 5.07 /* 3.4 */ : clock_mhz_3;
         break;
-      case 4:
-      case 5:
+      default:
+        /* Model 4/4P */
         z80_state.clockMHz = ((fast & 0x40) >> 6) ? clock_mhz_4 : clock_mhz_3;
       break;
     }
