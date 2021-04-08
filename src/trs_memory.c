@@ -254,8 +254,11 @@ static void mem_init(void)
     memset(&cp500_rom, 0, sizeof(cp500_rom));
     memset(&video, 0, sizeof(video));
 
-    if (trs_model < 4)
+    if (trs_model < 4) {
         trs_video_size = 1024;
+        /* Fill memory of random seed buffer */
+        memset(&memory[0x4090], 0x7F, 0x3);
+    }
     else
         trs_video_size = MAX_VIDEO_SIZE;
 
