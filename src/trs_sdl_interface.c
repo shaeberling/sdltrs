@@ -1277,27 +1277,21 @@ void trs_screen_init(void)
                               SDL_WINDOWPOS_CENTERED,
                               OrigWidth, OrigHeight,
                               SDL_WINDOW_HIDDEN);
-    if (window == NULL) {
-      trs_sdl_cleanup();
+    if (window == NULL)
       fatal("failed to create window: %s", SDL_GetError());
-    }
   }
   SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
   SDL_SetWindowSize(window, OrigWidth, OrigHeight);
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_ShowWindow(window);
   screen = SDL_GetWindowSurface(window);
-  if (screen == NULL) {
-    trs_sdl_cleanup();
+  if (screen == NULL)
     fatal("failed to get window surface: %s", SDL_GetError());
-  }
 #else
   screen = SDL_SetVideoMode(OrigWidth, OrigHeight, 0, fullscreen ?
                             SDL_ANYFORMAT | SDL_FULLSCREEN : SDL_ANYFORMAT);
-  if (screen == NULL) {
-    trs_sdl_cleanup();
+  if (screen == NULL)
     fatal("failed to set video mode: %s", SDL_GetError());
-  }
   SDL_WarpMouse(OrigWidth / 2, OrigHeight / 2);
 #endif
   SDL_ShowCursor(mousepointer ? SDL_ENABLE : SDL_DISABLE);
@@ -1582,7 +1576,6 @@ void trs_exit(int confirm)
       return;
     }
   }
-  trs_sdl_cleanup();
   exit(0);
 }
 
@@ -1784,10 +1777,8 @@ void trs_get_event(int wait)
         if (event.window.event == SDL_WINDOWEVENT_EXPOSED)
           SDL_UpdateWindowSurface(window);
         if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-          if ((screen = SDL_GetWindowSurface(window)) == NULL) {
-            trs_sdl_cleanup();
+          if ((screen = SDL_GetWindowSurface(window)) == NULL)
             fatal("failed to get window surface: %s", SDL_GetError());
-          }
           trs_screen_refresh();
 #else
       case SDL_ACTIVEEVENT:
@@ -2474,10 +2465,8 @@ static SDL_Surface *CreateSurfaceFromDataScale(const unsigned char *data,
   mydata = (unsigned int *)malloc(TRS_CHAR_WIDTH * TRS_CHAR_HEIGHT *
       scale_x * scale_y * sizeof(unsigned int));
   mypixels = (unsigned char *)malloc(TRS_CHAR_WIDTH * TRS_CHAR_HEIGHT * 8);
-  if (mydata == NULL || mypixels == NULL) {
-    trs_sdl_cleanup();
+  if (mydata == NULL || mypixels == NULL)
     fatal("CreateSurfaceFromDataScale: failed to allocate memory");
-  }
 
   /* Read the character data */
   for (j = 0; (unsigned)j < TRS_CHAR_WIDTH * TRS_CHAR_HEIGHT; j += 8)
