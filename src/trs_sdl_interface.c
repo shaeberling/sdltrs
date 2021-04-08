@@ -1275,16 +1275,12 @@ void trs_screen_init(void)
                               SDL_WINDOWPOS_CENTERED,
                               800, 600,
                               SDL_WINDOW_HIDDEN|SDL_WINDOW_RESIZABLE);
-    if (window == NULL) {
-      trs_sdl_cleanup();
+    if (window == NULL)
       fatal("failed to create window: %s", SDL_GetError());
-    }
 
     render = SDL_CreateRenderer(window, -1, 0);
-    if (render == NULL) {
-      trs_sdl_cleanup();
+    if (render == NULL)
       fatal("failed to create renderer: %s", SDL_GetError());
-    }
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, &scale_quality);
 
@@ -1294,10 +1290,9 @@ void trs_screen_init(void)
     debug("SDL_RENDER_DRIVER=%s\n", renderinfo.name);
 #endif
     screen = SDL_CreateRGBSurface(0, 800, 600, 32, 0, 0, 0, 0);
-    if (screen == NULL) {
-      trs_sdl_cleanup();
+    if (screen == NULL)
       fatal("failed to create surface: %s", SDL_GetError());
-    }
+
 #if defined(big_endian) && !defined(__linux)
     light_red     = SDL_MapRGB(screen->format, 0x00, 0x00, 0x40);
     bright_red    = SDL_MapRGB(screen->format, 0x00, 0x00, 0xff);
@@ -1311,10 +1306,8 @@ void trs_screen_init(void)
 #endif
     image = SDL_CreateRGBSurfaceFrom(grafyx, G_XSIZE * 8, G_YSIZE * 2, 1,
                                      G_XSIZE, 1, 1, 1, 0);
-    if (image == NULL) {
-      trs_sdl_cleanup();
+    if (image == NULL)
       fatal("failed to create surface: %s", SDL_GetError());
-    }
   }
 
   if (texture)
@@ -1323,10 +1316,8 @@ void trs_screen_init(void)
                               SDL_PIXELFORMAT_ARGB8888,
                               SDL_TEXTUREACCESS_STREAMING,
                               OrigWidth, OrigHeight);
-  if (texture == NULL) {
-    trs_sdl_cleanup();
+  if (texture == NULL)
     fatal("failed to create texture: %s", SDL_GetError());
-  }
 
   SDL_RenderSetLogicalSize(render, OrigWidth, OrigHeight);
   SDL_RenderClear(render);
@@ -1584,7 +1575,6 @@ void trs_exit(int confirm)
       return;
     }
   }
-  trs_sdl_cleanup();
   exit(0);
 }
 
@@ -2422,10 +2412,8 @@ static SDL_Surface *CreateSurfaceFromDataScale(const unsigned char *data,
   mydata = (unsigned int *)malloc(TRS_CHAR_WIDTH * TRS_CHAR_HEIGHT *
       scale_x * scale_y * sizeof(unsigned int));
   mypixels = (unsigned char *)malloc(TRS_CHAR_WIDTH * TRS_CHAR_HEIGHT * 8);
-  if (mydata == NULL || mypixels == NULL) {
-    trs_sdl_cleanup();
+  if (mydata == NULL || mypixels == NULL)
     fatal("CreateSurfaceFromDataScale: failed to allocate memory");
-  }
 
   /* Read the character data */
   for (j = 0; (unsigned)j < TRS_CHAR_WIDTH * TRS_CHAR_HEIGHT; j += 8)

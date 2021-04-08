@@ -190,6 +190,9 @@ int SDLmain(int argc, char *argv[])
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     fatal("failed to initialize SDL: %s", SDL_GetError());
 
+  if (atexit(trs_sdl_cleanup))
+    fatal("failed to register SDL cleanup");
+
   trs_parse_command_line(argc, argv, &debug);
   trs_set_keypad_joystick();
   trs_open_joystick();
@@ -214,7 +217,6 @@ int SDLmain(int argc, char *argv[])
   debug_shell();
 #endif
 
-  trs_sdl_cleanup();
   printf("Quitting.\n");
   exit(EXIT_SUCCESS);
 }

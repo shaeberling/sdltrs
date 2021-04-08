@@ -413,10 +413,8 @@ void trs_gui_display_message(const char* title, const char *message)
 void trs_gui_create_filename_list(void)
 {
   if (filenamelist == NULL) {
-    if ((filenamelist = (char **)malloc(256 * sizeof(char *))) == NULL) {
-      trs_sdl_cleanup();
+    if ((filenamelist = (char **)malloc(256 * sizeof(char *))) == NULL)
       fatal("failed to allocate filenamelist");
-    }
     filenamelistsize = 256;
   }
 }
@@ -430,7 +428,6 @@ void trs_gui_add_to_filename_list(char *name)
     if ((filenamelist_new = realloc(filenamelist, 2 *
         filenamelistsize * sizeof(char*))) == NULL) {
       free(filenamelist);
-      trs_sdl_cleanup();
       fatal("failed to reallocate filenamelist");
     }
     filenamelist = filenamelist_new;
