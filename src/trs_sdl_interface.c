@@ -2386,12 +2386,8 @@ void trs_screen_80x24(int flag)
 
 void screen_init(void)
 {
-  int i;
-
   /* initially, screen is blank (i.e. full of spaces) */
-  for (i = 0; i < 2048; i++)
-    trs_screen[i] = ' ';
-
+  memset(trs_screen, ' ', sizeof(trs_screen));
   memset(grafyx, 0, (2 * G_YSIZE * MAX_SCALE) * (G_XSIZE * MAX_SCALE));
 }
 
