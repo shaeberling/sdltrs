@@ -1596,9 +1596,10 @@ void trs_sdl_cleanup(void)
 
   SDL_FreeSurface(image);
 #ifdef SDL2
+  SDL_FreeSurface(screen);
   SDL_DestroyWindow(window);
 #endif
-  SDL_Quit(); /* Will free screen */
+  SDL_Quit();
 }
 
 static void trs_flip_fullscreen(void)
