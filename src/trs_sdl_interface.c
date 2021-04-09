@@ -1361,18 +1361,16 @@ static void DrawSelectionRectangle(int orig_x, int orig_y, int copy_x, int copy_
   int x, y;
 
   if (copy_x < orig_x) {
-    int swap_x;
+    int swap = copy_x;
 
-    swap_x = copy_x;
     copy_x = orig_x;
-    orig_x = swap_x;
+    orig_x = swap;
   }
   if (copy_y < orig_y) {
-    int swap_y;
+    int swap = copy_y;
 
-    swap_y = copy_y;
     copy_y = orig_y;
-    orig_y = swap_y;
+    orig_y = swap;
   }
 
   SDL_LockSurface(screen);
