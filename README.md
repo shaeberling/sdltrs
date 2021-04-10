@@ -8,18 +8,18 @@ Updated version of Mark Grebe's [SDLTRS]:
   * Access to real floppy disks works now on Linux
   * Tried to fix reported bugs to the original version
   * Port to SDL2 (see [BUILDING.md] and [SDL2])
-  * Support for Exatron Stringy Floppy
+  * Support Exatron Stringy Floppy for TRS-80 Model I
   * Select and execute CMD files directly in the Emulator
   * Save screenshot of the Emulator window as BMP file
   * Show Z80 registers in the window title bar
   * Adjust speed of Z80 CPU on the fly
   * Emulate Z80 memory refresh register
-  * Support for Sprinter II/III speed-up kits
+  * Support Holmes Sprinter II/III speed-up kits for TRS-80 Model I/III
   * Change Z80 CPU default MHz of each TRS-80 Model
   * More accurate emulation of Z80 block instructions
   * Joystick emulation with Mouse
-  * Support for Prologica CP-300/500 16kB ROM (extra 2kB Z80 monitor)
-  * Support for Seatronics Super Speed-Up Board (all TRS-80 Models)
+  * Support Prologica CP-300/500 16kB ROM with extra 2kB Z80 monitor
+  * Support Seatronics Super Speed-Up Board for all TRS-80 Models
 
 ## License
 
@@ -47,7 +47,7 @@ Thanks to Tércio Martins a package for Arch Linux is available in the [AUR].
 ## SDL2
 
 The [SDL2] branch contains the SDL2 version with hardware rendering support.
-SDL2 binaries and packages above are build on the SDL2 branch, not *master*.
+SDL2 binaries and packages above are build on the [SDL2] branch.
 
 The SDL2 version is available in [RetroPie] since version 4.6.6 and Valerio
 Lupi's fork of [RetroPie-Setup] ...
