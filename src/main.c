@@ -212,12 +212,12 @@ int SDLmain(int argc, char *argv[])
     z80_run(TRUE);
   }
 #ifdef ZBX
-  printf("Entering debugger.\n");
+  puts("Entering debugger.");
   debug_init();
   debug_shell();
 #endif
 
-  printf("Quitting.\n");
+  puts("Quitting.");
   exit(EXIT_SUCCESS);
 }
 

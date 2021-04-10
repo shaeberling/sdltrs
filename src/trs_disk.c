@@ -316,7 +316,7 @@ void
 trs_disk_debug(void)
 {
   int i;
-  printf("Floppy disk controller state:\n");
+  puts("Floppy disk controller state:");
   printf("  status 0x%02x, track %d (0x%02x), sector %d (0x%02x), "
 	 "data 0x%02x\n", state.status, state.track, state.track,
 	 state.sector, state.sector, state.data);
@@ -338,19 +338,19 @@ trs_disk_debug(void)
 	   "writeprot %d, phytrack %d (0x%02x), inches %d, step %d, type ",
 	   i, d->writeprot, d->phytrack, d->phytrack, d->inches, d->real_step);
     if (d->file == NULL) {
-      printf("EMPTY\n");
+      puts("EMPTY");
     } else {
       switch (d->emutype) {
       case JV1:
-	printf("JV1\n");
+	puts("JV1");
 	break;
       case JV3:
-	printf("JV3\n");
+	puts("JV3");
 	printf("  last used id %d, id blocks %d\n",
 	       d->u.jv3.last_used_id, d->u.jv3.nblocks);
 	break;
       case DMK:
-	printf("DMK\n");
+	puts("DMK");
 	printf("  ntracks %d (0x%02x), tracklen 0x%04x, nsides %d, sden %d, "
 	       "ignden %d\n", d->u.dmk.ntracks, d->u.dmk.ntracks,
 	       d->u.dmk.tracklen, d->u.dmk.nsides, d->u.dmk.sden,
@@ -360,13 +360,13 @@ trs_disk_debug(void)
 	       d->u.dmk.nextidam);
 	break;
       case REAL:
-	printf("REAL\n");
+	puts("REAL");
 	printf("  rpm %d, empty %d, last size code %d, last fmt fill 0x%02x\n",
 	       d->u.real.rps * 60, d->u.real.empty, d->u.real.size_code,
 	       d->u.real.fmt_fill);
 	break;
       default:
-	printf("UNKNOWN\n");
+	puts("UNKNOWN");
 	break;
       }
     }
