@@ -68,9 +68,17 @@ static int print_instructions;
 static int stop_signaled;
 static unsigned int num_watchpoints = 0;
 
-static const char help_message[] =
+static struct
+{
+    int   valid;
+    int   address;
+    int   flag;
+    Uchar byte; /* used only by watchpoints */
+} trap_table[MAX_TRAPS];
 
-"(zbx) commands:\n\
+static void help_message(void)
+{
+    printf("(zbx) commands:\n\
 \n\
 Running:\n\
     r(un)\n\
@@ -160,15 +168,8 @@ Miscellaneous:\n\
     ?\n\
         Print this message.\n\
     q(uit)\n\
-        Exit from xtrs.\n";
-
-static struct
-{
-    int   valid;
-    int   address;
-    int   flag;
-    Uchar byte; /* used only by watchpoints */
-} trap_table[MAX_TRAPS];
+        Exit from xtrs.\n");
+}
 
 static char *trap_name(int flag)
 {
@@ -533,7 +534,7 @@ void debug_shell(void)
 	    if(!strcmp(command, "help") || !strcmp(command, "?") ||
 	       !strcmp(command, "h"))
 	    {
-		printf("%s", help_message);
+		help_message();
 	    }
 	    else if (!strcmp(command, "zbxinfo") || !strcmp(command, "i"))
 	    {
