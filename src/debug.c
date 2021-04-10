@@ -815,10 +815,6 @@ void debug_shell(void)
 		address %= ADDRESS_SPACE;
 		set_trap(address, TRACE_FLAG);
 	    }
-	    else if(!strcmp(command, "untrace") || !strcmp(command, "u"))
-	    {
-		printf("Untrace not implemented.\n");
-	    }
 	    else if(!strcmp(command, "traceon") || !strcmp(command, "tron"))
 	    {
 		unsigned int address;
