@@ -56,7 +56,7 @@ typedef unsigned char Uchar;    /* 1 byte */
 typedef unsigned long long tstate_t;
 #define TSTATE_T_MID (((unsigned long long) -1LL)/2ULL)
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW64__)
 #define TSTATE_T_LEN "I64u"
 #else
 #define TSTATE_T_LEN "llu"
