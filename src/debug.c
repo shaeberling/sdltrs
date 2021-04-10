@@ -78,7 +78,7 @@ static struct
 
 static void help_message(void)
 {
-    printf("(zbx) commands:\n\
+    puts("(zbx) commands:\n\
 \n\
 Running:\n\
     r(un)\n\
@@ -168,7 +168,7 @@ Miscellaneous:\n\
     ?\n\
         Print this message.\n\
     q(uit)\n\
-        Exit from xtrs.\n");
+        Exit from xtrs.");
 }
 
 static char *trap_name(int flag)
@@ -194,16 +194,15 @@ static char *trap_name(int flag)
 
 static void show_zbxinfo(void)
 {
-    printf("zbx: Z80 debugger by David Gingold, Alex Wolman, and Timothy"
-           " Mann\n");
-    printf("\n");
+    puts("zbx: Z80 debugger by David Gingold, Alex Wolman, and Timothy"
+         " Mann\n");
     printf("Traps set: %d (maximum %d)\n", num_traps, MAX_TRAPS);
     printf("Size of address space: 0x%x\n", ADDRESS_SPACE);
     printf("Maximum length of command line: %d\n", MAXLINE);
 #ifdef READLINE
-    printf("GNU Readline library support enabled.\n");
+    puts("GNU Readline library support enabled.");
 #else
-    printf("GNU Readline library support disabled.\n");
+    puts("GNU Readline library support disabled.");
 #endif
 }
 
@@ -239,7 +238,7 @@ static void print_traps(void)
     }
     else
     {
-	printf("No traps are set.\n");
+	puts("No traps are set.");
     }
 }
 
@@ -307,7 +306,7 @@ static void clear_trap_address(int address, int flag)
 
 static void debug_print_registers(void)
 {
-    printf("\n       S Z - H - PV N C   IFF1 IFF2 IM\n");
+    puts("\n       S Z - H - PV N C   IFF1 IFF2 IM");
     printf("Flags: %d %d %d %d %d  %d %d %d     %d    %d   %d\n\n",
 	   (SIGN_FLAG != 0),
 	   (ZERO_FLAG != 0),
@@ -352,7 +351,7 @@ void debug_init(void)
 
     for(i = 0; i < MAX_TRAPS; ++i) trap_table[i].valid = 0;
 
-    printf("Type \"h(elp)\" for a list of commands.\n");
+    puts("Type \"h(elp)\" for a list of commands.");
 }
 
 static void print_memory(Ushort address, int num_bytes)
@@ -427,7 +426,7 @@ static void debug_run(void)
 
 	continuous = (!print_instructions && num_traps == 0);
 	if (z80_run(continuous)) {
-	  printf("emt_debug instruction executed.\n");
+	  puts("emt_debug instruction executed.");
 	  stop_signaled = 1;
 	}
 
@@ -562,7 +561,7 @@ void debug_shell(void)
 		}
 		else if(sscanf(input, "%*s %d", &i) != 1)
 		{
-		    printf("A trap must be specified.\n");
+		    puts("A trap must be specified.");
 		}
 		else
 		{
@@ -614,7 +613,7 @@ void debug_shell(void)
 		if(sscanf(input, "in %x", &port) == 1)
 			printf("in %x = %x\n", port, z80_in(port));
 		else
-			printf("A port must be specified.\n");
+			puts("A port must be specified.");
 	    }
 	    else if(!strcmp(command, "next") || !strcmp(command, "nextint") ||
 		    !strcmp(command, "n") || !strcmp(command, "ni"))
@@ -695,17 +694,17 @@ void debug_shell(void)
 	    }
 	    else if(!strcmp(command, "reset") || !strcmp(command, "re"))
 	    {
-		printf("Performing hard reset.");
+		puts("Performing hard reset.");
 		trs_reset(1);
 	    }
 	    else if(!strcmp(command, "softreset") || !strcmp(command, "sr"))
 	    {
-		printf("Pressing reset button.");
+		puts("Pressing reset button.");
 		trs_reset(0);
 	    }
 	    else if(!strcmp(command, "run") || !strcmp(command, "r"))
 	    {
-		printf("Performing hard reset and running.\n");
+		puts("Performing hard reset and running.");
 		trs_reset(1);
 		debug_run();
 	    }
@@ -780,7 +779,7 @@ void debug_shell(void)
 		}
 		else
 		{
-		    printf("Syntax error.  (Type \"h(elp)\" for commands.)\n");
+		    puts("Syntax error.  (Type \"h(elp)\" for commands.)");
 		}
 	    }
 	    else if(!strcmp(command, "step") || !strcmp(command, "s"))
@@ -827,7 +826,7 @@ void debug_shell(void)
 		else
 		{
 		    print_instructions = 1;
-		    printf("Tracing enabled.\n");
+		    puts("Tracing enabled.");
 		}
 	    }
 	    else if(!strcmp(command, "traceoff") || !strcmp(command, "troff"))
@@ -842,7 +841,7 @@ void debug_shell(void)
 		else
 		{
 		    print_instructions = 0;
-		    printf("Tracing disabled.\n");
+		    puts("Tracing disabled.");
 		}
 	    }
 	    else if(!strcmp(command, "watch") || !strcmp(command, "w"))
@@ -897,7 +896,7 @@ void debug_shell(void)
 		}
 		else
 		{
-		    printf("Syntax error.  (Type \"h(elp)\" for commands.)\n");
+		    puts("Syntax error.  (Type \"h(elp)\" for commands.)");
 		}
 	    }
 	}
