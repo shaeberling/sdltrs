@@ -355,8 +355,13 @@ void mem_write_rom(int address, int value)
 
     if (address <= MAX_ROM_SIZE) {
       rom[address] = value;
-      if (address > trs_rom_size)
+      if (address > trs_rom_size) {
         trs_rom_size = address;
+        if (trs_model == 1) {
+          if (trs_rom_size > 0x377F)
+            trs_rom_size = 0x377F;
+        }
+      }
     }
     if (address <= CP500_ROM_SIZE)
       cp500_rom[address] = value;
