@@ -154,6 +154,9 @@ void z80_out(int port, int value)
       if (stringy)
         stringy_out(port & 7, value);
       break;
+    case 0xF8:
+      trs_uart_data_out(value);
+      break;
     case 0xFD:
       /* GENIE location of printer port */
       trs_printer_write(value);
@@ -464,6 +467,9 @@ int z80_in(int port)
     case 0xF7:
       if (stringy)
         value = stringy_in(port & 7);
+      goto done;
+    case 0xF9:
+      value = trs_uart_data_in();
       goto done;
     case 0xFD:
       /* GENIE location of printer port */
