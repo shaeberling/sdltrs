@@ -253,7 +253,10 @@ extern Uchar *mem_pointer(int address, int writing);
 extern int load_hex(FILE *file); /* returns highest address loaded + 1 */
 extern void z80_out(int port, int value);
 extern int z80_in(int port);
+
+#ifdef ZBX
 extern int disassemble(unsigned short pc);
 extern void debug_init(void);
 extern void debug_shell(void);
+#endif /* ZBX */
 #endif
