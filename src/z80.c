@@ -3073,7 +3073,7 @@ static int do_ED_instruction(void)
 #ifdef ZBX
 	disassemble(Z80_PC - 2);
 #endif
-	error("unsupported instruction");
+	error("unsupported ED instruction: 0x%x", instruction);
     }
 
     return debug;
