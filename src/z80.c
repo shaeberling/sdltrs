@@ -3068,9 +3068,9 @@ static int do_ED_instruction(void)
 	break;
 
       default:
-#ifdef ZBX
 	/* undocumented no-op */
 	T_COUNT(4);
+#ifdef ZBX
 	disassemble(Z80_PC - 2);
 #endif
 	error("unsupported instruction");
