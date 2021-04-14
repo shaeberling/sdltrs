@@ -511,6 +511,15 @@ int mem_read(int address)
     return 0xff;
 }
 
+static void trs80_screen_write_char(unsigned int vaddr, unsigned int value)
+{
+  if (vaddr >= MAX_VIDEO_SIZE) return;
+  if (video[vaddr] != value) {
+      video[vaddr] = value;
+      trs_screen_write_char(vaddr, value);
+  }
+}
+
 static void trs80_model1_write_mem(int address, int value)
 {
   int bank = 0x8000;
@@ -547,7 +556,6 @@ static void trs80_model1_write_mem(int address, int value)
 static void trs80_model1_write_mmio(int address, int value)
 {
   if (address >= VIDEO_START) {
-    int vaddr = address + video_offset;
     if (!lowercase) {
       /*
        * Video write.  Hack here to make up for the missing bit 6
@@ -560,10 +568,7 @@ static void trs80_model1_write_mmio(int address, int value)
           value |= 0x40;
       }
     }
-    if (video[vaddr] != value) {
-      video[vaddr] = value;
-      trs_screen_write_char(vaddr, value);
-    }
+    trs80_screen_write_char(address + video_offset, value);
   } else if (address == PRINTER_ADDRESS) {
     trs_printer_write(value);
   } else if (address == TRSDISK_DATA) {
@@ -635,12 +640,8 @@ void mem_write(int address, int value)
 	if (address >= RAM_START) {
 	    memory[address] = value;
 	} else if (address >= VIDEO_START) {
-	    int vaddr = address + video_offset;
-	    if (grafyx_m3_write_byte(vaddr, value)) return;
-	    if (video[vaddr] != value) {
-	      video[vaddr] = value;
-	      trs_screen_write_char(vaddr, value);
-	    }
+	    if (grafyx_m3_write_byte(address + video_offset, value)) return;
+	    trs80_screen_write_char(address + video_offset, value);
 	} else if (address == PRINTER_ADDRESS) {
 	    trs_printer_write(value);
 	}
@@ -652,11 +653,7 @@ void mem_write(int address, int value)
 	if (address >= RAM_START) {
 	    memory[address + bank_offset[address >> 15]] = value;
 	} else if (address >= VIDEO_START) {
-	    int vaddr = address+ video_offset;
-	    if (video[vaddr] != value) {
-		video[vaddr] = value;
-		trs_screen_write_char(vaddr, value);
-	    }
+	    trs80_screen_write_char(address + video_offset, value);
 	} else if (address == PRINTER_ADDRESS) {
 	    trs_printer_write(value);
 	}
@@ -668,11 +665,7 @@ void mem_write(int address, int value)
 	if (address >= RAM_START || address < KEYBOARD_START) {
 	    memory[address + bank_offset[address >> 15]] = value;
 	} else if (address >= VIDEO_START) {
-	    int vaddr = address + video_offset;
-	    if (video[vaddr] != value) {
-		video[vaddr] = value;
-		trs_screen_write_char(vaddr, value);
-	    }
+	    trs80_screen_write_char(address + video_offset, value);
 	}
 	break;
 
@@ -682,11 +675,7 @@ void mem_write(int address, int value)
 	if (address < 0xf400) {
 	    memory[address + bank_offset[address >> 15]] = value;
 	} else if (address >= 0xf800) {
-	    int vaddr = address - 0xf800;
-	    if (video[vaddr] != value) {
-		video[vaddr] = value;
-		trs_screen_write_char(vaddr, value);
-	    }
+	    trs80_screen_write_char(address - 0xf800, value);
 	}
 	break;
 
