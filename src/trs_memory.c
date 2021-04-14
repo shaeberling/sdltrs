@@ -426,7 +426,7 @@ int mem_read(int address)
     }
     switch (memory_map) {
       case 0x10: /* Model I */
-        if (address < 0x4000)
+        if (address < RAM_START)
 	  return trs80_model1_mmio(address & 0x3FFF);
 	else
 	  return trs80_model1_ram(address);
@@ -437,7 +437,7 @@ int mem_read(int address)
       case 0x12: /* Model 1 selector mode 2 (ROM disabled) */
         if (address < 0x37E0)
           return trs80_model1_ram(address);
-	if (address < 0x4000)
+	if (address < RAM_START)
 	  return trs80_model1_mmio(address);
 	return trs80_model1_ram(address);
       case 0x13: /* Model 1: selector mode 3 (CP/M mode) */
@@ -448,7 +448,7 @@ int mem_read(int address)
       case 0x15: /* Model 1: All RAM banking low */
 	return trs80_model1_ram(address);
       case 0x16: /* Model 1: Low 16K in top 16K */
-	if (address < 0x4000)
+	if (address < RAM_START)
 	  return trs80_model1_mmio(address);
 	return trs80_model1_ram(address);
       case 0x17: /* Model 1: Described in the selector doc as 'not useful' */
@@ -610,7 +610,7 @@ void mem_write(int address, int value)
       case 0x12: /* Model 1 selector mode 2 (ROM disabled) */
         if (address < 0x37E0)
           trs80_model1_write_mem(address, value);
-	else if (address < 0x4000)
+	else if (address < RAM_START)
 	  trs80_model1_write_mmio(address, value);
 	else
 	  trs80_model1_write_mem(address, value);
@@ -624,7 +624,7 @@ void mem_write(int address, int value)
 	trs80_model1_write_mem(address, value);
 	break;
       case 0x16: /* Model 1: Low 16K in top 16K */
-	if (address < 0x4000)
+	if (address < RAM_START)
 	  trs80_model1_write_mmio(address, value);
 	else
 	  trs80_model1_ram(address);
@@ -776,7 +776,7 @@ Uchar *mem_pointer(int address, int writing)
     switch (memory_map + (writing << 3)) {
       case 0x10: /* Model I */
       case 0x18:
-        if (address < 0x4000)
+        if (address < RAM_START)
 	  return trs80_model1_mmio_addr(address & 0x3FFF, writing);
 	else
 	  return trs80_model1_ram_addr(address);
@@ -786,7 +786,7 @@ Uchar *mem_pointer(int address, int writing)
       case 0x12: /* Model 1 selector mode 2 (ROM disabled) */
         if (address < 0x37E0)
           return trs80_model1_ram_addr(address);
-	if (address < 0x4000)
+	if (address < RAM_START)
 	  return trs80_model1_mmio_addr(address, writing);
 	return trs80_model1_ram_addr(address);
       case 0x13: /* Model 1: selector mode 3 (CP/M mode) */
@@ -797,7 +797,7 @@ Uchar *mem_pointer(int address, int writing)
       case 0x15: /* Model 1: All RAM banking low */
 	return trs80_model1_ram_addr(address);
       case 0x16: /* Model 1: Low 16K in top 16K */
-	if (address < 0x4000)
+	if (address < RAM_START)
 	  return trs80_model1_mmio_addr(address, writing);
 	return trs80_model1_ram_addr(address);
       case 0x17: /* Model 1: Described in the selector doc as 'not useful' */
