@@ -84,7 +84,6 @@ int trs_load_cmd(const char *filename)
 static int trs_load_rom(const char *filename)
 {
   FILE *program;
-  int rom_size = 0;
   int c;
 
   if (filename[0] == 0)
@@ -126,8 +125,11 @@ static int trs_load_rom(const char *filename)
       c = getc(program);
     }
   }
+
+  /* Assume raw binary */
+  trs_rom_size = 0;
   while (c != EOF) {
-    mem_write_rom(rom_size++, c);
+    mem_write_rom(trs_rom_size++, c);
     c = getc(program);
   }
   return 0;
@@ -137,20 +139,21 @@ static void trs_load_compiled_rom(int address, int size, const unsigned char rom
 {
   int i;
 
-  for (i = 0; i < size; ++i)
+  for (i = 0; i < size; i++)
     mem_write_rom(address + i, rom[i]);
+  trs_rom_size = address + i;
 }
 
 void trs_rom_init(void)
 {
-  trs_rom_size = 0;
-
   switch (trs_model) {
     case 1:
       if (trs_load_rom(romfile) != 0)
         trs_load_compiled_rom(0, sizeof(trs_rom1), trs_rom1);
       if (stringy)
         trs_load_compiled_rom(0x3000, sizeof(trs_romesf), trs_romesf);
+      if (trs_rom_size > 0x37DE)
+          trs_rom_size = 0x37DE;
       break;
     case 3:
     case 4:
@@ -162,6 +165,8 @@ void trs_rom_init(void)
         trs_load_compiled_rom(0, sizeof(trs_rom4p), trs_rom4p);
       break;
   }
+  if (trs_rom_size > 0x3800)
+      trs_rom_size = 0x3800;
 }
 
 int SDLmain(int argc, char *argv[])

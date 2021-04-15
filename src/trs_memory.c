@@ -346,20 +346,11 @@ void mem_romin(int state)
 /*
  * hack to let us initialize the ROM memory
  */
-void mem_write_rom(int address, int value)
+void mem_write_rom(unsigned int address, int value)
 {
-    address &= 0xffff;
-
-    if (address <= MAX_ROM_SIZE) {
+    if (address <= MAX_ROM_SIZE)
       rom[address] = value;
-      if (address > trs_rom_size) {
-        trs_rom_size = address + 1;
-        if (trs_model == 1) {
-          if (trs_rom_size > 0x37DE)
-            trs_rom_size = 0x37DE;
-        }
-      }
-    }
+
     if (address <= CP500_ROM_SIZE)
       cp500_rom[address] = value;
 }
