@@ -353,10 +353,10 @@ void mem_write_rom(int address, int value)
     if (address <= MAX_ROM_SIZE) {
       rom[address] = value;
       if (address > trs_rom_size) {
-        trs_rom_size = address;
+        trs_rom_size = address + 1;
         if (trs_model == 1) {
-          if (trs_rom_size > 0x37DD)
-            trs_rom_size = 0x37DD;
+          if (trs_rom_size > 0x37DE)
+            trs_rom_size = 0x37DE;
         }
       }
     }
