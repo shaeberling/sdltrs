@@ -246,7 +246,7 @@ extern void z80_reset(void);
 extern int z80_run(int continuous);
 extern int mem_read(int address);
 extern void mem_write(int address, int value);
-extern void mem_write_rom(int address, int value);
+extern void mem_write_rom(unsigned int address, int value);
 extern int mem_read_word(int address);
 extern void mem_write_word(int address, int value);
 extern Uchar *mem_pointer(int address, int writing);
