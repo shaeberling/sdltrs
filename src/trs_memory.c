@@ -502,9 +502,10 @@ int mem_read(int address)
     return 0xff;
 }
 
-static void trs80_screen_write_char(unsigned int vaddr, unsigned int value)
+static void trs80_screen_write_char(int vaddr, int value)
 {
-  if (vaddr >= MAX_VIDEO_SIZE) return;
+  vaddr &= 0x7ff;
+
   if (video[vaddr] != value) {
       video[vaddr] = value;
       trs_screen_write_char(vaddr, value);
