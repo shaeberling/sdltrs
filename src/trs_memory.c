@@ -348,10 +348,10 @@ void mem_romin(int state)
  */
 void mem_write_rom(unsigned int address, int value)
 {
-    if (address <= MAX_ROM_SIZE)
+    if (address < MAX_ROM_SIZE)
       rom[address] = value;
 
-    if (address <= CP500_ROM_SIZE)
+    if (address < CP500_ROM_SIZE)
       cp500_rom[address] = value;
 }
 
