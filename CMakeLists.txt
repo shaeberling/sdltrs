@@ -1,6 +1,6 @@
 project(sdl2trs C)
 
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 2.8...3.13)
 
 include(GNUInstallDirs)
 include(TestBigEndian)
