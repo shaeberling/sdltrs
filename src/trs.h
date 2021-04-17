@@ -43,7 +43,7 @@
 #ifndef _TRS_H
 #define _TRS_H
 
-#include <SDL/SDL_types.h>
+#include <SDL_types.h>
 #include "z80.h"
 
 #define STRETCH_AMOUNT 4000

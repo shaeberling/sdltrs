@@ -30,7 +30,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <SDL/SDL_types.h>
+#include <SDL_types.h>
 #include "load_cmd.h"
 
 int

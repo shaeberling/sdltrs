@@ -43,7 +43,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <sys/time.h>
-#include <SDL/SDL_types.h>
+#include <SDL_types.h>
 
 #ifndef TRUE
 #define TRUE	(1)

@@ -29,7 +29,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-#include <SDL/SDL_types.h>
+#include <SDL_types.h>
 
 #include "error.h"
 #include "trs_state_save.h"
