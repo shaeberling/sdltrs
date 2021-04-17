@@ -36,7 +36,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
-#include <SDL/SDL_types.h>
+#include <SDL_types.h>
 
 #include "error.h"
 #include "trs_cassette.h"
