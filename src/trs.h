@@ -43,8 +43,8 @@
 #ifndef _TRS_H
 #define _TRS_H
 
+#include <SDL/SDL_types.h>
 #include "z80.h"
-
 
 #define STRETCH_AMOUNT 4000
 #define DEFAULT_SAMPLE_RATE 44100  /* samples/sec to use for .wav files */
@@ -91,7 +91,7 @@ extern int trs_load_config_file(void);
 extern void trs_screen_init(void);
 extern void screen_init(void);
 extern void trs_rom_init(void);
-extern void trs_screen_write_char(unsigned int position, unsigned char char_index);
+extern void trs_screen_write_char(unsigned int position, Uint8 char_index);
 extern void trs_screen_update(void);
 extern void trs_screen_expanded(int flag);
 extern void trs_screen_alternate(int flag);
@@ -150,10 +150,10 @@ extern int trs_joystick_in(void);
 
 extern int trs_rom_size;
 
-extern unsigned char trs_interrupt_latch_read(void);
-extern unsigned char trs_nmi_latch_read(void);
-extern void trs_interrupt_mask_write(unsigned char);
-extern void trs_nmi_mask_write(unsigned char);
+extern Uint8 trs_interrupt_latch_read(void);
+extern Uint8 trs_nmi_latch_read(void);
+extern void trs_interrupt_mask_write(Uint8);
+extern void trs_nmi_mask_write(Uint8);
 extern void trs_reset_button_interrupt(int state);
 extern void trs_disk_intrq_interrupt(int state);
 extern void trs_disk_drq_interrupt(int state);
@@ -193,7 +193,7 @@ extern int hypermem;
 extern int supermem;
 extern int selector;
 
-extern void selector_out(unsigned char);
+extern void selector_out(Uint8);
 
 extern int lowercase;
 
@@ -228,7 +228,7 @@ void grafyx_set_microlabs(int on_off);
 int grafyx_get_microlabs(void);
 void grafyx_m3_reset(void);
 void grafyx_m3_write_mode(int value);
-unsigned char grafyx_m3_read_byte(int position);
+Uint8 grafyx_m3_read_byte(int position);
 int grafyx_m3_write_byte(int position, int value);
 void hrg_onoff(int enable);
 void hrg_write_addr(int addr, int mask);
@@ -256,10 +256,10 @@ extern float clock_mhz_1;
 extern float clock_mhz_3;
 extern float clock_mhz_4;
 
-int put_twobyte(Ushort n, FILE* f);
-int put_fourbyte(Uint n, FILE* f);
-int get_twobyte(Ushort *n, FILE* f);
-int get_fourbyte(Uint *n, FILE* f);
+int put_twobyte(Uint16 n, FILE* f);
+int put_fourbyte(Uint32 n, FILE* f);
+int get_twobyte(Uint16 *n, FILE* f);
+int get_fourbyte(Uint32 *n, FILE* f);
 
 
 #endif /*_TRS_H*/

@@ -62,7 +62,7 @@
 #define BREAK_ONCE_FLAG		(0x10)
 #define WATCHPOINT_FLAG		(0x20)
 
-static Uchar *traps;
+static Uint8 *traps;
 static int num_traps;
 static int print_instructions;
 static int stop_signaled;
@@ -73,7 +73,7 @@ static struct
     int   valid;
     int   address;
     int   flag;
-    Uchar byte; /* used only by watchpoints */
+    Uint8 byte; /* used only by watchpoints */
 } trap_table[MAX_TRAPS];
 
 static void help_message(void)
@@ -343,18 +343,18 @@ void debug_init(void)
 {
     int i;
 
-    traps = (Uchar *) malloc(ADDRESS_SPACE * sizeof(Uchar));
+    traps = (Uint8 *) malloc(ADDRESS_SPACE * sizeof(Uint8));
     if (traps == NULL)
       fatal("debug_init: failed to allocate traps");
 
-    memset(traps, 0, ADDRESS_SPACE * sizeof(Uchar));
+    memset(traps, 0, ADDRESS_SPACE * sizeof(Uint8));
 
     for(i = 0; i < MAX_TRAPS; ++i) trap_table[i].valid = 0;
 
     puts("Type \"h(elp)\" for a list of commands.");
 }
 
-static void print_memory(Ushort address, int num_bytes)
+static void print_memory(Uint16 address, int num_bytes)
 {
     int bytes_to_print, i;
     int byte;
@@ -394,8 +394,8 @@ static void print_memory(Ushort address, int num_bytes)
 
 static void debug_run(void)
 {
-    Uchar t;
-    Uchar byte;
+    Uint8 t;
+    Uint8 byte;
     int continuous;
     int i;
     int watch_triggered = 0;
@@ -571,7 +571,7 @@ void debug_shell(void)
 	    else if(!strcmp(command, "list") || !strcmp(command, "l"))
 	    {
 		unsigned int x, y;
-		Ushort start, old_start;
+		Uint16 start, old_start;
 		int bytes = 0;
 		int lines = 0;
 

@@ -60,16 +60,16 @@ typedef struct {
   int present;
 
   /* Controller register images */
-  Uchar control;
-  Uchar data;
-  Uchar error;
-  Uchar seccnt;
-  Uchar secnum;
-  Ushort cyl;
-  Uchar drive;
-  Uchar head;
-  Uchar status;
-  Uchar command;
+  Uint8 control;
+  Uint8 data;
+  Uint8 error;
+  Uint8 seccnt;
+  Uint8 secnum;
+  Uint16 cyl;
+  Uint8 drive;
+  Uint8 head;
+  Uint8 status;
+  Uint8 command;
 
   /* Number of bytes already done in current read/write */
   int bytesdone;

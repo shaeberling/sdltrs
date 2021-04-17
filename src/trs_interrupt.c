@@ -47,15 +47,15 @@
 #define M3_TIMER_BIT    0x04
 #define M3_CASSFALL_BIT 0x02
 #define M3_CASSRISE_BIT 0x01
-static unsigned char interrupt_latch = 0;
-static unsigned char interrupt_mask = 0;
+static Uint8 interrupt_latch = 0;
+static Uint8 interrupt_mask = 0;
 
 /* NMIs (M3/4/4P only) */
 #define M3_INTRQ_BIT    0x80  /* FDC chip INTRQ line */
 #define M3_MOTOROFF_BIT 0x40  /* FDC motor timed out (stopped) */
 #define M3_RESET_BIT    0x20  /* User pressed Reset button */
-static unsigned char nmi_latch = 1; /* ?? One diagnostic program needs this */
-static unsigned char nmi_mask = M3_RESET_BIT;
+static Uint8 nmi_latch = 1; /* ?? One diagnostic program needs this */
+static Uint8 nmi_mask = M3_RESET_BIT;
 
 #define TIMER_HZ_1 40
 #define TIMER_HZ_3 30
@@ -278,10 +278,10 @@ trs_reset_button_interrupt(int state)
   if (!z80_state.nmi) z80_state.nmi_seen = 0;
 }
 
-unsigned char
+Uint8
 trs_interrupt_latch_read(void)
 {
-  unsigned char tmp = interrupt_latch;
+  Uint8 tmp = interrupt_latch;
   if (trs_model == 1) {
     trs_timer_interrupt(0); /* acknowledge this one (only) */
     z80_state.irq = (interrupt_latch != 0);
@@ -292,21 +292,21 @@ trs_interrupt_latch_read(void)
 }
 
 void
-trs_interrupt_mask_write(unsigned char value)
+trs_interrupt_mask_write(Uint8 value)
 {
   interrupt_mask = value;
   z80_state.irq = (interrupt_latch & interrupt_mask) != 0;
 }
 
 /* M3 only */
-unsigned char
+Uint8
 trs_nmi_latch_read(void)
 {
   return ~nmi_latch;
 }
 
 void
-trs_nmi_mask_write(unsigned char value)
+trs_nmi_mask_write(Uint8 value)
 {
   nmi_mask = value | M3_RESET_BIT;
   z80_state.nmi = (nmi_latch & nmi_mask) != 0;
@@ -405,7 +405,7 @@ trs_timer_init(void)
       mem_write(NEWDOS3_SEC, lt->tm_sec);
 
       if (trs_model >= 4) {
-        extern Uchar memory[];
+        extern Uint8 memory[];
         memory[LDOS4_MONTH] = lt->tm_mon + 1;
         memory[LDOS4_DAY] = lt->tm_mday;
         memory[LDOS4_YEAR] = lt->tm_year;

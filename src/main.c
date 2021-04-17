@@ -61,7 +61,7 @@ char *program_name;
 int trs_load_cmd(const char *filename)
 {
   FILE *program;
-  extern Uchar memory[];
+  extern Uint8 memory[];
   int entry;
 
   if ((program = fopen(filename,"rb")) == NULL) {
@@ -106,8 +106,8 @@ static int trs_load_rom(const char *filename)
       return 0;
   } else if (c == 1 || c == 5) {
     /* Assume MODELA/III file */
-    extern Uchar rom[];
-    Uchar loadmap[Z80_ADDRESS_LIMIT];
+    extern Uint8 rom[];
+    Uint8 loadmap[Z80_ADDRESS_LIMIT];
     rewind(program);
     if (load_cmd(program, rom, loadmap, 0, NULL, -1, NULL, NULL, 1) == LOAD_CMD_OK) {
       trs_rom_size = Z80_ADDRESS_LIMIT;
@@ -135,7 +135,7 @@ static int trs_load_rom(const char *filename)
   return 0;
 }
 
-static void trs_load_compiled_rom(int address, int size, const unsigned char rom[])
+static void trs_load_compiled_rom(int address, int size, const Uint8 rom[])
 {
   int i;
 

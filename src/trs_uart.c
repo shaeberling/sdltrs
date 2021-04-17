@@ -69,8 +69,8 @@ static struct {
   int idata;
   int odata;
 
-  Uchar buf[BUFSIZE];
-  Uchar* bufp;
+  Uint8 buf[BUFSIZE];
+  Uint8* bufp;
   int bufleft;
   int tstates;
 

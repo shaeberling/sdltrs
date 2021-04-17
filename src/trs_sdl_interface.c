@@ -106,7 +106,7 @@ char trs_printer_command[FILENAME_MAX];
 /* Private data */
 #include "trs_chars.c"
 
-static unsigned char trs_screen[2048];
+static Uint8 trs_screen[2048];
 static char scale_quality = '1';
 static int cpu_panel = 0;
 static int debugger = 0;
@@ -155,7 +155,7 @@ static int  paste_state = PASTE_IDLE;
 static int  paste_lastkey = FALSE;
 extern int  PasteManagerStartPaste(void);
 extern void PasteManagerStartCopy(const char *string);
-extern int  PasteManagerGetChar(unsigned char *character);
+extern int  PasteManagerGetChar(Uint8 *character);
 
 #define COPY_IDLE     0
 #define COPY_STARTED  1
@@ -176,13 +176,13 @@ static unsigned int cycles_saved;
 #define G_XSIZE 128
 #define G_YSIZE 256
 static char grafyx[(G_YSIZE * 2) * G_XSIZE];
-static unsigned char grafyx_unscaled[G_YSIZE][G_XSIZE];
+static Uint8 grafyx_unscaled[G_YSIZE][G_XSIZE];
 
-static unsigned char grafyx_microlabs = 0;
-static unsigned char grafyx_x = 0, grafyx_y = 0, grafyx_mode = 0;
-static unsigned char grafyx_enable = 0;
-static unsigned char grafyx_overlay = 0;
-static unsigned char grafyx_xoffset = 0, grafyx_yoffset = 0;
+static Uint8 grafyx_microlabs = 0;
+static Uint8 grafyx_x = 0, grafyx_y = 0, grafyx_mode = 0;
+static Uint8 grafyx_enable = 0;
+static Uint8 grafyx_overlay = 0;
+static Uint8 grafyx_xoffset = 0, grafyx_yoffset = 0;
 
 /* Port 0x83 (grafyx_mode) bits */
 #define G_ENABLE    1
@@ -202,7 +202,7 @@ static unsigned char grafyx_xoffset = 0, grafyx_yoffset = 0;
 #define G3_YLOW(v)  (((v) & 0x1e) >> 1)
 
 #define HRG_MEMSIZE (1024 * 12)        /* 12k * 8 bit graphics memory */
-static unsigned char hrg_screen[HRG_MEMSIZE];
+static Uint8 hrg_screen[HRG_MEMSIZE];
 static int hrg_pixel_x[2][6 + 1];
 static int hrg_pixel_y[12 + 1];
 static int hrg_pixel_width[2][6];
@@ -1611,8 +1611,8 @@ static char *trs_get_copy_data(void)
 {
   static char copy_data[2048];
   char *curr_data = copy_data;
-  unsigned char data;
-  unsigned char *screen_ptr;
+  Uint8 data;
+  Uint8 *screen_ptr;
   int col, row;
   int start_col, end_col, start_row, end_row;
 
@@ -1699,7 +1699,7 @@ void trs_get_event(int wait)
     trs_screen_caption();
 
   if (paste_state != PASTE_IDLE) {
-    static unsigned char paste_key;
+    static Uint8 paste_key;
 
     if (SDL_PollEvent(&event)) {
       if (event.type == SDL_KEYDOWN) {
@@ -2387,14 +2387,14 @@ boxes_init(int fg_color, int bg_color, int width, int height, int expanded)
   }
 }
 
-static SDL_Surface *CreateSurfaceFromDataScale(const unsigned char *data,
+static SDL_Surface *CreateSurfaceFromDataScale(const Uint8 *data,
     unsigned int fg_color,
     unsigned int bg_color,
     unsigned int scale_x,
     unsigned int scale_y)
 {
   unsigned int *mydata, *currdata;
-  unsigned char *mypixels, *currpixel;
+  Uint8 *mypixels, *currpixel;
   int i, j, w;
 
   /*
@@ -2405,7 +2405,7 @@ static SDL_Surface *CreateSurfaceFromDataScale(const unsigned char *data,
    */
   mydata = (unsigned int *)malloc(TRS_CHAR_WIDTH * TRS_CHAR_HEIGHT *
       scale_x * scale_y * sizeof(unsigned int));
-  mypixels = (unsigned char *)malloc(TRS_CHAR_WIDTH * TRS_CHAR_HEIGHT * 8);
+  mypixels = (Uint8 *)malloc(TRS_CHAR_WIDTH * TRS_CHAR_HEIGHT * 8);
   if (mydata == NULL || mypixels == NULL)
     fatal("CreateSurfaceFromDataScale: failed to allocate memory");
 
@@ -2667,7 +2667,7 @@ void trs_turbo_led(void)
   drawnRectCount = MAX_RECTS;
 }
 
-void trs_screen_write_char(unsigned int position, unsigned char char_index)
+void trs_screen_write_char(unsigned int position, Uint8 char_index)
 {
   unsigned int row, col;
   int expanded;
@@ -2779,7 +2779,7 @@ void trs_gui_clear_rect(int x, int y, int w, int h)
 #endif
 }
 
-void trs_gui_write_char(int col, int row, unsigned char char_index, int invert)
+void trs_gui_write_char(int col, int row, Uint8 char_index, int invert)
 {
   SDL_Rect srcRect, dstRect;
 
@@ -2897,8 +2897,8 @@ int grafyx_read_data(void)
 
 void grafyx_write_mode(int value)
 {
-  const unsigned char old_enable = grafyx_enable;
-  const unsigned char old_overlay = grafyx_overlay;
+  const Uint8 old_enable = grafyx_enable;
+  const Uint8 old_overlay = grafyx_overlay;
 
   grafyx_enable = value & G_ENABLE;
   if (grafyx_microlabs)
@@ -2912,7 +2912,7 @@ void grafyx_write_mode(int value)
 
 void grafyx_write_xoffset(int value)
 {
-  const unsigned char old_xoffset = grafyx_xoffset;
+  const Uint8 old_xoffset = grafyx_xoffset;
 
   grafyx_xoffset = value % G_XSIZE;
   if (grafyx_enable && old_xoffset != grafyx_xoffset)
@@ -2921,7 +2921,7 @@ void grafyx_write_xoffset(int value)
 
 void grafyx_write_yoffset(int value)
 {
-  const unsigned char old_yoffset = grafyx_yoffset;
+  const Uint8 old_yoffset = grafyx_yoffset;
 
   grafyx_yoffset = value;
   if (grafyx_enable && old_yoffset != grafyx_yoffset)
@@ -2930,7 +2930,7 @@ void grafyx_write_yoffset(int value)
 
 void grafyx_write_overlay(int value)
 {
-  const unsigned char old_overlay = grafyx_overlay;
+  const Uint8 old_overlay = grafyx_overlay;
 
   grafyx_overlay = value & 1;
   if (grafyx_enable && old_overlay != grafyx_overlay) {
@@ -2976,7 +2976,7 @@ int grafyx_m3_write_byte(int position, int byte)
     return 0;
 }
 
-unsigned char grafyx_m3_read_byte(int position)
+Uint8 grafyx_m3_read_byte(int position)
 {
   if (grafyx_microlabs && (grafyx_mode & G3_COORD)) {
     return grafyx_unscaled[(position / 64) * 12 + grafyx_y][position % 64];
@@ -3005,7 +3005,7 @@ unsigned char grafyx_m3_read_byte(int position)
  *     0: hi res (1 = on)
  */
 
-static unsigned char le18_x, le18_y, le18_on;
+static Uint8 le18_x, le18_y, le18_on;
 int lowe_le18;
 
 void lowe_le18_reset(void)
@@ -3025,14 +3025,14 @@ void lowe_le18_write_y(int value)
   le18_y = value;
 }
 
-static unsigned char pack8to6(unsigned char c)
+static Uint8 pack8to6(Uint8 c)
 {
   return ((c & 0x70) >> 1) | (c & 7);
 }
 
-static unsigned char expand6to8(unsigned char c)
+static Uint8 expand6to8(Uint8 c)
 {
-  unsigned char r;
+  Uint8 r;
 
   r = (c & 0x07);
   if (r & 0x04)

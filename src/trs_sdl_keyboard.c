@@ -550,7 +550,7 @@ void trs_joy_button_up(void)
   joystate &= ~(TK_Fire & 0x1f);
 }
 
-void trs_joy_hat(unsigned char value)
+void trs_joy_hat(Uint8 value)
 {
   joystate &= (TK_Fire & 0x1f);
 
@@ -629,7 +629,7 @@ void trs_open_joystick(void)
     trs_joystick_num = -1;
 }
 
-void trs_joy_axis(unsigned char axis, short value, int bounce)
+void trs_joy_axis(Uint8 axis, short value, int bounce)
 {
   int dir;
 

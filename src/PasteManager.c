@@ -36,7 +36,7 @@ static int charCount = 0;
 static char *pasteString;
 static int pasteStringLength = 0;
 
-int PasteManagerGetChar(unsigned char *character)
+int PasteManagerGetChar(Uint8 *character)
 {
   if (charCount) {
     *character = pasteString[pasteStringLength - charCount];

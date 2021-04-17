@@ -30,11 +30,12 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <SDL/SDL_types.h>
 #include "load_cmd.h"
 
 int
-load_cmd(FILE* f, unsigned char memory[1 << 16],
-	 unsigned char* loadmap, int verbosity, FILE* outf,
+load_cmd(FILE* f, Uint8 memory[1 << 16],
+	 Uint8* loadmap, int verbosity, FILE* outf,
 	 int isam, char* pds, int* xferaddr, int stopxfer)
 {
   int lastaddr = -1, lastcount = -1;
@@ -43,7 +44,7 @@ load_cmd(FILE* f, unsigned char memory[1 << 16],
   char pentry[9];
   int ientry, iaddr, iseek, ilen;
   int status = LOAD_CMD_OK;
-  unsigned short addr; /* wrap at 2**16 */
+  Uint16 addr; /* wrap at 2**16 */
 
   if (loadmap) {
     memset(loadmap, 0, 1 << 16);

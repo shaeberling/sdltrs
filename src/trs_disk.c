@@ -60,9 +60,9 @@
 #include <sys/types.h>
 #endif
 
+#include "trs.h"
 #include "crc.c"
 #include "error.h"
-#include "trs.h"
 #include "trs_disk.h"
 #include "trs_hard.h"
 #include "trs_stringy.h"
@@ -76,12 +76,12 @@ int trs_disk_debug_flags = 0;
 
 typedef struct {
   /* Registers */
-  unsigned char status;
-  unsigned char track;
-  unsigned char sector;
-  unsigned char data;
+  Uint8 status;
+  Uint8 track;
+  Uint8 sector;
+  Uint8 data;
   /* Other state */
-  unsigned char currcommand;
+  Uint8 currcommand;
   int lastdirection;
   int bytecount;		/* bytes left to transfer this command */
   int format;			/* write track state machine */
@@ -89,11 +89,11 @@ typedef struct {
   int format_sec;               /* current sector number or id_index */
   int format_gapcnt;            /* measure requested gaps */
   int format_gap[5];
-  unsigned short crc;
+  Uint16 crc;
   unsigned curdrive;
   int curside;
   int density;			/* sden=0, dden=1 */
-  unsigned char controller;	/* TRSDISK_P1771 or TRSDISK_P1791 */
+  Uint8 controller;		/* TRSDISK_P1771 or TRSDISK_P1791 */
   int last_readadr;             /* id index found by last readadr */
   tstate_t motor_timeout;       /* 0 if stopped, else time when it stops */
 } FDCState;
@@ -191,9 +191,9 @@ static FDCState state, other_state;
 #define JV3_FREEF       0xfc  /* in flags field, or'd with size code */
 
 typedef struct {
-  unsigned char track;
-  unsigned char sector;
-  unsigned char flags;
+  Uint8 track;
+  Uint8 sector;
+  Uint8 flags;
 } SectorId;
 
 #define MAXTRACKS   255
@@ -240,7 +240,7 @@ typedef struct {
   time_t empty_timeout;           /* real_empty valid until this time */
   unsigned int fmt_nbytes;        /* number of PC format command bytes */
   int fmt_fill;                   /* fill byte for data sectors */
-  unsigned char buf[MAXSECSIZE];
+  Uint8 buf[MAXSECSIZE];
 } RealState;
 
 /* Some constants for DMK format */
@@ -277,7 +277,7 @@ typedef struct {
   int curtrack, curside;          /* track/side in track buffer, or -1/-1 */
   int curbyte;                    /* index in buf for current op */
   int nextidam;                   /* index in buf to put next idam */
-  unsigned char buf[DMK_TRACKLEN_MAX];
+  Uint8 buf[DMK_TRACKLEN_MAX];
 } DMKState;
 
 typedef struct {
@@ -298,7 +298,7 @@ typedef struct {
 static DiskState disk[NDRIVES];
 
 /* Emulate interleave in JV1 mode */
-static const unsigned char jv1_interleave[10] = {0, 5, 1, 6, 2, 7, 3, 8, 4, 9};
+static const Uint8 jv1_interleave[10] = {0, 5, 1, 6, 2, 7, 3, 8, 4, 9};
 
 /* Forward */
 static void real_verify(void);
@@ -501,7 +501,7 @@ trs_disk_firstdrq(int bits)
 }
 
 static void
-trs_disk_unimpl(unsigned char cmd, char* more)
+trs_disk_unimpl(Uint8 cmd, char* more)
 {
   state.status = TRSDISK_NOTRDY|TRSDISK_WRITEFLT|TRSDISK_NOTFOUND;
   state.bytecount = state.format_bytecount = 0;
@@ -718,8 +718,8 @@ trs_disk_emutype(DiskState *d)
     }
     if (fmt[0] == 0 && fmt[1] == 0 && fmt[2] == 0 && fmt[3] == 0) {
       fseek(d->file, DMK_TRACKLEN, 0);
-      count = (unsigned char) getc(d->file);
-      count += (unsigned char) getc(d->file) << 8;
+      count = (Uint8) getc(d->file);
+      count += (Uint8) getc(d->file) << 8;
       if (count >= 16 && count <= DMK_TRACKLEN_MAX) {
 	d->emutype = DMK;
 	d->writeprot = d->writeprot || (c == 0xff);
@@ -878,9 +878,9 @@ trs_disk_insert(int drive, const char *diskname)
     jv3_sort_ids(drive);
   } else if (d->emutype == DMK) {
     fseek(d->file, DMK_NTRACKS, 0);
-    d->u.dmk.ntracks = (unsigned char) getc(d->file);
-    d->u.dmk.tracklen = (unsigned char) getc(d->file);
-    d->u.dmk.tracklen += ((unsigned char) getc(d->file)) << 8;
+    d->u.dmk.ntracks = (Uint8) getc(d->file);
+    d->u.dmk.tracklen = (Uint8) getc(d->file);
+    d->u.dmk.tracklen += ((Uint8) getc(d->file)) << 8;
     c = getc(d->file);
     d->u.dmk.nsides = (c & DMK_SSIDE_OPT) ? 1 : 2;
     d->u.dmk.sden = (c & DMK_SDEN_OPT) != 0;
@@ -896,7 +896,7 @@ trs_disk_insert(int drive, const char *diskname)
 }
 
 static int
-cmd_type(unsigned char cmd)
+cmd_type(Uint8 cmd)
 {
   switch (cmd & TRSDISK_CMDMASK) {
   case TRSDISK_RESTORE:
@@ -1031,7 +1031,7 @@ search(int sector, int side)
 
     /* loop through IDAMs in track */
     for (i = 0; i < DMK_TKHDR_SIZE; i += 2) {
-      unsigned char *p;
+      Uint8 *p;
 
       /* fetch index of next IDAM */
       int idamp = d->u.dmk.buf[i] + (d->u.dmk.buf[i + 1] << 8);
@@ -1220,7 +1220,7 @@ type1_status(void)
 }
 
 void
-trs_disk_select_write(unsigned char data)
+trs_disk_select_write(Uint8 data)
 {
   static int old_data = -1;
 
@@ -1303,7 +1303,7 @@ trs_disk_select_write(unsigned char data)
   }
 }
 
-unsigned char
+Uint8
 trs_disk_track_read(void)
 {
   if (trs_disk_debug_flags & DISKDEBUG_FDCREG) {
@@ -1313,7 +1313,7 @@ trs_disk_track_read(void)
 }
 
 void
-trs_disk_track_write(unsigned char data)
+trs_disk_track_write(Uint8 data)
 {
   if (trs_disk_debug_flags & DISKDEBUG_FDCREG) {
     debug("track_write(0x%02x) pc 0x%04x\n", data, Z80_PC);
@@ -1321,7 +1321,7 @@ trs_disk_track_write(unsigned char data)
   state.track = data;
 }
 
-unsigned char
+Uint8
 trs_disk_sector_read(void)
 {
   if (trs_disk_debug_flags & DISKDEBUG_FDCREG) {
@@ -1355,7 +1355,7 @@ trs_disk_set_controller(int controller)
 }
 
 void
-trs_disk_sector_write(unsigned char data)
+trs_disk_sector_write(Uint8 data)
 {
   if (trs_disk_debug_flags & DISKDEBUG_FDCREG) {
     debug("sector_write(0x%02x) pc 0x%04x\n", data, Z80_PC);
@@ -1382,7 +1382,7 @@ trs_disk_sector_write(unsigned char data)
   state.sector = data;
 }
 
-unsigned char
+Uint8
 trs_disk_data_read(void)
 {
   DiskState *d = &disk[state.curdrive];
@@ -1559,7 +1559,7 @@ trs_disk_data_read(void)
 }
 
 void
-trs_disk_data_write(unsigned char data)
+trs_disk_data_write(Uint8 data)
 {
   DiskState *d = &disk[state.curdrive];
   int c;
@@ -1720,7 +1720,7 @@ trs_disk_data_write(unsigned char data)
 	  break;
 	case 0xfe:
 	  if (!state.density || state.format == FMT_PREAM) {
-	    unsigned short idamp = d->u.dmk.curbyte +
+	    Uint16 idamp = d->u.dmk.curbyte +
 	      (state.density ? DMK_DDEN_FLAG : 0);
 	    if (d->u.dmk.nextidam >= DMK_TKHDR_SIZE) {
 	      error("DMK formatting too many address marks on track");
@@ -1743,7 +1743,7 @@ trs_disk_data_write(unsigned char data)
 	     xtrs 4.5a and earlier, so we disable it, at least for now. */
 	case 0xfc:
 	  if (!state.density || state.format == FMT_IPREAM) {
-	    unsigned short idamp = d->u.dmk.curbyte +
+	    Uint16 idamp = d->u.dmk.curbyte +
 	      (state.density ? DMK_DDEN_FLAG : 0);
 	    if (d->u.dmk.nextidam >= DMK_TKHDR_SIZE) {
 	      error("DMK formatting too many address marks on track");
@@ -2138,7 +2138,7 @@ trs_disk_data_write(unsigned char data)
   return;
 }
 
-unsigned char
+Uint8
 trs_disk_status_read(void)
 {
   static int last_status = -1;
@@ -2180,7 +2180,7 @@ trs_disk_status_read(void)
 }
 
 void
-trs_disk_command_write(unsigned char cmd)
+trs_disk_command_write(Uint8 cmd)
 {
   int id_index, non_ibm, goal_side, new_status;
   DiskState *d = &disk[state.curdrive];
@@ -2198,7 +2198,7 @@ trs_disk_command_write(unsigned char cmd)
       (state.currcommand & ~TRSDISK_EBIT) == TRSDISK_WRITETRK &&
       state.format != FMT_DONE) {
     /* Interrupted format: must write out partial track */
-    unsigned char oldtkhdr[DMK_TKHDR_SIZE];
+    Uint8 oldtkhdr[DMK_TKHDR_SIZE];
     int c, i, j, idamp;
 
     if (trs_disk_debug_flags & DISKDEBUG_DMK) {
@@ -2457,7 +2457,7 @@ trs_disk_command_write(unsigned char cmd)
 
 	/* max distance past ID CRC to search for DAM */
 	int damlimit = state.density ? 43 : 30; /* ref 1791 datasheet */
-	unsigned char dam = 0;
+	Uint8 dam = 0;
 
 	/* DMK search dumps the size code into state.bytecount; adjust
            to real bytecount here */
@@ -2660,7 +2660,7 @@ trs_disk_command_write(unsigned char cmd)
 
       } else if (d->emutype == JV3) {
 	SectorId *sid = &d->u.jv3.id[id_index];
-	unsigned char newflags = sid->flags;
+	Uint8 newflags = sid->flags;
 	newflags &= ~(JV3_ERROR|JV3_DAM); /* clear CRC error and DAM */
 	newflags |= jv3dam;
 	if (newflags != sid->flags) {

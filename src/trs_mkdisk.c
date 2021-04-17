@@ -36,6 +36,8 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+#include <SDL/SDL_types.h>
+
 #include "error.h"
 #include "trs_cassette.h"
 #include "trs_disk.h"
@@ -43,7 +45,6 @@
 #include "trs_mkdisk.h"
 #include "trs_stringy.h"
 
-typedef unsigned char Uchar;
 #include "reed.h"
 
 #ifdef _WIN32
@@ -340,7 +341,7 @@ int trs_create_blank_hard(const char *fname, int cyl, int sec,
   time_t tt = time(0);
   struct tm *lt = localtime(&tt);
   ReedHardHeader rhh;
-  Uchar *rhhp = (Uchar *) &rhh;
+  Uint8 *rhhp = (Uint8 *) &rhh;
   int cksum;
 
   memset(&rhh, 0, sizeof(rhh));
@@ -371,7 +372,7 @@ int trs_create_blank_hard(const char *fname, int cyl, int sec,
   for (i = 0; i <= 31; i++) {
     cksum += rhhp[i];
   }
-  rhh.cksum = ((Uchar) cksum) ^ 0x4c;
+  rhh.cksum = ((Uint8) cksum) ^ 0x4c;
 
   f = fopen(fname, "wb");
   if (f == NULL) {

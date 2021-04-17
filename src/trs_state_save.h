@@ -24,14 +24,14 @@
 
 int  trs_state_save(const char *filename);
 int  trs_state_load(const char *filename);
-void trs_save_uchar(FILE *file, unsigned char *buffer, int count);
-void trs_load_uchar(FILE *file, unsigned char *buffer, int count);
-void trs_save_uint16(FILE *file, unsigned short *buffer, int count);
-void trs_load_uint16(FILE *file, unsigned short *buffer, int count);
-void trs_save_uint32(FILE *file, unsigned *buffer, int count);
-void trs_load_uint32(FILE *file, unsigned *buffer, int count);
-void trs_save_uint64(FILE *file, unsigned long long *buffer, int count);
-void trs_load_uint64(FILE *file, unsigned long long *buffer, int count);
+void trs_save_uchar(FILE *file, Uint8 *buffer, int count);
+void trs_load_uchar(FILE *file, Uint8 *buffer, int count);
+void trs_save_uint16(FILE *file, Uint16 *buffer, int count);
+void trs_load_uint16(FILE *file, Uint16 *buffer, int count);
+void trs_save_uint32(FILE *file, Uint32 *buffer, int count);
+void trs_load_uint32(FILE *file, Uint32 *buffer, int count);
+void trs_save_uint64(FILE *file, Uint64 *buffer, int count);
+void trs_load_uint64(FILE *file, Uint64 *buffer, int count);
 void trs_save_short(FILE *file, short *buffer, int count);
 void trs_load_short(FILE *file, short *buffer, int count);
 void trs_save_int(FILE *file, int *buffer, int count);

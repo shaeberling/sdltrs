@@ -76,9 +76,9 @@
 
 /* We allow for 2MB of banked memory via port 0x94. That is the extreme limit
    of the port mods rather than anything normal (512K might be more 'normal' */
-Uchar memory[MAX_MEMORY_SIZE + 1]; /* +1 so strings from mem_pointer are NUL-terminated */
-Uchar rom[MAX_ROM_SIZE + 1];
-Uchar cp500_rom[CP500_ROM_SIZE + 1];
+Uint8 memory[MAX_MEMORY_SIZE + 1]; /* +1 so strings from mem_pointer are NUL-terminated */
+Uint8 rom[MAX_ROM_SIZE + 1];
+Uint8 cp500_rom[CP500_ROM_SIZE + 1];
 int trs_rom_size;
 int lowercase = 1;
 int romin = 0; /* Model 4p */
@@ -88,10 +88,10 @@ int supermem = 0;
 int selector = 0;
 
 /* private data */
-static Uchar video[MAX_VIDEO_SIZE + 1];
+static Uint8 video[MAX_VIDEO_SIZE + 1];
 /* We map the SuperMem separately, otherwise it can get really
    confusing when combining with other stuff */
-static Uchar supermem_ram[MAX_SUPERMEM_SIZE + 1];
+static Uint8 supermem_ram[MAX_SUPERMEM_SIZE + 1];
 static int trs_video_size;
 static int memory_map = 0;
 static int bank_offset[2];
@@ -99,7 +99,7 @@ static int bank_offset[2];
 #define VIDEO_PAGE_1 1024
 static int video_offset = (-VIDEO_START + VIDEO_PAGE_0);
 static unsigned int bank_base = 0x10000;
-static unsigned char mem_command = 0;
+static Uint8 mem_command = 0;
 static int supermem_base;
 static unsigned int supermem_hi;
 static int selector_reg = 0;
@@ -221,7 +221,7 @@ int cp500_a11_flipflop_toggle(void)
 	return 0x00; /* really?! */
 }
 
-void selector_out(unsigned char value)
+void selector_out(Uint8 value)
 {
 	/* Not all bits are necessarily really present but hey what
 	   you can't read back you can't tell */
@@ -697,7 +697,7 @@ void mem_write_word(int address, int value)
     mem_write(address, value >> 8);
 }
 
-static Uchar *trs80_model1_ram_addr(int address)
+static Uint8 *trs80_model1_ram_addr(int address)
 {
   int bank = 0x8000;
   int offset = address;
@@ -725,7 +725,7 @@ static Uchar *trs80_model1_ram_addr(int address)
   return memory + offset;
 }
 
-static Uchar *trs80_model1_mmio_addr(int address, int writing)
+static Uint8 *trs80_model1_mmio_addr(int address, int writing)
 {
   if (address >= VIDEO_START) return video + address;
   if (address < trs_rom_size && !writing) return memory + address;
@@ -743,7 +743,7 @@ static Uchar *trs80_model1_mmio_addr(int address, int writing)
  *
  * Needs to die...
  */
-Uchar *mem_pointer(int address, int writing)
+Uint8 *mem_pointer(int address, int writing)
 {
     address &= 0xffff;
 
