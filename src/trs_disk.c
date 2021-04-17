@@ -1055,33 +1055,33 @@ search(int sector, int side)
 
       /* sanity check; is this an IDAM at all? */
       if (*p != 0xfe) continue;
-      state.crc = calc_crc1(state.crc, *p);
+      state.crc = calc_crc(state.crc, *p);
       p += incr;
 
       /* compare track field of ID */
       if (*p != state.track) continue;
-      state.crc = calc_crc1(state.crc, *p);
+      state.crc = calc_crc(state.crc, *p);
       p += incr;
 
       /* compare side field of ID if desired */
       if ((*p & 1) != side && side != -1) continue;
-      state.crc = calc_crc1(state.crc, *p);
+      state.crc = calc_crc(state.crc, *p);
       p += incr;
 
       /* compare sector field of ID if desired */
       if (*p != sector && sector != -1) continue;
-      state.crc = calc_crc1(state.crc, *p);
+      state.crc = calc_crc(state.crc, *p);
       p += incr;
 
       /* save size code field of ID; caller converts to actual byte count */
       state.bytecount = *p;
-      state.crc = calc_crc1(state.crc, *p);
+      state.crc = calc_crc(state.crc, *p);
       p += incr;
 
       /* fold CRC field into computation; result should be 0 */
-      state.crc = calc_crc1(state.crc, *p);
+      state.crc = calc_crc(state.crc, *p);
       p += incr;
-      state.crc = calc_crc1(state.crc, *p);
+      state.crc = calc_crc(state.crc, *p);
       p += incr;
 
       if (state.crc != 0) {
@@ -1401,7 +1401,7 @@ trs_disk_data_read(void)
 			 - state.bytecount];
       } else if (d->emutype == DMK) {
 	c = d->u.dmk.buf[d->u.dmk.curbyte];
-	state.crc = calc_crc1(state.crc, c);
+	state.crc = calc_crc(state.crc, c);
 	d->u.dmk.curbyte += dmk_incr(d);
       } else {
 	c = getc(d->file);
@@ -1418,9 +1418,9 @@ trs_disk_data_read(void)
       state.bytecount--;
       if (state.bytecount <= 0) {
 	if (d->emutype == DMK) {
-	  state.crc = calc_crc1(state.crc, d->u.dmk.buf[d->u.dmk.curbyte]);
+	  state.crc = calc_crc(state.crc, d->u.dmk.buf[d->u.dmk.curbyte]);
 	  d->u.dmk.curbyte += dmk_incr(d);
-	  state.crc = calc_crc1(state.crc, d->u.dmk.buf[d->u.dmk.curbyte]);
+	  state.crc = calc_crc(state.crc, d->u.dmk.buf[d->u.dmk.curbyte]);
 	  if (state.crc != 0) {
 	    state.status |= TRSDISK_CRCERR;
 	  }
@@ -1514,7 +1514,7 @@ trs_disk_data_read(void)
       state.sector = state.data;
     }
 
-    state.crc = calc_crc1(state.crc, state.data);
+    state.crc = calc_crc(state.crc, state.data);
     state.bytecount--;
     if (state.bytecount <= 0) {
       if (d->emutype == DMK && state.crc != 0) {
@@ -1591,7 +1591,7 @@ trs_disk_data_write(Uint8 data)
 	  c = putc(data, d->file);
 	  if (c == EOF) state.status |= TRSDISK_WRITEFLT;
 	}
-	state.crc = calc_crc1(state.crc, data);
+	state.crc = calc_crc(state.crc, data);
       }
       state.bytecount--;
       if (state.bytecount <= 0) {
@@ -1774,7 +1774,7 @@ trs_disk_data_write(Uint8 data)
 	if (dmk_incr(d) == 2) {
 	  d->u.dmk.buf[d->u.dmk.curbyte++] = data;
 	}
-	state.crc = calc_crc1(state.crc, data);
+	state.crc = calc_crc(state.crc, data);
       }
       break;
     }
@@ -2524,9 +2524,9 @@ trs_disk_command_write(Uint8 cmd)
 	    break;
 	  }
 	}
-	state.crc = calc_crc1((state.density
-			       ? 0xcdb4 /* CRC of a1 a1 a1 */
-			       : 0xffff), dam);
+	state.crc = calc_crc((state.density
+			      ? 0xcdb4 /* CRC of a1 a1 a1 */
+			      : 0xffff), dam);
 
 	d->u.dmk.curbyte = id_index;
 
@@ -2745,9 +2745,9 @@ trs_disk_command_write(Uint8 cmd)
 	}
 
 	/* Initialize CRC */
-	state.crc = calc_crc1((state.density
-			       ? 0xcdb4 /* CRC of a1 a1 a1 */
-			       : 0xffff), dam);
+	state.crc = calc_crc((state.density
+			      ? 0xcdb4 /* CRC of a1 a1 a1 */
+			      : 0xffff), dam);
 
 	d->u.dmk.curbyte = id_index;
 
@@ -2925,9 +2925,9 @@ trs_disk_command_write(Uint8 cmd)
       state.status = TRSDISK_BUSY;
       state.last_readadr = i;
       state.bytecount = 6;
-      state.crc = calc_crc1((state.density
-			     ? 0xcdb4 /* CRC of a1 a1 a1 */
-			     : 0xffff),
+      state.crc = calc_crc((state.density
+			    ? 0xcdb4 /* CRC of a1 a1 a1 */
+			    : 0xffff),
 			    d->u.dmk.buf[idamp]);
       d->u.dmk.curbyte = idamp + dmk_incr(d);
       trs_schedule_event(trs_disk_firstdrq, 0, ts);
