@@ -39,57 +39,5 @@ static Uint16 const crc16_table[256] = {
   0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0
 };
 
-#if 0
-/* Slow way, not using table */
-Uint16 CALC_CRC1a(Uint16 crc, Uint8 byte)
-{
-  int i = 8;
-  Uint16 b = byte << 8;
-  while (i--) {
-    crc = (crc << 1) ^ (((crc ^ b) & 0x8000) ? 0x1021 : 0);
-    b <<= 1;
-  }
-  return crc;
-}
-#endif
-
 /* Fast way, using table */
-#define CALC_CRC1b(crc, c) (((crc) << 8) ^ crc16_table[((crc) >> 8) ^ (c)])
-
-#ifndef calc_crc1
-#define calc_crc1 CALC_CRC1b
-#endif
-
-#if TEST
-#include <stdio.h>
-/* Recompute the CRC with len bytes appended. */
-Uint16 calc_crc(Uint16 crc, Uint8 const *buf, int len)
-{
-  while (len--) {
-    crc = calc_crc1(crc, *buf++);
-  }
-  return crc;
-}
-
-int
-main(int argc, char **argv)
-{
-  char buf[2048];
-  int count, c, res;
-  Uint16 preset;
-
-  if (argc > 1) {
-    preset = strtol(argv[1], NULL, 0);
-  } else {
-    preset = 0xffff;
-  }
-  count = 0;
-  for (;;) {
-    res = scanf("%2x", &c);
-    if (res != 1) break;
-    buf[count++] = c;
-  }
-  printf("\n%04x\n", calc_crc(preset, buf, count));
-  return 0;
-}
-#endif
+#define calc_crc(crc, c) (((crc) << 8) ^ crc16_table[((crc) >> 8) ^ (c)])
