@@ -54,6 +54,9 @@
 typedef Uint64 tstate_t;
 #define TSTATE_T_MID (((Uint64) -1LL)/2ULL)
 
+#if defined(SDL_PRIu64)
+#define TSTATE_T_LEN SDL_PRIu64
+#else
 #if defined(_WIN32) && !defined(__MINGW64__)
 #define TSTATE_T_LEN "I64u"
 #else
@@ -61,6 +64,7 @@ typedef Uint64 tstate_t;
 #define TSTATE_T_LEN "lu"
 #else
 #define TSTATE_T_LEN "llu"
+#endif
 #endif
 #endif
 
