@@ -57,7 +57,11 @@ typedef Uint64 tstate_t;
 #if defined(_WIN32) && !defined(__MINGW64__)
 #define TSTATE_T_LEN "I64u"
 #else
+#if __WORDSIZE == 64
+#define TSTATE_T_LEN "lu"
+#else
 #define TSTATE_T_LEN "llu"
+#endif
 #endif
 
 struct twobyte
