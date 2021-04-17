@@ -78,6 +78,6 @@
 
 
 int
-load_cmd(FILE* f, unsigned char memory[65536],
-	 unsigned char* loadmap, int verbosity, FILE* outf,
+load_cmd(FILE* f, Uint8 memory[65536],
+	 Uint8* loadmap, int verbosity, FILE* outf,
 	 int isam, char* pds, int* xferaddr, int stopxfer);

@@ -36,7 +36,7 @@ extern int key_queue_entries;
 
 void trs_joy_button_down(void);
 void trs_joy_button_up(void);
-void trs_joy_hat(unsigned char value);
+void trs_joy_hat(Uint8 value);
 void trs_set_keypad_joystick(void);
 void trs_open_joystick(void);
-void trs_joy_axis(unsigned char axis, short value, int bounce);
+void trs_joy_axis(Uint8 axis, short value, int bounce);

@@ -99,7 +99,7 @@ static const short parity_table[256] =
  * Tables and routines for computing various flag values:
  */
 
-static const Uchar sign_carry_overflow_table[] =
+static const Uint8 sign_carry_overflow_table[] =
 {
     0,
     OVERFLOW_MASK | SIGN_MASK,
@@ -111,7 +111,7 @@ static const Uchar sign_carry_overflow_table[] =
     CARRY_MASK | SIGN_MASK,
 };
 
-static const Uchar half_carry_table[] =
+static const Uint8 half_carry_table[] =
 {
     0,
     0,
@@ -123,7 +123,7 @@ static const Uchar half_carry_table[] =
     HALF_CARRY_MASK,
 };
 
-static const Uchar subtract_sign_carry_overflow_table[] =
+static const Uint8 subtract_sign_carry_overflow_table[] =
 {
     0,
     CARRY_MASK | SIGN_MASK,
@@ -135,7 +135,7 @@ static const Uchar subtract_sign_carry_overflow_table[] =
     CARRY_MASK | SIGN_MASK,
 };
 
-static const Uchar subtract_half_carry_table[] =
+static const Uint8 subtract_half_carry_table[] =
 {
     0,
     HALF_CARRY_MASK,
@@ -274,7 +274,7 @@ static void do_sbc_word_flags(int a, int b, int result)
 
 static void do_flags_dec_byte(int value)
 {
-    Uchar set;
+    Uint8 set;
 
     set = SUBTRACT_MASK;
 
@@ -293,7 +293,7 @@ static void do_flags_dec_byte(int value)
 
 static void do_flags_inc_byte(int value)
 {
-    Uchar set;
+    Uint8 set;
 
     set = 0;
 
@@ -317,7 +317,7 @@ static void do_flags_inc_byte(int value)
 static void do_and_byte(int value)
 {
     int result;
-    Uchar set;
+    Uint8 set;
 
     result = (Z80_A &= value);
 
@@ -336,7 +336,7 @@ static void do_and_byte(int value)
 static void do_or_byte(int value)
 {
     int result;  /* the result of the or operation */
-    Uchar set;
+    Uint8 set;
 
     result = (Z80_A |= value);
 
@@ -355,7 +355,7 @@ static void do_or_byte(int value)
 static void do_xor_byte(int value)
 {
     int result;  /* the result of the xor operation */
-    Uchar set;
+    Uint8 set;
 
     result = (Z80_A ^= value);
 
@@ -460,7 +460,7 @@ static void do_sbc_word(int value)
     do_sbc_word_flags(a, value, result);
 }
 
-static void do_add_word_index(Ushort *regp, int value)
+static void do_add_word_index(Uint16 *regp, int value)
 {
     int a, result;
 
@@ -642,7 +642,7 @@ static int rl_byte(int value)
      * operation, setting flags as appropriate.
      */
 
-    Uchar set;
+    Uint8 set;
     int result;
 
     set = 0;
@@ -677,7 +677,7 @@ static int rr_byte(int value)
      * operation, setting flags as appropriate.
      */
 
-    Uchar set;
+    Uint8 set;
     int result;
 
     set = 0;
@@ -712,7 +712,7 @@ static int rlc_byte(int value)
      * This does not do the right thing for the RLCA instruction.
      */
 
-    Uchar set;
+    Uint8 set;
     int result;
 
     set = 0;
@@ -741,7 +741,7 @@ static int rlc_byte(int value)
 
 static int rrc_byte(int value)
 {
-    Uchar set;
+    Uint8 set;
     int result;
 
     set = 0;
@@ -774,7 +774,7 @@ static int rrc_byte(int value)
  */
 static void do_rla(void)
 {
-    Uchar set;
+    Uint8 set;
 
     set = 0;
 
@@ -796,7 +796,7 @@ static void do_rla(void)
 
 static void do_rra(void)
 {
-    Uchar set;
+    Uint8 set;
 
     set = 0;
 
@@ -817,7 +817,7 @@ static void do_rra(void)
 
 static void do_rlca(void)
 {
-    Uchar set;
+    Uint8 set;
 
     set = 0;
 
@@ -836,7 +836,7 @@ static void do_rlca(void)
 
 static void do_rrca(void)
 {
-    Uchar set;
+    Uint8 set;
 
     set = 0;
 
@@ -855,7 +855,7 @@ static void do_rrca(void)
 
 static int sla_byte(int value)
 {
-    Uchar set;
+    Uint8 set;
     int result;
 
     set = 0;
@@ -878,7 +878,7 @@ static int sla_byte(int value)
 
 static int sra_byte(int value)
 {
-    Uchar set;
+    Uint8 set;
     int result;
 
     set = 0;
@@ -908,7 +908,7 @@ static int sra_byte(int value)
 /* undocumented opcode slia: shift left and increment */
 static int slia_byte(int value)
 {
-    Uchar set;
+    Uint8 set;
     int result;
 
     set = 0;
@@ -931,7 +931,7 @@ static int slia_byte(int value)
 
 static int srl_byte(int value)
 {
-    Uchar set;
+    Uint8 set;
     int result;
 
     set = 0;
@@ -1046,7 +1046,7 @@ static void do_lddr(void)
 
 static void do_ld_a_i(void)
 {
-    Uchar set;
+    Uint8 set;
 
     set = 0;
 
@@ -1065,7 +1065,7 @@ static void do_ld_a_i(void)
 
 static void do_ld_a_r(void)
 {
-    Uchar set;
+    Uint8 set;
 
     set = 0;
 
@@ -1122,7 +1122,7 @@ static void do_rld(void)
      * Rotate-left-decimal.
      */
     int old_value, new_value;
-    Uchar set;
+    Uint8 set;
 
     set = 0;
 
@@ -1151,7 +1151,7 @@ static void do_rrd(void)
      * Rotate-right-decimal.
      */
     int old_value, new_value;
-    Uchar set;
+    Uint8 set;
 
     set = 0;
 
@@ -1269,9 +1269,9 @@ static int in_with_flags(int port)
      */
 
     int value;
-    Uchar clear, set;
+    Uint8 clear, set;
 
-    clear = (Uchar) ~(SIGN_MASK | ZERO_MASK | HALF_CARRY_MASK |
+    clear = (Uint8) ~(SIGN_MASK | ZERO_MASK | HALF_CARRY_MASK |
 		      PARITY_MASK | SUBTRACT_MASK);
     set = 0;
 
@@ -1444,7 +1444,7 @@ static void do_nmi(void)
  */
 static void do_CB_instruction(void)
 {
-    Uchar instruction;
+    Uint8 instruction;
 
     instruction = mem_read(Z80_PC++);
 
@@ -2245,9 +2245,9 @@ static void do_CB_instruction(void)
 /*
  * Extended instructions which have 0xDD or 0xFD as the first byte:
  */
-static void do_indexed_instruction(Ushort *ixp)
+static void do_indexed_instruction(Uint16 *ixp)
 {
-    Uchar instruction;
+    Uint8 instruction;
 
     instruction = mem_read(Z80_PC++);
 
@@ -2290,8 +2290,8 @@ static void do_indexed_instruction(Ushort *ixp)
 
       case 0x35:	/* dec (ix + offset) */
         {
-	  Ushort address;
-	  Uchar value;
+	  Uint16 address;
+	  Uint8 value;
 	  address = *ixp + (signed char) mem_read(Z80_PC++);
 	  value = mem_read(address) - 1;
 	  mem_write(address, value);
@@ -2307,7 +2307,7 @@ static void do_indexed_instruction(Ushort *ixp)
 
       case 0xE3:	/* ex (sp), ix */
         {
-	  Ushort temp;
+	  Uint16 temp;
 	  temp = mem_read_word(Z80_SP);
 	  mem_write_word(Z80_SP, *ixp);
 	  *ixp = temp;
@@ -2317,8 +2317,8 @@ static void do_indexed_instruction(Ushort *ixp)
 
       case 0x34:	/* inc (ix + offset) */
         {
-	  Ushort address;
-	  Uchar value;
+	  Uint16 address;
+	  Uint8 value;
 	  address = *ixp + (signed char) mem_read(Z80_PC++);
 	  value = mem_read(address) + 1;
 	  mem_write(address, value);
@@ -2459,7 +2459,7 @@ static void do_indexed_instruction(Ushort *ixp)
       case 0xCB:
         {
 	  signed char offset, result = 0;
-	  Uchar sub_instruction;
+	  Uint8 sub_instruction;
 
 	  offset = (signed char) mem_read(Z80_PC++);
 	  sub_instruction = mem_read(Z80_PC++);
@@ -2734,7 +2734,7 @@ static void do_indexed_instruction(Ushort *ixp)
  */
 static int do_ED_instruction(void)
 {
-    Uchar instruction;
+    Uint8 instruction;
     int debug = 0;
 
     instruction = mem_read(Z80_PC++);
@@ -3088,8 +3088,8 @@ int z80_run(int continuous)
       *  1 = continuous
       */
 {
-    Uchar instruction;
-    Ushort address; /* generic temps */
+    Uint8 instruction;
+    Uint16 address; /* generic temps */
     int ret = 0;
     tstate_t t_delta;
     trs_continuous = continuous;
@@ -3434,7 +3434,7 @@ int z80_run(int continuous)
 
 	  case 0x35:	/* dec (hl) */
 	    {
-	      Uchar value = mem_read(Z80_HL) - 1;
+	      Uint8 value = mem_read(Z80_HL) - 1;
 	      mem_write(Z80_HL, value);
 	      do_flags_dec_byte(value);
 	    }
@@ -3484,7 +3484,7 @@ int z80_run(int continuous)
 
 	  case 0x08:	/* ex af, af' */
 	  {
-	      Ushort temp;
+	      Uint16 temp;
 	      temp = Z80_AF;
 	      Z80_AF = Z80_AF_PRIME;
 	      Z80_AF_PRIME = temp;
@@ -3494,7 +3494,7 @@ int z80_run(int continuous)
 
 	  case 0xEB:	/* ex de, hl */
 	  {
-	      Ushort temp;
+	      Uint16 temp;
 	      temp = Z80_DE;
 	      Z80_DE = Z80_HL;
 	      Z80_HL = temp;
@@ -3504,7 +3504,7 @@ int z80_run(int continuous)
 
 	  case 0xE3:	/* ex (sp), hl */
 	  {
-	      Ushort temp;
+	      Uint16 temp;
 	      temp = mem_read_word(Z80_SP);
 	      mem_write_word(Z80_SP, Z80_HL);
 	      Z80_HL = temp;
@@ -3514,7 +3514,7 @@ int z80_run(int continuous)
 
 	  case 0xD9:	/* exx */
 	  {
-	      Ushort tmp;
+	      Uint16 tmp;
 	      tmp = Z80_BC_PRIME;
 	      Z80_BC_PRIME = Z80_BC;
 	      Z80_BC = tmp;
@@ -3590,7 +3590,7 @@ int z80_run(int continuous)
 
 	  case 0x34:	/* inc (hl) */
 	  {
-	      Uchar value = mem_read(Z80_HL) + 1;
+	      Uint8 value = mem_read(Z80_HL) + 1;
 	      mem_write(Z80_HL, value);
 	      do_flags_inc_byte(value);
 	  }

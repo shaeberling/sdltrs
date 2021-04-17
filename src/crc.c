@@ -4,7 +4,7 @@
 */
 
 /* Accelerator table to compute the CRC eight bits at a time */
-static unsigned short const crc16_table[256] = {
+static Uint16 const crc16_table[256] = {
   0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,
   0x8108, 0x9129, 0xA14A, 0xB16B, 0xC18C, 0xD1AD, 0xE1CE, 0xF1EF,
   0x1231, 0x0210, 0x3273, 0x2252, 0x52B5, 0x4294, 0x72F7, 0x62D6,
@@ -41,10 +41,10 @@ static unsigned short const crc16_table[256] = {
 
 #if 0
 /* Slow way, not using table */
-unsigned short CALC_CRC1a(unsigned short crc, unsigned char byte)
+Uint16 CALC_CRC1a(Uint16 crc, Uint8 byte)
 {
   int i = 8;
-  unsigned short b = byte << 8;
+  Uint16 b = byte << 8;
   while (i--) {
     crc = (crc << 1) ^ (((crc ^ b) & 0x8000) ? 0x1021 : 0);
     b <<= 1;
@@ -63,8 +63,7 @@ unsigned short CALC_CRC1a(unsigned short crc, unsigned char byte)
 #if TEST
 #include <stdio.h>
 /* Recompute the CRC with len bytes appended. */
-unsigned short calc_crc(unsigned short crc,
-			unsigned char const *buf, int len)
+Uint16 calc_crc(Uint16 crc, Uint8 const *buf, int len)
 {
   while (len--) {
     crc = calc_crc1(crc, *buf++);
@@ -77,7 +76,7 @@ main(int argc, char **argv)
 {
   char buf[2048];
   int count, c, res;
-  unsigned short preset;
+  Uint16 preset;
 
   if (argc > 1) {
     preset = strtol(argv[1], NULL, 0);

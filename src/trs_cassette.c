@@ -212,7 +212,7 @@ static struct {
    changed; we ignore the difference.  Actually, we ignore more than
    that; we convert the values as if 0 were really halfway between
    high and low.  */
-Uchar value_to_sample[] = { 127, /* 0.46 V */
+Uint8 value_to_sample[] = { 127, /* 0.46 V */
 			    254, /* 0.85 V */
 			    0,   /* 0.00 V */
 			    127, /* unused, but close to 0.46 V */
@@ -239,7 +239,7 @@ static int orch90_left = 128, orch90_right = 128;
 /* Put a 2-byte quantity to a file in little-endian order */
 /* Return -1 on error, 0 otherwise */
 int
-put_twobyte(Ushort n, FILE* f)
+put_twobyte(Uint16 n, FILE* f)
 {
   int c;
   struct twobyte *p = (struct twobyte *) &n;
@@ -253,7 +253,7 @@ put_twobyte(Ushort n, FILE* f)
 /* Put a 4-byte quantity to a file in little-endian order */
 /* Return -1 on error, 0 otherwise */
 int
-put_fourbyte(Uint n, FILE* f)
+put_fourbyte(Uint32 n, FILE* f)
 {
   int c;
   struct fourbyte *p = (struct fourbyte *) &n;
@@ -271,7 +271,7 @@ put_fourbyte(Uint n, FILE* f)
 /* Get a 2-byte quantity from a file in little-endian order */
 /* Return -1 on error, 0 otherwise */
 int
-get_twobyte(Ushort *pp, FILE* f)
+get_twobyte(Uint16 *pp, FILE* f)
 {
   int c;
   struct twobyte *p = (struct twobyte *) pp;
@@ -287,7 +287,7 @@ get_twobyte(Ushort *pp, FILE* f)
 /* Get a 4-byte quantity from a file in little-endian order */
 /* Return -1 on error, 0 otherwise */
 int
-get_fourbyte(Uint *pp, FILE* f)
+get_fourbyte(Uint32 *pp, FILE* f)
 {
   int c;
   struct fourbyte *p = (struct fourbyte *) pp;
@@ -309,7 +309,7 @@ get_fourbyte(Uint *pp, FILE* f)
 /* Output an 8-byte unsigned sample, if necessary converting to a
  * different sample format.  */
 static void
-put_sample(Uchar sample, int convert, FILE* f)
+put_sample(Uint8 sample, int convert, FILE* f)
 {
   Uint16 two_byte;
 
@@ -356,7 +356,7 @@ put_sample(Uchar sample, int convert, FILE* f)
 int
 create_wav_header(FILE *f)
 {
-  Uint field;
+  Uint32 field;
   /* Chunk sizes don't count the 4-byte chunk type name nor the 4-byte
      size field itself.  The RIFF chunk is the whole file, so its size
      is the actual length of the file minus WAVE_RIFF_OFFSET (=8).
@@ -409,9 +409,9 @@ check_chunk_id(char *expected, FILE* f)
 static int
 parse_wav_header(FILE *f)
 {
-  Uint n4;
-  Uint fmt_size;
-  Ushort n2, expect2;
+  Uint32 n4;
+  Uint32 fmt_size;
+  Uint16 n2, expect2;
 
   if (check_chunk_id("RIFF", f) < 0) return -1;
   if (get_fourbyte(&n4, f) < 0) return -1; /* ignore this field */
@@ -745,9 +745,9 @@ assert_state_void(int dummy)
 void
 transition_out(int value)
 {
-  Uchar sample;
+  Uint8 sample;
   long nsamples, delta_us;
-  Ushort code;
+  Uint16 code;
   float ddelta_us;
 
   cassette_transitionsout++;
@@ -938,8 +938,8 @@ static int
 transition_in(void)
 {
   unsigned long delta_us, nsamples, maxsamples;
-  Ushort code;
-  Uint d;
+  Uint16 code;
+  Uint32 d;
   int next, ret = 0;
   int c, cabs;
   float delta_ts;

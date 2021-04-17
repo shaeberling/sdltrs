@@ -43,18 +43,16 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <sys/time.h>
+#include <SDL/SDL_types.h>
 
 #ifndef TRUE
 #define TRUE	(1)
 #define FALSE	(0)
 #endif
 
-typedef unsigned int Uint;      /* 4 bytes */
-typedef unsigned short Ushort;  /* 2 bytes */
-typedef unsigned char Uchar;    /* 1 byte */
 
-typedef unsigned long long tstate_t;
-#define TSTATE_T_MID (((unsigned long long) -1LL)/2ULL)
+typedef Uint64 tstate_t;
+#define TSTATE_T_MID (((Uint64) -1LL)/2ULL)
 
 #if defined(_WIN32) && !defined(__MINGW64__)
 #define TSTATE_T_LEN "I64u"
@@ -65,18 +63,18 @@ typedef unsigned long long tstate_t;
 struct twobyte
 {
 #ifdef big_endian
-    Uchar high, low;
+    Uint8 high, low;
 #else
-    Uchar low, high;
+    Uint8 low, high;
 #endif
 };
 
 struct fourbyte
 {
 #ifdef big_endian
-    Uchar byte3, byte2, byte1, byte0;
+    Uint8 byte3, byte2, byte1, byte0;
 #else
-    Uchar byte0, byte1, byte2, byte3;
+    Uint8 byte0, byte1, byte2, byte3;
 #endif
 };
 
@@ -84,7 +82,7 @@ struct fourbyte
 typedef union
 {
     struct twobyte byte;
-    Ushort word;
+    Uint16 word;
 } wordregister;
 
 struct z80_state_struct
@@ -103,12 +101,12 @@ struct z80_state_struct
     wordregister de_prime;
     wordregister hl_prime;
 
-    Uchar i;	/* interrupt-page address register */
-    Uchar r;	/* memory-refresh register */
-    Uchar r7;	/* bit 7 of refresh register saved */
+    Uint8 i;	/* interrupt-page address register */
+    Uint8 r;	/* memory-refresh register */
+    Uint8 r7;	/* bit 7 of refresh register saved */
 
-    Uchar iff1, iff2;
-    Uchar interrupt_mode;
+    Uint8 iff1, iff2;
+    Uint8 interrupt_mode;
 
     /* To signal a maskable interrupt, set irq TRUE.  The CPU does not
      * turn off irq; the external device must turn it off when
@@ -249,13 +247,13 @@ extern void mem_write(int address, int value);
 extern void mem_write_rom(unsigned int address, int value);
 extern int mem_read_word(int address);
 extern void mem_write_word(int address, int value);
-extern Uchar *mem_pointer(int address, int writing);
+extern Uint8 *mem_pointer(int address, int writing);
 extern int load_hex(FILE *file); /* returns highest address loaded + 1 */
 extern void z80_out(int port, int value);
 extern int z80_in(int port);
 
 #ifdef ZBX
-extern int disassemble(unsigned short pc);
+extern int disassemble(Uint16 pc);
 extern void debug_init(void);
 extern void debug_shell(void);
 #endif /* ZBX */

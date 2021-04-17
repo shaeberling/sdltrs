@@ -84,14 +84,14 @@ typedef struct {
   tstate_t pos_time;
   stringy_pos_t flux_change_pos;
   int flux_change_to;
-  Uchar in_port;
-  Uchar out_port;
-  Uchar format;
+  Uint8 in_port;
+  Uint8 out_port;
+  Uint8 format;
   /* for esf format: */
   long esf_bytelen;
   long esf_bytepos;
-  Uchar esf_bytebuf;
-  Uchar esf_bitpos;
+  Uint8 esf_bytebuf;
+  Uint8 esf_bitpos;
 #if STRINGYDEBUG_IN
   int prev_in_port;
 #endif
@@ -103,16 +103,16 @@ static stringy_info_t stringy_info[STRINGY_MAX_UNITS];
  * .esf file format used by TRS32.
  */
 static const char stringy_esf_magic[4] = "ESF\x1a";
-static const Uchar stringy_esf_header_length = 12;
-static const Uchar stringy_esf_write_protected = 1;
+static const Uint8 stringy_esf_header_length = 12;
+static const Uint8 stringy_esf_write_protected = 1;
 /*
 struct {
   char magic[4] = stringy_esf_magic;
-  Uchar headerLength = 12;  // length of this header, in bytes
-  Uchar flags;              // bit 0: write protected; others reserved
-  Ushort leaderLength = 60; // little endian, in bit cells
-  Uint length;              // little endian, in bytes
-  Uchar data[length];
+  Uint8 headerLength = 12;  // length of this header, in bytes
+  Uint8 flags;              // bit 0: write protected; others reserved
+  Uint16 leaderLength = 60; // little endian, in bit cells
+  Uint32 length;            // little endian, in bytes
+  Uint8 data[length];
 }
  */
 
@@ -137,8 +137,8 @@ stringy_state(int out_port)
 int
 stringy_create_with(const char *name,
 		    int format,
-		    Uint lengthBytes, /* data length in bytes */
-		    Uint eotCells,    /* leader length in bit cells */
+		    Uint32 lengthBytes, /* data length in bytes */
+		    Uint32 eotCells,    /* leader length in bit cells */
 		    int writeProt)
 {
   FILE *f;
@@ -210,11 +210,11 @@ static int
 stringy_read_esf_header(stringy_info_t *s)
 {
   char magic[sizeof(stringy_esf_magic)];
-  Uchar headerLength, flags;
-  Ushort eotWidth;
+  Uint8 headerLength, flags;
+  Uint16 eotWidth;
   size_t sres;
   int ires;
-  Uint len;
+  Uint32 len;
 
   if (s->file == NULL)
     return -1;
@@ -381,7 +381,7 @@ static void
 stringy_byte_flush(stringy_info_t *s)
 {
   int ires;
-  Uchar mask;
+  Uint8 mask;
 
   if (s->format != STRINGY_FMT_ESF ||
       stringy_state(s->out_port) != STRINGY_WRITING ||
@@ -683,17 +683,17 @@ static void trs_save_stringy(FILE *file, stringy_info_t *d)
   else
      trs_save_int(file, &one, 1);
   trs_save_filename(file, d->name);
-  trs_save_uint64(file, (unsigned long long *)&d->length, 1);
-  trs_save_uint64(file, (unsigned long long *)&d->eotWidth, 1);
-  trs_save_uint64(file, (unsigned long long *)&d->pos, 1);
-  trs_save_uint64(file, (unsigned long long *)&d->pos_time, 1);
-  trs_save_uint64(file, (unsigned long long *)&d->flux_change_pos, 1);
+  trs_save_uint64(file, (Uint64 *)&d->length, 1);
+  trs_save_uint64(file, (Uint64 *)&d->eotWidth, 1);
+  trs_save_uint64(file, (Uint64 *)&d->pos, 1);
+  trs_save_uint64(file, (Uint64 *)&d->pos_time, 1);
+  trs_save_uint64(file, (Uint64 *)&d->flux_change_pos, 1);
   trs_save_int(file, &d->flux_change_to, 1);
   trs_save_uchar(file, &d->in_port, 1);
   trs_save_uchar(file, &d->out_port, 1);
   trs_save_uchar(file, &d->format, 1);
-  trs_save_uint64(file, (unsigned long long *)&d->esf_bytelen, 1);
-  trs_save_uint64(file, (unsigned long long *)&d->esf_bytepos, 1);
+  trs_save_uint64(file, (Uint64 *)&d->esf_bytelen, 1);
+  trs_save_uint64(file, (Uint64 *)&d->esf_bytepos, 1);
   trs_save_uchar(file, &d->esf_bytebuf, 1);
   trs_save_uchar(file, &d->esf_bitpos, 1);
 }
@@ -708,17 +708,17 @@ static void trs_load_stringy(FILE *file, stringy_info_t *d)
   else
     d->file = NULL;
   trs_load_filename(file, d->name);
-  trs_load_uint64(file, (unsigned long long *)&d->length, 1);
-  trs_load_uint64(file, (unsigned long long *)&d->eotWidth, 1);
-  trs_load_uint64(file, (unsigned long long *)&d->pos, 1);
-  trs_load_uint64(file, (unsigned long long *)&d->pos_time, 1);
-  trs_load_uint64(file, (unsigned long long *)&d->flux_change_pos, 1);
+  trs_load_uint64(file, (Uint64 *)&d->length, 1);
+  trs_load_uint64(file, (Uint64 *)&d->eotWidth, 1);
+  trs_load_uint64(file, (Uint64 *)&d->pos, 1);
+  trs_load_uint64(file, (Uint64 *)&d->pos_time, 1);
+  trs_load_uint64(file, (Uint64 *)&d->flux_change_pos, 1);
   trs_load_int(file, &d->flux_change_to, 1);
   trs_load_uchar(file, &d->in_port, 1);
   trs_load_uchar(file, &d->out_port, 1);
   trs_load_uchar(file, &d->format, 1);
-  trs_load_uint64(file, (unsigned long long *)&d->esf_bytelen, 1);
-  trs_load_uint64(file, (unsigned long long *)&d->esf_bytepos, 1);
+  trs_load_uint64(file, (Uint64 *)&d->esf_bytelen, 1);
+  trs_load_uint64(file, (Uint64 *)&d->esf_bytepos, 1);
   trs_load_uchar(file, &d->esf_bytebuf, 1);
   trs_load_uchar(file, &d->esf_bitpos, 1);
 }

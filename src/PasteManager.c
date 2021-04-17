@@ -37,7 +37,7 @@ static int charCount = 0;
 static char *pasteString;
 static int pasteStringLength = 0;
 
-int PasteManagerGetChar(unsigned char *character)
+int PasteManagerGetChar(Uint8 *character)
 {
   if (charCount) {
     *character = pasteString[pasteStringLength - charCount];
@@ -76,7 +76,7 @@ static char *pasteString;
 static int pasteStringLength = 0;
 static HANDLE hClipboardData;
 
-int PasteManagerGetChar(unsigned char *character)
+int PasteManagerGetChar(Uint8 *character)
 {
   if (charCount) {
     *character = pasteString[pasteStringLength - charCount];
@@ -233,7 +233,7 @@ static void put_scrap(int srclen, const char *src)
 
   XChangeProperty(SDL_Display, DefaultRootWindow(SDL_Display),
                   _atom_CLIPBOARD, XA_STRING, 8, PropModeReplace,
-                  (unsigned char *)dst, srclen);
+                  (Uint8 *)dst, srclen);
 
   XSync (SDL_Display, False);
   if (lost_scrap()) {
@@ -279,7 +279,7 @@ static void get_scrap(int *dstlen, char **dst)
   int sel_format;
   unsigned long nbytes;
   unsigned long overflow;
-  unsigned char *src;
+  Uint8 *src;
   unsigned long offset = 0;
   unsigned long chunk = 0;
   char *retval = NULL;
@@ -437,7 +437,7 @@ static int clipboard_filter(const SDL_Event *event)
       int seln_format;
       unsigned long nbytes;
       unsigned long overflow;
-      unsigned char *seln_data;
+      Uint8 *seln_data;
 
       req = &event->syswm.msg->event.xevent.xselectionrequest;
       sevent.xselection.type = SelectionNotify;
@@ -474,7 +474,7 @@ static int clipboard_filter(const SDL_Event *event)
   return 1;
 }
 
-int PasteManagerGetChar(unsigned char *character)
+int PasteManagerGetChar(Uint8 *character)
 {
   if (charCount) {
     *character = pasteString[pasteStringLength - charCount];
