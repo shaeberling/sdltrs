@@ -3126,7 +3126,7 @@ hrg_init(void)
       hrg_pixel_height[i - 1] = hrg_pixel_y[i] - hrg_pixel_y[i - 1];
   }
   if (cur_char_width % 6 != 0 || cur_char_height % 12 != 0)
-    debug("character size %d*%d not a multiple of 6*12 HRG raster",
+    debug("character size %d*%d not a multiple of 6*12 HRG raster\n",
         cur_char_width, cur_char_height);
 }
 
