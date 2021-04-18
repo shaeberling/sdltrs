@@ -2757,7 +2757,7 @@ void trs_gui_clear_rect(int x, int y, int w, int h)
   SDL_Rect rect;
 
   /* Add offsets if we are in 80x24 mode */
-  if (row_chars != 64) {
+  if (row_chars == 80) {
     x += 8;
     y += 4;
   }
@@ -2784,7 +2784,7 @@ void trs_gui_write_char(int col, int row, Uint8 char_index, int invert)
   SDL_Rect srcRect, dstRect;
 
   /* Add offsets if we are in 80x24 mode */
-  if (row_chars != 64) {
+  if (row_chars == 80) {
     row += 4;
     col += 8;
   }
