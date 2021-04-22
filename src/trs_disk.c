@@ -755,12 +755,10 @@ void
 trs_disk_remove(int drive)
 {
   DiskState *d = &disk[drive];
-  int c;
 
   if (d->file != NULL) {
-    c = fclose(d->file);
+    if (fclose(d->file) == EOF) state.status |= TRSDISK_WRITEFLT;
     d->file = NULL;
-    if (c == EOF) state.status |= TRSDISK_WRITEFLT;
     d->filename[0] = 0;
   }
   d->writeprot = 0;
