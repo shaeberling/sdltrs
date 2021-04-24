@@ -3110,10 +3110,6 @@ Uint8 grafyx_m3_read_byte(int position)
 static Uint8 le18_x, le18_y, le18_on;
 int lowe_le18;
 
-void lowe_le18_reset(void)
-{
-}
-
 void lowe_le18_write_x(int value)
 {
   /* This really is 0-255. The unit has 16K x 6bit of RAM
