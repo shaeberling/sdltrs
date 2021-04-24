@@ -235,7 +235,6 @@ void hrg_write_addr(int addr, int mask);
 void hrg_write_data(int data);
 int hrg_read_data(void);
 extern int lowe_le18;
-void lowe_le18_reset(void);
 void lowe_le18_write_x(int);
 void lowe_le18_write_y(int);
 int lowe_le18_read(void);
