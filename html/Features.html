@@ -903,60 +903,60 @@ heartbeat clock runs at 40 Hz in either case.</p>
 <p>The "Holmes Engineering Sprinter II" speed-up kit for the TRS-80 Model I
 uses the following values:</p>
 
-<table border="0" cellpadding="5" cellspacing="0">
+<table border="1" cellpadding="5" cellspacing="0">
   <tr>
-    <td>COMMAND</td>
-    <td>CLOCK DIVISION</td>
-    <td>CLOCK FREQUENCY</td>
-    <td>% SPEED CHANGE</td>
+    <th>COMMAND</th>
+    <th>CLOCK DIVISION</th>
+    <th>CLOCK FREQUENCY</th>
+    <th>% SPEED CHANGE</th>
   </tr>
-  <tr align="center">
+  <tr>
     <td>OUT 254, 0</td>
-    <td>1/6</td>
-    <td>1.77 MHz</td>
-    <td>0%</td>
+    <td align="center">1/6</td>
+    <td align="center">1.77 MHz</td>
+    <td align="center">0%</td>
   </tr>
-  <tr align="center">
+  <tr>
     <td>OUT 254, 1</td>
-    <td>1/7</td>
-    <td>1.52 MHz</td>
-    <td>-14%</td>
+    <td align="center">1/7</td>
+    <td align="center">1.52 MHz</td>
+    <td align="center">-14%</td>
   </tr>
-  <tr align="center">
+  <tr>
     <td>OUT 254, 2</td>
-    <td>1/8</td>
-    <td>1.33 MHz</td>
-    <td>-25%</td>
+    <td align="center">1/8</td>
+    <td align="center">1.33 MHz</td>
+    <td align="center">-25%</td>
   </tr>
-  <tr align="center">
+  <tr>
     <td>OUT 254, 3</td>
-    <td>1/9</td>
-    <td>1.19 MHz</td>
-    <td>-33%</td>
+    <td align="center">1/9</td>
+    <td align="center">1.19 MHz</td>
+    <td align="center">-33%</td>
   </tr>
-  <tr align="center">
+  <tr>
     <td>OUT 254, 4</td>
-    <td>1/2</td>
-    <td>5.32 MHz</td>
-    <td>+200%</td>
+    <td align="center">1/2</td>
+    <td align="center">5.32 MHz</td>
+    <td align="center">+200%</td>
   </tr>
-  <tr align="center">
+  <tr>
     <td>OUT 254, 5</td>
-    <td>1/3</td>
-    <td>3.55 MHz</td>
-    <td>+100%</td>
+    <td align="center">1/3</td>
+    <td align="center">3.55 MHz</td>
+    <td align="center">+100%</td>
   </tr>
-  <tr align="center">
+  <tr>
     <td>OUT 254, 6</td>
-    <td>1/4</td>
-    <td>2.66 MHz</td>
-    <td>+50%</td>
+    <td align="center">1/4</td>
+    <td align="center">2.66 MHz</td>
+    <td align="center">+50%</td>
   </tr>
-  <tr align="center">
+  <tr>
     <td>OUT 254, 7</td>
-    <td>1/5</td>
-    <td>2.13 MHz</td>
-    <td>+23%</td>
+    <td align="center">1/5</td>
+    <td align="center">2.13 MHz</td>
+    <td align="center">+23%</td>
   </tr>
 </table>
 
@@ -968,28 +968,31 @@ clock frequency to 5.07 MHz.</p>
 <p>The "Seatronics Super Speed-Up" uses port <code>0xEC</code> on all TRS-80
 Models to select the Z80 CPU speed:</p>
 
-<table border="0" cellpadding="5" cellspacing="0">
+<table border="1" cellpadding="5" cellspacing="0">
   <tr>
-    <td>COMMAND</td>
-    <td>CLOCK FREQUENCY</td>
+    <th>COMMAND</th>
+    <th>CLOCK FREQUENCY</th>
   </tr>
-  <tr align="center">
+  <tr>
     <td>OUT 236, 0</td>
-    <td>2.02 MHz</td>
+    <td align="center">2.02 MHz</td>
   </tr>
-  <tr align="center">
+  <tr>
     <td>OUT 236, 64</td>
-    <td>4.05 MHz</td>
+    <td align="center">4.05 MHz</td>
   </tr>
-  <tr align="center">
+  <tr>
     <td>OUT 236, 128</td>
-    <td>5.06 MHz</td>
+    <td align="center">5.06 MHz</td>
   </tr>
-  <tr align="center">
+  <tr>
     <td>OUT 236, 192</td>
-    <td>8.11 MHz</td>
+    <td align="center">8.11 MHz</td>
   </tr>
 </table>
+
+<p><b>Note:</b> The "Lowe LE18 Graphics" also uses I/O port <code>0xEC</code>
+on Model I and so the "Seatronics Super Speed-Up" will not be activated.</p>
 
 <p>The speed (clock rate) of the Z80 CPU can be adjusted on the fly with
 <b>Alt-'-'</b> or <b>Alt-'+'</b>, but use this with CAUTION: overclocking the
