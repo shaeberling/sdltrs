@@ -565,7 +565,7 @@ static void trs80_model1_write_mmio(int address, int value)
     trs_printer_write(value);
   } else if (address == TRSDISK_DATA) {
     trs_disk_data_write(value);
-  } else if (address == TRSDISK_STATUS) {
+  } else if (address == TRSDISK_COMMAND) {
     trs_disk_command_write(value);
   } else if (address == TRSDISK_TRACK) {
     trs_disk_track_write(value);
