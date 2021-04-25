@@ -3538,72 +3538,70 @@ real_writetrk(void)
 
 int trs_diskset_save(const char *filename)
 {
-  FILE *f;
   int i;
+  FILE *f = fopen(filename, "w");
 
-  f = fopen(filename, "w");
-
-  if (f) {
-    for (i = 0; i < 8; i++) {
-      fputs(trs_disk_getfilename(i), f);
-      fputc('\n', f);
-    }
-    for (i = 0; i < 4; i++) {
-      fputs(trs_hard_getfilename(i), f);
-      fputc('\n', f);
-    }
-    for (i = 0; i < 8; i++) {
-      fputs(stringy_get_name(i), f);
-      fputc('\n', f);
-    }
-    fclose(f);
-    return 0;
+  if (f == NULL) {
+    error("failed to save Disk Set: %s: %s", filename, strerror(errno));
+    return -1;
   }
-  error("failed to save Disk Set: %s: %s", filename, strerror(errno));
-  return -1;
+
+  for (i = 0; i < 8; i++) {
+    fputs(trs_disk_getfilename(i), f);
+    fputc('\n', f);
+  }
+  for (i = 0; i < 4; i++) {
+    fputs(trs_hard_getfilename(i), f);
+    fputc('\n', f);
+  }
+  for (i = 0; i < 8; i++) {
+    fputs(stringy_get_name(i), f);
+    fputc('\n', f);
+  }
+  fclose(f);
+  return 0;
 }
 
 int trs_diskset_load(const char *filename)
 {
   char diskname[FILENAME_MAX];
-  FILE *f;
   int i;
+  FILE *f = fopen(filename, "r");
 
-  f = fopen(filename, "r");
-
-  if (f) {
-    for (i = 0; i < 8; i++) {
-      if (fgets(diskname, FILENAME_MAX, f) == NULL)
-        continue;
-      if (strlen(diskname) != 0) {
-        diskname[strlen(diskname) - 1] = 0;
-        if (diskname[0])
-          trs_disk_insert(i, diskname);
-      }
-    }
-    for (i = 0; i < 4; i++) {
-      if (fgets(diskname, FILENAME_MAX, f) == NULL)
-        continue;
-      if (strlen(diskname) != 0) {
-        diskname[strlen(diskname) - 1] = 0;
-        if (diskname[0])
-          trs_hard_attach(i, diskname);
-      }
-    }
-    for (i = 0; i < 8; i++) {
-      if (fgets(diskname, FILENAME_MAX, f) == NULL)
-        continue;
-      if (strlen(diskname) != 0) {
-        diskname[strlen(diskname) - 1] = 0;
-        if (diskname[0])
-          stringy_insert(i, diskname);
-      }
-    }
-    fclose(f);
-    return 0;
+  if (f == NULL) {
+    error("failed to load Disk Set: %s: %s", filename, strerror(errno));
+    return -1;
   }
-  error("failed to load Disk Set: %s: %s", filename, strerror(errno));
-  return -1;
+
+  for (i = 0; i < 8; i++) {
+    if (fgets(diskname, FILENAME_MAX, f) == NULL)
+      continue;
+    if (strlen(diskname) != 0) {
+      diskname[strlen(diskname) - 1] = 0;
+      if (diskname[0])
+        trs_disk_insert(i, diskname);
+    }
+  }
+  for (i = 0; i < 4; i++) {
+    if (fgets(diskname, FILENAME_MAX, f) == NULL)
+      continue;
+    if (strlen(diskname) != 0) {
+      diskname[strlen(diskname) - 1] = 0;
+      if (diskname[0])
+        trs_hard_attach(i, diskname);
+    }
+  }
+  for (i = 0; i < 8; i++) {
+    if (fgets(diskname, FILENAME_MAX, f) == NULL)
+      continue;
+    if (strlen(diskname) != 0) {
+      diskname[strlen(diskname) - 1] = 0;
+      if (diskname[0])
+        stringy_insert(i, diskname);
+    }
+  }
+  fclose(f);
+  return 0;
 }
 
 static void trs_fdc_save(FILE *file, FDCState *fdc)
