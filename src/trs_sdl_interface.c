@@ -2077,10 +2077,10 @@ void trs_get_event(int wait)
 
         if (trs_model == 1) {
           switch (keysym.sym) {
-            case SDLK_F1: keysym.sym = 0x115; break;
-            case SDLK_F2: keysym.sym = 0x120; break;
-            case SDLK_F3: keysym.sym = 0x121; break;
-            case SDLK_F4: keysym.sym = 0x122; break;
+            case SDLK_F1: keysym.sym = 0x115; break; /* _ */
+            case SDLK_F2: keysym.sym = 0x120; break; /* \ */
+            case SDLK_F3: keysym.sym = 0x121; break; /* ] */
+            case SDLK_F4: keysym.sym = 0x122; break; /* ^ */
             default:
               break;
           }
