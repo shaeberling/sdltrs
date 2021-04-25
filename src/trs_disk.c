@@ -446,10 +446,10 @@ trs_disk_init(int poweron)
   if (poweron) {
     for (i = 0; i < NDRIVES; i++) {
       disk[i].phytrack = 0;
-	  if (disk[i].file == NULL) {
-        disk[i].emutype = NONE;
-        disk[i].filename[0] = 0;
-	  }
+      if (disk[i].file == NULL) {
+	  disk[i].emutype = NONE;
+	  disk[i].filename[0] = 0;
+      }
     }
   }
   trs_hard_init();
