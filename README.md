@@ -1,3 +1,6 @@
+Note: This is an experimental fork from https://gitlab.com/jengun/sdltrs.
+If you are looking for the maintained stable release, please go there!
+
 Updated version of Mark Grebe's [SDLTRS]:
 
   * Included all patches by [EtchedPixels]: banked memory support, Lowe LE18
