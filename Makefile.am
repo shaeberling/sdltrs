@@ -28,6 +28,7 @@ sdltrs_SOURCES=	src/blit.c \
 		src/trs_state_save.c \
 		src/trs_stringy.c \
 		src/trs_uart.c \
+		src/web_debugger.c \
 		src/z80.c \
 		src/PasteManager.c
 
