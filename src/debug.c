@@ -37,6 +37,9 @@
  * SOFTWARE.
  */
 
+#include "SDL.h"  // To create thread for mongoose.
+#include "mongoose.h"
+
 #ifdef ZBX
 #include <errno.h>
 #include <stdio.h>
@@ -75,6 +78,9 @@ static struct
     int   flag;
     Uint8 byte; /* used only by watchpoints */
 } trap_table[MAX_TRAPS];
+
+
+static bool init_webserver(void);
 
 static void help_message(void)
 {
@@ -352,6 +358,8 @@ void debug_init(void)
     for(i = 0; i < MAX_TRAPS; ++i) trap_table[i].valid = 0;
 
     puts("Type \"h(elp)\" for a list of commands.");
+
+	init_webserver();
 }
 
 static void print_memory(Uint16 address, int num_bytes)
@@ -906,3 +914,48 @@ void debug_shell(void)
 #endif
 }
 #endif
+
+
+static struct mg_mgr www_mgr;
+static SDL_Thread *thread;
+
+static void www_handler(struct mg_connection *conn,
+                        int ev, void *ev_data, void *fn_data)
+{
+	if (ev == MG_EV_HTTP_MSG) {
+		puts("Mongoose: Handling request");
+	}
+}
+
+static int www_looper(void *ptr)
+{
+	for (;;)
+	{
+	  mg_mgr_poll(&www_mgr, 1000);
+	}
+	mg_mgr_free(&www_mgr);
+	return 0;
+}
+
+static bool init_webserver(void)
+{
+  mg_mgr_init(&www_mgr);
+  struct mg_connection *conn = mg_http_listen(
+	  &www_mgr, "0.0.0.0:8080", &www_handler, NULL /*fn_data args */);
+  if (conn == NULL)
+  {
+    puts("ERROR(Mongoose): Cannot set up listener!");
+    return false;
+  }
+  puts("Mongoose set up! Starting thread ...");
+
+  thread = SDL_CreateThread(www_looper, "Mongoose thread", (void *)NULL);
+  if (thread == NULL)
+  {
+    puts("ERROR(Mongoose): Unable to create thread!");
+    return false;
+  }
+  puts("Thread started, Mongoose is ready.");
+  return true;
+}
+
