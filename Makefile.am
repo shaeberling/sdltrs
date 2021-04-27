@@ -6,6 +6,7 @@ bin_PROGRAMS=	sdltrs
 dist_man_MANS=	src/sdltrs.1
 
 sdltrs_SOURCES=	src/blit.c \
+    src/cJSON.c \
 		src/debug.c \
 		src/dis.c \
 		src/error.c \
