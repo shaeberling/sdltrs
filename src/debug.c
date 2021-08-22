@@ -78,6 +78,8 @@ static struct
 } trap_table[MAX_TRAPS];
 
 
+static void debug_run(void);
+
 static void help_message(void)
 {
     puts("(zbx) commands:\n\
@@ -334,6 +336,23 @@ static void debug_print_registers(void)
     printf("\nZ80 Clock Speed: %.2f MHz\n", z80_state.clockMHz);
 }
 
+void soft_reset() {
+	puts("Pressing reset button.");
+	trs_reset(0);
+}
+
+void hard_reset() {
+	puts("Performing hard reset and running.");
+	trs_reset(1);
+	debug_run();
+}
+
+void on_trx_control_callback(TRX_CONTROL_TYPE type) {
+	if (type == TRX_CONTROL_TYPE_STEP) z80_run(-1);
+	else if (type == TRX_CONTROL_TYPE_CONTINUE) debug_run();
+	else if (type == TRX_CONTROL_TYPE_SOFT_RESET) soft_reset();
+	else if (type == TRX_CONTROL_TYPE_HARD_RESET) hard_reset();
+}
 
 void trs_debug(void)
 {
@@ -354,8 +373,26 @@ void debug_init(void)
     for(i = 0; i < MAX_TRAPS; ++i) trap_table[i].valid = 0;
 
     puts("Type \"h(elp)\" for a list of commands.");
+    
 
-		init_web_debugger();
+		// FIXME: Add a flag to choose between CLI debugger UI and TRX.
+    static TRX_Context ctx;
+
+		ctx.system_name = "sdlTRS";
+		ctx.model = trs_model;
+		ctx.rom_version = 0;
+
+		ctx.capabilities.control_step = true;
+		ctx.capabilities.control_step_over = true;
+		ctx.capabilities.control_continue = true;
+		ctx.capabilities.control_pause = true;
+		ctx.capabilities.pc_breakpoints = true;
+		ctx.capabilities.memory_breakpoints = true;
+		ctx.capabilities.io_breakpoints = true;
+		ctx.capabilities.memory_range.start = 0;
+		ctx.capabilities.memory_range.length = 0x200000;  // from trs_memory.c
+    ctx.control_callback = &on_trx_control_callback;
+		init_trs_xray(&ctx);
 }
 
 static void print_memory(Uint16 address, int num_bytes)
@@ -501,6 +538,7 @@ void debug_shell(void)
 
     while(!done)
     {
+			
 	putchar('\n');
 	disassemble(Z80_PC);
 
@@ -703,14 +741,11 @@ void debug_shell(void)
 	    }
 	    else if(!strcmp(command, "softreset") || !strcmp(command, "sr"))
 	    {
-		puts("Pressing reset button.");
-		trs_reset(0);
+				soft_reset();
 	    }
 	    else if(!strcmp(command, "run") || !strcmp(command, "r"))
 	    {
-		puts("Performing hard reset and running.");
-		trs_reset(1);
-		debug_run();
+				hard_reset();
 	    }
 	    else if(!strcmp(command, "status") || !strcmp(command, "st"))
 	    {
