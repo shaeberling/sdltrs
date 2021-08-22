@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "none",
+    "outDir": "dist",
+    "sourceMap": true,
+    "strict": true,
+  },
+}

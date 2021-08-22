@@ -1,0 +1,44 @@
+
+  
+  Address (Hex), Address (Decimal), Model Code, Description
+  37E1H, 14305, 1, DISK DRIVE SELECT
+  37E4H, 14308, 1, Values: 0-1<br>SELECT TAPE DRIVE: 0=#1 1=#2
+  37E8H, 14312, 1/3, $PRSTAT:  Printer Status Byte.<br><ul><li>63=Printer On</li><li>143=Printer Off.</li></ul>
+  37E9H, 14313, 1/3, $PROUT:  Output a Byte to the Printer.
+  37ECH, 14316, 1, DISK COMMAND/STATUS —
+  37EDH, 14317, 1, DISK TRACK SELECT
+  37EEH, 14318, 1, DISK SECTOR SELECT
+  37EFH, 14319, 1, DISK DATA
+  3800H-3840H, 14336-14400, 1/3, KEYBOARD ADDRESS MATRIX
+  3C00H-3FFFH, 15360-16383, 1/3, $VIDRAM:  The beginning of video ram.
+  3FCDH-3FCEH, 16333-16334, &nbsp;, End of BASIC Program Pointer (LSB,MSB)
+  3FFFH, 16383, 3, END OF VIDEO MEMORY
+  4000H, 16384, &nbsp;, RST 08 (Syntax Check): Compare value pointed to by HL to that immediately following RST instruction.
+  4001H-4014H, 16385-16404, Level 2, Jump vectors for RST 8 – RST 56
+  4003H-4005H, 16387-16389, 1/3, RST 10H (Get Next Character): Jump Vector.
+  4006H, 16390, &nbsp;, RST 18H (Cp HL, DE) Jump Vector.
+  4009H, 16393, &nbsp;, RST 20H (Get Current Type) Jump Vector.
+  400CH-400EH, 16396-16398, 1/3, RST 28H (Break Key Vector).  By default, it contains <code>C9 00 00</code> (201 00 00) which is <code>RET</code> in NON-DOS BASIC.  Any 3 byte instruction code put here will execute on hitting the break key.<br><br>On a Model I, to disable the break key, Radio Shack recommends filling 16396 with 23 (17H) which is <code>RLA</code> (which just messes with Register A), and with 201 (C9H) <code>RET</code> to re-enable it.<br><br>On a Model III, to disable the break key, Radio Shack recommends filling the area with <code>AF C9 00</code> (175 and 201) which is <code>XOR A</code> / <code>RET</code>.  Other methods include filling the area with <code>C3 9A 0A</code> (195 154 10) which is <code>JP 0A9AH</code>.
+  400FH, 16399, Model III, RST 30H Jump Vector.
+  4012H-4015H, 16402-16405, 1/3, RST 38H Jump Vector.
+  4015H-401CH, 16405-16412, 1/3, Beginning of the Keyboard Device Control Block (DCB)
+  4015H, 16405, Model III, Tape RAM – Keyboard DCB: Type = 1 = Read Only
+  4016H-4017H, 16406-16407, Model I, Two byte keyboard driver vector.<br>To Disable The Model I Keyboard:<br><pre>N1=PEEK(16406)<br>N2=PEEK(16407)<br>POKE16406,154<br>POKE16407, 10</pre>To Enable The Model I Keyboard:<br><pre>POKE 16406,N1<br>POKE 16407,N2</pre>
+  4016H, 16406, Model III, Two byte keyboard driver vector.<br>Model III its 3024H, which JUMPs to 338EH which then processes the keyboard)
+  4018H, 16408, 1/3, Keyboard DCB: Right Shift Toggle
+  4019H, 16409, Model III, Caps Lock Toggle.  0=Off (i.e., upper and lower case).  Anything else, ALL CAPS.  Note: A DOS driver might take over this function.
+  401AH, 16410, Model III, Cursor Blink Count.
+  401BH, 16411, Model III, Cursor Blink Status. (0=Off Nz=On)
+  401CH, 16412, 1/3, Cursor Blink Switch.  Set to 0 for blink, and anything else for no blink.
+  401DH-4024H, 16413-16420, 1/3, Beggining of Video Display Control Block (DCB).
+  401DH, 16413, Model III, Tape RAM – Video DCB: Type = 7 = Read/write
+  401EH-401FH, 16414-16415, &nbsp;, Two byte video driver vector.<br>To send PRINT to the PRINTER:<ul><li>Model I: 141,5</li><li>Model III: 194,3</li></ul><br>To restore PRINT to VIDEO:<ul><li>Model I: 88,5</li><li>Model III: 115,6</li></ul><br>
+  401EH, 16414, Model III, Tape RAM – Video DCB: Driver Address (0473h)
+  4020H-4021H, 16416-16417, 1/3, Cursor Position On Screen.  2 Bytes in LSB/MSB Order.
+  4022H, 16418, &nbsp;, 0 = Cursor on, Not 0 = character replaced by cursor.
+  4022H, 16418, Model III, Cursor On/off Flag (z = Off Nz = Character Undercursor)
+  4023H, 16419, &nbsp;, Cursor Character (in ASCII).  Defaults to 176.  Must be between 32 and 255.
+  4023H, 16419, Model III, Tape RAM – Video DCB: Cursor Character (default 0b0h)
+  4024H, 16420, &nbsp;, FLAG : 0 = Space compression; Not 0 = special character.
+  4024H, 16420, 3, Character Set To Use:  0=Regular, 1=Alternate
+  4024H, 16420, Model III, Tape RAM – Video DCB: Tabs/special Characters Switch (z = Tabs)

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>TRS X-ray</title>
+    <link rel="stylesheet" href="web_debugger.css">
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto:ital,wght@0,100;0,400;1,900&display=swap');
+    </style>
+  </head>
+  <body onload="(new TrsXray()).onLoad();">
+    <div id="navbar"><div id="navbar-content">
+      <div id="debug-controls">
+        <svg id="step-btn" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M5,5V19H8V5M10,5V19L21,12" />
+      </svg>
+      <svg id="step-over-btn" alt="Step Over" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M12,14A2,2 0 0,1 14,16A2,2 0 0,1 12,18A2,2 0 0,1 10,16A2,2 0 0,1 12,14M23.46,8.86L21.87,15.75L15,14.16L18.8,11.78C17.39,9.5 14.87,8 12,8C8.05,8 4.77,10.86 4.12,14.63L2.15,14.28C2.96,9.58 7.06,6 12,6C15.58,6 18.73,7.89 20.5,10.72L23.46,8.86Z" />
+    </svg>
+    <svg id="play-btn" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M10,16.5L16,12L10,7.5V16.5Z" />
+  </svg>
+    <svg viewBox="0 0 24 24">
+      <path id="reset-btn" fill="currentColor" d="M12 2A10 10 0 1 0 22 12A10 10 0 0 0 12 2M18 11H13L14.81 9.19A3.94 3.94 0 0 0 12 8A4 4 0 1 0 15.86 13H17.91A6 6 0 1 1 12 6A5.91 5.91 0 0 1 16.22 7.78L18 6Z" />
+  </svg>
+    </div>
+      <h1><span style="font-weight:100;">TRS</span><span style="font-weight:900; font-style: italic;">xray</span></h1>
+      <div id="sut-name">N/A</div>&nbsp;<div id="sut-model-no">[]</div>
+    </div></div>
+
+    <div class="section">
+      <div class="section-title">Registers</div>
+      <div id="registers" class="panel">
+        <div>
+          <label>AF</label><input id="reg-af-1" type="text" class="register" maxlength="2" /><input id="reg-af-2" type="text" class="register" maxlength="2" />
+        </div><div>
+          <label>AF'</label><input id="reg-afp-1" type="text" class="register" maxlength="2" /><input id="reg-afp-2" type="text" class="register" maxlength="2" />
+        </div><div>
+          <label>BC</label><input id="reg-bc-1" type="text" class="register" maxlength="2" /><input id="reg-bc-2" type="text" class="register" maxlength="2" />
+        </div><div>
+          <label>BC'</label><input id="reg-bcp-1" type="text" class="register" maxlength="2" /><input id="reg-bcp-2" type="text" class="register" maxlength="2" />
+        </div><div>
+          <label>DE</label><input id="reg-de-1" type="text" class="register" maxlength="2" /><input id="reg-de-2" type="text" class="register" maxlength="2" />
+        </div><div>
+          <label>DE'</label><input id="reg-dep-1" type="text" class="register" maxlength="2" /><input id="reg-dep-2" type="text" class="register" maxlength="2" />
+        </div><div>
+          <label>HL</label><input id="reg-hl-1" type="text" class="register" maxlength="2" /><input id="reg-hl-2" type="text" class="register" maxlength="2" />
+        </div><div>
+          <label>HL'</label><input id="reg-hlp-1" type="text" class="register" maxlength="2" /><input id="reg-hlp-2" type="text" class="register" maxlength="2" />
+        </div><div>
+          <label>IX</label><input id="reg-ix-1" type="text" class="register" maxlength="2" /><input id="reg-ix-2" type="text" class="register" maxlength="2" />
+        </div><div>
+          <label>IY</label><input id="reg-iy-1" type="text" class="register" maxlength="2" /><input id="reg-iy-2" type="text" class="register" maxlength="2" />
+        </div><div>
+          <label>PC</label><input id="reg-pc-1" type="text" class="register" maxlength="2" /><input id="reg-pc-2" type="text" class="register" maxlength="2" />
+        </div><div>
+          <label>SP</label><input id="reg-sp-1" type="text" class="register" maxlength="2" /><input id="reg-sp-2" type="text" class="register" maxlength="2" />
+        </div>
+      </div>
+      <div id="flags">
+        <div id="flag-s" class="flag">S</div>
+        <div id="flag-z" class="flag">Z</div>
+        <div id="flag-u5" class="flag">-</div>
+        <div id="flag-h" class="flag">H</div>
+        <div id="flag-u3" class="flag">-</div>
+        <div id="flag-pv" class="flag">PV</div>
+        <div id="flag-n" class="flag">N</div>
+        <div id="flag-c" class="flag">C</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Memory</div>
+      <canvas id="memory-container">
+      </canvas>
+    </div>
+    <div class="section">
+      <div class="section-title">Memory Regions</div>
+      <div id="memory-regions">
+      </div>
+    </div>
+    <script>
+      isDebugMode = function() {
+        return document.location.href.indexOf("file://") == 0;
+      };
+      addScript = function(src) {
+        var jsScript = document.createElement("script");
+      jsScript.type = "text/javascript";
+      jsScript.src = src;
+      document.body.appendChild(jsScript);
+      };
+
+      if (isDebugMode()) {
+        addScript("jquery.js");
+        addScript("memory_regions.js");
+        addScript("../dist/web_debugger.js");
+      } else {
+        addScript("web_debugger.js");
+      }
+
+    </script>
+  </body>
+</html>

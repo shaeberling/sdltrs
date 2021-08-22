@@ -1,10 +1,17 @@
 import os
+import sys
 
-def main():
-  html_str = escape_c_string(read_file("web_debugger.html"))
-  js_str = escape_c_string(read_file("web_debugger.js"))
-  css_str = escape_c_string(read_file("web_debugger.css"))
-  write_file("web_debugger_resources.h", html_str, js_str, css_str)
+def main(out_path):
+  html_str = escape_c_string(read_file("src/web_debugger.html"))
+  ts_str = escape_c_string(read_file("dist/web_debugger.js"))
+  mem_regions_str = escape_c_string(read_file("src/memory_regions.js"))
+  css_str = escape_c_string(read_file("src/web_debugger.css"))
+
+  jquery_str = escape_c_string(read_file("src/jquery.js"))
+
+  norm_out_path = normalize_path(out_path)
+  write_file(f'{norm_out_path}/web_debugger_resources.h',
+               html_str, ts_str + jquery_str + mem_regions_str, css_str)
 
 def write_file(filename, html_str, js_str, css_str):
   filename = normalize_path(filename)
@@ -15,6 +22,7 @@ def write_file(filename, html_str, js_str, css_str):
       f.write(f'char* web_debugger_css = "{css_str}";\n')
   except:
     print(f"Cannot write to file '${filename}'.")
+  print(f"Wrote to '${filename}'.")
 
 def read_file(filename) -> str:
   filename = normalize_path(filename)
@@ -31,8 +39,11 @@ def normalize_path(filename) -> str:
   return os.path.join(path, filename)
 
 def escape_c_string(content) -> str:
-  return content.replace('"', '\\"').replace('\n', '\\\n')
+  return content.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n\\\n').replace('%', '%%')
 
 
 if __name__ == "__main__":
-    main()
+  if len(sys.argv) < 2:
+    print("Argument needed: Output path", file=sys.stderr)
+    exit(1)
+  main(sys.argv[1])
