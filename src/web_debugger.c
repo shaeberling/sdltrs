@@ -14,6 +14,7 @@ static struct mg_mgr www_mgr;
 static SDL_Thread* thread;
 static struct mg_connection* status_conn = NULL;
 static TRX_Context* ctx = NULL;
+static bool trx_running = true;
 
 static bool init_webserver(void);
 static char* get_registers_json(void);
@@ -29,14 +30,35 @@ bool init_trs_xray(TRX_Context* ctx_param) {
 }
 
 // public
-void send_update_to_web_debugger() {
-  if (status_conn == NULL) {
-    return;
-  }
+void trx_waitForExit() {
+  int threadReturnValue;
+  SDL_WaitThread(thread, &threadReturnValue);
+}
+
+// public
+void trx_shutdown() {
+  puts("Shutting down TRS X-ray Web debugger");
+  trx_running = false;
+}
+
+static void send_update_to_web_debugger() {
+  if (status_conn == NULL) return;
+
   // Send registers.
   char* message = get_registers_json();
   mg_ws_send(status_conn, message, strlen(message), WEBSOCKET_OP_TEXT);
   free(message);
+}
+
+// Params: [start]/[length], e.g. "0/65536"
+static void send_memory_segment(const char* params) {
+  if (status_conn == NULL) return;
+  // printf("TRX: MemorySegment request: '%s'.", params);
+  // FIXME: Parse and use parameters!
+  TRX_MemorySegment segment;
+  ctx->get_memory_segment(0, 0xFFFF, &segment);
+  // Send registers.
+  mg_ws_send(status_conn, (const char*)segment.data, segment.range.length, WEBSOCKET_OP_BINARY);
 }
 
 static void handle_http_request(struct mg_connection *conn,
@@ -50,9 +72,6 @@ static void handle_http_request(struct mg_connection *conn,
   } else if (mg_http_match_uri(message, "/channel")) {
 		mg_ws_upgrade(conn, message, NULL);
 		status_conn = conn;
-  } else if (mg_http_match_uri(message, "/action")) {
-    mg_http_reply(conn, 200, "Content-Type: text/plain\r\nConnection: close\r\n", "ACTION!");
-    send_update_to_web_debugger();
   } else {
     // Resource not found.
     mg_http_reply(conn, 404, "Content-Type: text/html\r\nConnection: close\r\n", "");
@@ -83,7 +102,7 @@ static char* get_registers_json(void) {
     cJSON_AddNumberToObject(registers, "i", Z80_I);
     cJSON_AddNumberToObject(registers, "r_1", Z80_R7);
     cJSON_AddNumberToObject(registers, "r_2", (Z80_R & 0x7f));
-    
+
     cJSON_AddNumberToObject(registers, "z80_t_state_counter", z80_state.t_count);
     cJSON_AddNumberToObject(registers, "z80_clockspeed", z80_state.clockMHz);
 		cJSON_AddNumberToObject(registers, "z80_iff1", z80_state.iff1);
@@ -106,24 +125,28 @@ static char* get_registers_json(void) {
 }
 
 static void on_frontend_message(const char* msg) {
-  if (strcmp(msg, "action/refresh") == 0) {
+  if (strcmp("action/refresh", msg) == 0) {
     send_update_to_web_debugger();
-  } else if (strcmp(msg, "action/step") == 0) {
+  } else if (strcmp("action/step", msg) == 0) {
     ctx->control_callback(TRX_CONTROL_TYPE_STEP);
-  } else if (strcmp(msg, "action/step-over") == 0) {
+    send_update_to_web_debugger();
+  } else if (strcmp("action/step-over", msg) == 0) {
     ctx->control_callback(TRX_CONTROL_TYPE_STEP_OVER);
-  } else if (strcmp(msg, "action/continue") == 0) {
+    send_update_to_web_debugger();
+  } else if (strcmp("action/continue", msg) == 0) {
     ctx->control_callback(TRX_CONTROL_TYPE_CONTINUE);
-  } else if (strcmp(msg, "action/pause") == 0) {
+  } else if (strcmp("action/pause", msg) == 0) {
     ctx->control_callback(TRX_CONTROL_TYPE_PAUSE);
-  } else if (strcmp(msg, "action/soft_reset") == 0) {
+    send_update_to_web_debugger();
+  } else if (strcmp("action/soft_reset", msg) == 0) {
     ctx->control_callback(TRX_CONTROL_TYPE_SOFT_RESET);
-  } else if (strcmp(msg, "action/hard_reset") == 0) {
+  } else if (strcmp("action/hard_reset", msg) == 0) {
     ctx->control_callback(TRX_CONTROL_TYPE_HARD_RESET);
+  } else if (strncmp("action/get_memory", msg, 17) == 0) {
+    send_memory_segment(msg + 18);
   } else {
     printf("WARNING(TRX): Unknown message: '%s'", msg);
   }
-  send_update_to_web_debugger();
 }
 
 static void www_handler(struct mg_connection *conn,
@@ -151,7 +174,7 @@ static void www_handler(struct mg_connection *conn,
 }
 
 static int www_looper(void *ptr) {
-  for (;;) {
+  while (trx_running) {
       mg_mgr_poll(&www_mgr, 1000);
   }
   mg_mgr_free(&www_mgr);

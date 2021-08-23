@@ -99,7 +99,7 @@ typedef struct {
   // Original = 0 or 1.
   uint8_t rom_version;
 
-  // Lets the frontend know about the SUT's capabilities. 
+  // Lets the frontend know about the SUT's capabilities.
   TRX_Capabilities capabilities;
 
   // Callbacks invoked from the frontend.
@@ -116,6 +116,12 @@ typedef struct {
 
 // Initialize the web debugger.
 bool init_trs_xray(TRX_Context* ctx);
+
+// Initialize the web debugger.
+void trx_waitForExit();
+
+// Initialize the web debugger.
+void trx_shutdown();
 
 // Questions:
 // - When are the different opcodes being used? http://z80-heaven.wikidot.com/opcode-reference-chart
