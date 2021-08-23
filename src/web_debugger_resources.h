@@ -3,6 +3,9 @@ char* web_debugger_html = "<!DOCTYPE html>\n\
   <head>\n\
     <title>TRS X-ray</title>\n\
     <link rel=\"stylesheet\" href=\"web_debugger.css\">\n\
+    <link rel=\"icon\"\n\
+      type=\"image/png\"\n\
+      href=\"data:image/png;base64,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\">\n\
     <style>\n\
       @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto:ital,wght@0,100;0,400;1,900&display=swap');\n\
     </style>\n\
@@ -114,40 +117,54 @@ class TrsXray {\n\
         this.socket = null;\n\
         this.canvas = document.getElementById(\"memory-container\");\n\
         this.ctx = this.canvas.getContext(\"2d\");\n\
+        this.programCounter = 0;\n\
+        this.stackPointer = 0;\n\
         this.memRegions = getMemoryRegions();\n\
         this.memInfo = new Map();\n\
+        this.memHeatmap = new Map();\n\
+        this.memoryData = null;\n\
+        this.memoryPrevData = null;\n\
+        this.selectedMemoryRegion = -1;\n\
+        this.enableDataViz = false;\n\
         this.memRegions.map((region, idx) => {\n\
             for (let i = region.address[0]; i <= region.address[region.address.length - 1]; ++i) {\n\
                 this.memInfo.set(i, idx);\n\
             }\n\
         });\n\
-        console.log(this.memInfo);\n\
     }\n\
     onMessageFromEmulator(json) {\n\
         if (!!json.context)\n\
             this.onContextUpdate(json.context);\n\
-        if (!!json.registers)\n\
+        if (!!json.registers) {\n\
             this.onRegisterUpdate(json.registers);\n\
+        }\n\
     }\n\
     onControl(action) {\n\
         if (this.socket != undefined)\n\
             this.socket.send(\"action/\" + action);\n\
     }\n\
     onLoad() {\n\
-        $('input:text').keydown(function (e) { e.stopPropagation(); });\n\
+        $('input:text').on(\"keydown\", (evt) => { evt.stopPropagation(); });\n\
         document.addEventListener(\"keydown\", (evt) => {\n\
             switch (evt.key) {\n\
                 case 'j':\n\
                     this.onControl(\"step\");\n\
+                    this.onControl(\"get_memory/0/65536\");\n\
                     break;\n\
                 case 't':\n\
                     this.debug_insertTestData();\n\
+                    break;\n\
+                case 'd':\n\
+                    this.enableDataViz = !this.enableDataViz;\n\
                     break;\n\
                 default:\n\
                     console.log(`Unhandled key event: ${evt.key}`);\n\
             }\n\
         });\n\
-        $(\"#step-btn\").on(\"click\", () => { this.onControl(\"step\"); });\n\
+        $(\"#step-btn\").on(\"click\", () => {\n\
+            this.onControl(\"step\");\n\
+            this.onControl(\"get_memory/0/65536\");\n\
+        });\n\
         $(\"#step-over-btn\").on(\"click\", () => { this.onControl(\"step-over\"); });\n\
         $(\"#play-btn\").on(\"click\", () => { this.onControl(\"continue\"); });\n\
         $(\"#reset-btn\").on(\"click\", (ev) => {\n\
@@ -184,8 +201,16 @@ class TrsXray {\n\
             this.onControl(\"refresh\");\n\
         };\n\
         this.socket.onmessage = (evt) => {\n\
-            var json = JSON.parse(evt.data);\n\
-            this.onMessageFromEmulator(json);\n\
+            if (evt.data instanceof Blob) {\n\
+                evt.data.arrayBuffer().then((data) => {\n\
+                    this.onMemoryUpdate(new Uint8Array(data));\n\
+                });\n\
+            }\n\
+            else {\n\
+                var json = JSON.parse(evt.data);\n\
+                this.onMessageFromEmulator(json);\n\
+            }\n\
+            this.renderMemoryRegions();\n\
         };\n\
     }\n\
     onContextUpdate(ctx) {\n\
@@ -272,6 +297,14 @@ class TrsXray {\n\
         setFlag(\"#flag-pv\", flag_overflow);\n\
         setFlag(\"#flag-n\", flag_subtract);\n\
         setFlag(\"#flag-c\", flag_carry);\n\
+        this.programCounter = registers.pc;\n\
+        this.stackPointer = registers.sp;\n\
+    }\n\
+    onMemoryUpdate(memory) {\n\
+        // TODO: Compare previous and new data.\n\
+        //       Indicate changed bytes.\n\
+        this.memoryPrevData = this.memoryData;\n\
+        this.memoryData = memory;\n\
     }\n\
     createMemoryRegions() {\n\
         const regions = getMemoryRegions();\n\
@@ -280,31 +313,61 @@ class TrsXray {\n\
             $(\"<div></div>\")\n\
                 .addClass(\"map-region-list-entry\")\n\
                 .text(region.description)\n\
-                .on(\"mouseover\", () => { this.onMemoryRegionSelect(region); })\n\
+                .on(\"mouseover\", () => { this.onMemoryRegionSelect(idx); })\n\
                 .appendTo(container);\n\
         });\n\
-        this.renderMemoryRegions(new Array());\n\
+        this.renderMemoryRegions();\n\
     }\n\
     onMemoryRegionSelect(region) {\n\
-        this.renderMemoryRegions(region.address);\n\
+        this.selectedMemoryRegion = region;\n\
+        this.renderMemoryRegions();\n\
     }\n\
-    renderMemoryRegions(addressRange) {\n\
+    getColorForByte(addr) {\n\
+        // Set base color for addresses we have data for\n\
+        let color = !!this.memInfo.get(addr) ? \"#666\" : \"#444\";\n\
+        // Any byte with value zero get blacked out.\n\
+        if (!!this.memoryData && this.memoryData[addr] == 0)\n\
+            color = \"#000\";\n\
+        if (this.enableDataViz && !!this.memoryData) {\n\
+            let hexValue = (this.memoryData[addr] >> 1).toString(16);\n\
+            if (hexValue.length == 1)\n\
+                hexValue = `0${hexValue}`;\n\
+            color = `#${hexValue}${hexValue}${hexValue}`;\n\
+        }\n\
+        // Mark selected range bytes.\n\
+        if (this.selectedMemoryRegion >= 0) {\n\
+            let addressRange = this.memRegions[this.selectedMemoryRegion].address;\n\
+            const highlightStart = addressRange[0];\n\
+            const highlightEnd = addressRange[addressRange.length - 1];\n\
+            color = (addr >= highlightStart && addr <= highlightEnd) ? \"#F00\" : color;\n\
+        }\n\
+        // Highlight bytes that have changed with the most recent update.\n\
+        if (!!this.memoryData && !!this.memoryPrevData) {\n\
+            if (this.memoryData[addr] !=\n\
+                this.memoryPrevData[addr])\n\
+                color = \"#FFA500\";\n\
+        }\n\
+        // Mark special program and stack pointers.\n\
+        if (addr == this.programCounter)\n\
+            color = \"#0F0\";\n\
+        if (addr == this.stackPointer)\n\
+            color = \"#FF0\";\n\
+        return color;\n\
+    }\n\
+    renderMemoryRegions() {\n\
         const gap = 1;\n\
-        const byteSize = 3;\n\
-        const bytesWidth = 256;\n\
-        const bytesHeight = 256;\n\
+        const byteSize = 6;\n\
+        const bytesWidth = 192;\n\
+        const bytesHeight = 192;\n\
         this.canvas.width = bytesWidth * (byteSize + gap);\n\
         this.canvas.height = bytesHeight * (byteSize + gap);\n\
         this.canvas.style.width = this.canvas.width + \"px\";\n\
         this.canvas.style.height = this.canvas.height + \"px\";\n\
         this.ctx.beginPath();\n\
-        const highlightStart = addressRange[0];\n\
-        const highlightEnd = addressRange[addressRange.length - 1];\n\
         for (let y = 0; y < bytesHeight; ++y) {\n\
             for (let x = 0; x < bytesWidth; ++x) {\n\
                 let addr = (y * bytesWidth) + x;\n\
-                let defaultColor = !!this.memInfo.get(addr) ? \"#666\" : \"#444\";\n\
-                this.ctx.fillStyle = (addr >= highlightStart && addr <= highlightEnd) ? \"#F00\" : defaultColor;\n\
+                this.ctx.fillStyle = this.getColorForByte(addr);\n\
                 this.ctx.fillRect(x * (byteSize + gap), y * (byteSize + gap), byteSize, byteSize);\n\
             }\n\
         }\n\
