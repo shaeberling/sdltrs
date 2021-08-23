@@ -39,6 +39,7 @@
 
 #ifdef ZBX
 #include <errno.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -354,6 +355,15 @@ void on_trx_control_callback(TRX_CONTROL_TYPE type) {
 	else if (type == TRX_CONTROL_TYPE_HARD_RESET) hard_reset();
 }
 
+void on_trx_get_memory_segment(int start, int length, TRX_MemorySegment* segment) {
+	segment->range.start = start;
+	segment->range.length = length;
+	segment->data = malloc(sizeof(uint8_t) * length);
+	for (int i = 0; i < length; ++i) {
+	  segment->data[i] = mem_read(start + i);
+	}
+}
+
 void trs_debug(void)
 {
     stop_signaled = 1;
@@ -373,7 +383,7 @@ void debug_init(void)
     for(i = 0; i < MAX_TRAPS; ++i) trap_table[i].valid = 0;
 
     puts("Type \"h(elp)\" for a list of commands.");
-    
+
 
 		// FIXME: Add a flag to choose between CLI debugger UI and TRX.
     static TRX_Context ctx;
@@ -392,6 +402,7 @@ void debug_init(void)
 		ctx.capabilities.memory_range.start = 0;
 		ctx.capabilities.memory_range.length = 0x200000;  // from trs_memory.c
     ctx.control_callback = &on_trx_control_callback;
+		ctx.get_memory_segment = &on_trx_get_memory_segment;
 		init_trs_xray(&ctx);
 }
 
@@ -523,6 +534,13 @@ static void debug_run(void)
 
 void debug_shell(void)
 {
+    // FIXME: Add a flag to enable TRX support
+		if (true) {
+			puts("TRS X-ray is enabled, not enabling CLI prompt.");
+	    trx_waitForExit();
+			return;
+    }
+
     char input[MAXLINE];
     char command[MAXLINE];
     int done = 0;
@@ -536,410 +554,411 @@ void debug_shell(void)
     read_history(history_file);
 #endif
 
-    while(!done)
-    {
-			
-	putchar('\n');
-	disassemble(Z80_PC);
+// FIXME: Disable this with a flag.
+//     while(!done)
+//     {
 
-#ifdef READLINE
-	/*
-	 * Use the way cool gnu readline() utility.  Get completion,
-	 * history, way way cool.
-         */
-        {
+// 	putchar('\n');
+// 	disassemble(Z80_PC);
 
-	    line = readline("(zbx) ");
-	    if(line)
-	    {
-		if(strlen(line) > 0)
-		{
-		    add_history(line);
-		}
-		strncpy(input, line, MAXLINE - 1);
-		free(line);
-	    }
-	    else
-	    {
-		break;
-	    }
-	}
-#else
-	printf("(zbx) ");  fflush(stdout);
+// #ifdef READLINE
+// 	/*
+// 	 * Use the way cool gnu readline() utility.  Get completion,
+// 	 * history, way way cool.
+//          */
+//         {
 
-	if (fgets(input, MAXLINE, stdin) == NULL) break;
-#endif
+// 	    line = readline("(zbx) ");
+// 	    if(line)
+// 	    {
+// 		if(strlen(line) > 0)
+// 		{
+// 		    add_history(line);
+// 		}
+// 		strncpy(input, line, MAXLINE - 1);
+// 		free(line);
+// 	    }
+// 	    else
+// 	    {
+// 		break;
+// 	    }
+// 	}
+// #else
+// 	printf("(zbx) ");  fflush(stdout);
 
-	if(sscanf(input, "%s", command))
-	{
-	    if(!strcmp(command, "help") || !strcmp(command, "?") ||
-	       !strcmp(command, "h"))
-	    {
-		help_message();
-	    }
-	    else if (!strcmp(command, "zbxinfo") || !strcmp(command, "i"))
-	    {
-		show_zbxinfo();
-	    }
-	    else if(!strcmp(command, "clear") || !strcmp(command, "cl"))
-	    {
-		clear_trap_address(Z80_PC, 0);
-	    }
-	    else if(!strcmp(command, "cont") || !strcmp(command, "c"))
-	    {
-		debug_run();
-	    }
-	    else if(!strcmp(command, "dump") || !strcmp(command, "p"))
-	    {
-		debug_print_registers();
-	    }
-	    else if(!strcmp(command, "delete") || !strcmp(command, "d"))
-	    {
-		int i;
+// 	if (fgets(input, MAXLINE, stdin) == NULL) break;
+// #endif
 
-		if(!strncmp(input, "delete *", 8) || !strncmp(input, "d *", 3))
-		{
-		    clear_all_traps();
-		}
-		else if(sscanf(input, "%*s %d", &i) != 1)
-		{
-		    puts("A trap must be specified.");
-		}
-		else
-		{
-		    clear_trap(i);
-		}
-	    }
-	    else if(!strcmp(command, "list") || !strcmp(command, "l"))
-	    {
-		unsigned int x, y;
-		Uint16 start, old_start;
-		int bytes = 0;
-		int lines = 0;
+// 	if(sscanf(input, "%s", command))
+// 	{
+// 	    if(!strcmp(command, "help") || !strcmp(command, "?") ||
+// 	       !strcmp(command, "h"))
+// 	    {
+// 		help_message();
+// 	    }
+// 	    else if (!strcmp(command, "zbxinfo") || !strcmp(command, "i"))
+// 	    {
+// 		show_zbxinfo();
+// 	    }
+// 	    else if(!strcmp(command, "clear") || !strcmp(command, "cl"))
+// 	    {
+// 		clear_trap_address(Z80_PC, 0);
+// 	    }
+// 	    else if(!strcmp(command, "cont") || !strcmp(command, "c"))
+// 	    {
+// 		debug_run();
+// 	    }
+// 	    else if(!strcmp(command, "dump") || !strcmp(command, "p"))
+// 	    {
+// 		debug_print_registers();
+// 	    }
+// 	    else if(!strcmp(command, "delete") || !strcmp(command, "d"))
+// 	    {
+// 		int i;
 
-		if(sscanf(input, "%*s %x , %x", &x, &y) == 2)
-		{
-		    start = x;
-		    bytes = (y - x) & 0xffff;
-		}
-		else if(sscanf(input, "%*s %x", &x) == 1)
-		{
-		    start = x;
-		    lines = 10;
-		}
-		else
-		{
-		    start = Z80_PC;
-		    lines = 10;
-		}
+// 		if(!strncmp(input, "delete *", 8) || !strncmp(input, "d *", 3))
+// 		{
+// 		    clear_all_traps();
+// 		}
+// 		else if(sscanf(input, "%*s %d", &i) != 1)
+// 		{
+// 		    puts("A trap must be specified.");
+// 		}
+// 		else
+// 		{
+// 		    clear_trap(i);
+// 		}
+// 	    }
+// 	    else if(!strcmp(command, "list") || !strcmp(command, "l"))
+// 	    {
+// 		unsigned int x, y;
+// 		Uint16 start, old_start;
+// 		int bytes = 0;
+// 		int lines = 0;
 
-		if(lines)
-		{
-		    while(lines--)
-		    {
-			start = disassemble(start);
-		    }
-		}
-		else
-		{
-		    while (bytes >= 0) {
-			start = disassemble(old_start = start);
-			bytes -= (start - old_start) & 0xffff;
-		    }
-		}
-	    }
-	    else if(!strcmp(command, "in"))
-	    {
-		unsigned int port;
+// 		if(sscanf(input, "%*s %x , %x", &x, &y) == 2)
+// 		{
+// 		    start = x;
+// 		    bytes = (y - x) & 0xffff;
+// 		}
+// 		else if(sscanf(input, "%*s %x", &x) == 1)
+// 		{
+// 		    start = x;
+// 		    lines = 10;
+// 		}
+// 		else
+// 		{
+// 		    start = Z80_PC;
+// 		    lines = 10;
+// 		}
 
-		if(sscanf(input, "in %x", &port) == 1)
-			printf("in %x = %x\n", port, z80_in(port));
-		else
-			puts("A port must be specified.");
-	    }
-	    else if(!strcmp(command, "next") || !strcmp(command, "nextint") ||
-		    !strcmp(command, "n") || !strcmp(command, "ni"))
-	    {
-		int is_call = 0, is_rst = 0, is_rep = 0;
-		switch(mem_read(Z80_PC)) {
-		  case 0xCD:	/* call address */
-		    is_call = 1;
-		    break;
-		  case 0xC4:	/* call nz, address */
-		    is_call = !ZERO_FLAG;
-		    break;
-		  case 0xCC:	/* call z, address */
-		    is_call = ZERO_FLAG;
-		    break;
-		  case 0xD4:	/* call nc, address */
-		    is_call = !CARRY_FLAG;
-		    break;
-		  case 0xDC:	/* call c, address */
-		    is_call = CARRY_FLAG;
-		    break;
-		  case 0xE4:	/* call po, address */
-		    is_call = !PARITY_FLAG;
-		    break;
-		  case 0xEC:	/* call pe, address */
-		    is_call = PARITY_FLAG;
-		    break;
-		  case 0xF4:	/* call p, address */
-		    is_call = !SIGN_FLAG;
-		    break;
-		  case 0xFC:	/* call m, address */
-		    is_call = SIGN_FLAG;
-		    break;
-		  case 0xC7:
-		  case 0xCF:
-		  case 0xD7:
-		  case 0xDF:
-		  case 0xE7:
-		  case 0xEF:
-		  case 0xF7:
-		  case 0xFF:
-		    is_rst = 1;
-		    break;
-		  case 0xED:
-		    switch(mem_read(Z80_PC + 1)) {
-		      case 0xB0: /* ldir */
-		      case 0xB8: /* lddr */
-		      case 0xB1: /* cpir */
-		      case 0xB9: /* cpdr */
-		      case 0xB2: /* inir */
-		      case 0xBA: /* indr */
-		      case 0xB3: /* otir */
-		      case 0xBB: /* otdr */
-		        is_rep = 1;
-		        break;
-		      default:
-		        break;
-		    }
-		  default:
-		    break;
-		}
-		if (is_call) {
-		    set_trap((Z80_PC + 3) % ADDRESS_SPACE, BREAK_ONCE_FLAG);
-		    debug_run();
-		} else if (is_rst) {
-		    set_trap((Z80_PC + 1) % ADDRESS_SPACE, BREAK_ONCE_FLAG);
-		    debug_run();
-		} else if (is_rep) {
-		    set_trap((Z80_PC + 2) % ADDRESS_SPACE, BREAK_ONCE_FLAG);
-		    debug_run();
-		} else {
-		    z80_run((!strcmp(command, "nextint") || !strcmp(command, "ni")) ? 0 : -1);
-		}
-	    }
-	    else if(!strcmp(command, "quit") || !strcmp(command, "q"))
-	    {
-		done = 1;
-	    }
-	    else if(!strcmp(command, "reset") || !strcmp(command, "re"))
-	    {
-		puts("Performing hard reset.");
-		trs_reset(1);
-	    }
-	    else if(!strcmp(command, "softreset") || !strcmp(command, "sr"))
-	    {
-				soft_reset();
-	    }
-	    else if(!strcmp(command, "run") || !strcmp(command, "r"))
-	    {
-				hard_reset();
-	    }
-	    else if(!strcmp(command, "status") || !strcmp(command, "st"))
-	    {
-		print_traps();
-	    }
-	    else if(!strcmp(command, "set") || !strcmp(command, "assign") ||
-		    !strcmp(command, "a"))
-	    {
-		char regname[MAXLINE];
-		unsigned int addr, value;
+// 		if(lines)
+// 		{
+// 		    while(lines--)
+// 		    {
+// 			start = disassemble(start);
+// 		    }
+// 		}
+// 		else
+// 		{
+// 		    while (bytes >= 0) {
+// 			start = disassemble(old_start = start);
+// 			bytes -= (start - old_start) & 0xffff;
+// 		    }
+// 		}
+// 	    }
+// 	    else if(!strcmp(command, "in"))
+// 	    {
+// 		unsigned int port;
 
-		if(sscanf(input, "%*s $%[a-zA-Z] = %x", regname, &value) == 2)
-		{
-		    if(!strcasecmp(regname, "a")) {
-			Z80_A = value;
-		    } else if(!strcasecmp(regname, "f")) {
-			Z80_F = value;
-		    } else if(!strcasecmp(regname, "b")) {
-			Z80_B = value;
-		    } else if(!strcasecmp(regname, "c")) {
-			Z80_C = value;
-		    } else if(!strcasecmp(regname, "d")) {
-			Z80_D = value;
-		    } else if(!strcasecmp(regname, "e")) {
-			Z80_E = value;
-		    } else if(!strcasecmp(regname, "h")) {
-			Z80_H = value;
-		    } else if(!strcasecmp(regname, "l")) {
-			Z80_L = value;
-		    } else if(!strcasecmp(regname, "sp")) {
-			Z80_SP = value;
-		    } else if(!strcasecmp(regname, "pc")) {
-			Z80_PC = value;
-		    } else if(!strcasecmp(regname, "af")) {
-			Z80_AF = value;
-		    } else if(!strcasecmp(regname, "bc")) {
-			Z80_BC = value;
-		    } else if(!strcasecmp(regname, "de")) {
-			Z80_DE = value;
-		    } else if(!strcasecmp(regname, "hl")) {
-			Z80_HL = value;
-		    } else if(!strcasecmp(regname, "af'")) {
-			Z80_AF_PRIME = value;
-		    } else if(!strcasecmp(regname, "bc'")) {
-			Z80_BC_PRIME = value;
-		    } else if(!strcasecmp(regname, "de'")) {
-			Z80_DE_PRIME = value;
-		    } else if(!strcasecmp(regname, "hl'")) {
-			Z80_HL_PRIME = value;
-		    } else if(!strcasecmp(regname, "ix")) {
-			Z80_IX = value;
-		    } else if(!strcasecmp(regname, "iy")) {
-			Z80_IY = value;
-		    } else if(!strcasecmp(regname, "i")) {
-			Z80_I = value;
-		    } else if(!strcasecmp(regname, "r")) {
-			Z80_R = value;
-			Z80_R7 = value & 0x80;
-		    } else {
-			printf("Unrecognized register name %s.\n", regname);
-		    }
-		}
-		else if(sscanf(input, "%*s I%x = %x", &addr, &value) == 2)
-		{
-		    z80_out(addr, value);
-		}
-		else if(sscanf(input, "%*s %x = %x", &addr, &value) == 2)
-		{
-		    mem_write(addr, value);
-		}
-		else
-		{
-		    puts("Syntax error.  (Type \"h(elp)\" for commands.)");
-		}
-	    }
-	    else if(!strcmp(command, "step") || !strcmp(command, "s"))
-	    {
-		z80_run(-1);
-	    }
-	    else if(!strcmp(command, "stepint") || !strcmp(command, "si"))
-	    {
-		z80_run(0);
-	    }
-	    else if(!strcmp(command, "stop") || !strcmp(command, "break") ||
-		    !strcmp(command, "b"))
-	    {
-		unsigned int address;
+// 		if(sscanf(input, "in %x", &port) == 1)
+// 			printf("in %x = %x\n", port, z80_in(port));
+// 		else
+// 			puts("A port must be specified.");
+// 	    }
+// 	    else if(!strcmp(command, "next") || !strcmp(command, "nextint") ||
+// 		    !strcmp(command, "n") || !strcmp(command, "ni"))
+// 	    {
+// 		int is_call = 0, is_rst = 0, is_rep = 0;
+// 		switch(mem_read(Z80_PC)) {
+// 		  case 0xCD:	/* call address */
+// 		    is_call = 1;
+// 		    break;
+// 		  case 0xC4:	/* call nz, address */
+// 		    is_call = !ZERO_FLAG;
+// 		    break;
+// 		  case 0xCC:	/* call z, address */
+// 		    is_call = ZERO_FLAG;
+// 		    break;
+// 		  case 0xD4:	/* call nc, address */
+// 		    is_call = !CARRY_FLAG;
+// 		    break;
+// 		  case 0xDC:	/* call c, address */
+// 		    is_call = CARRY_FLAG;
+// 		    break;
+// 		  case 0xE4:	/* call po, address */
+// 		    is_call = !PARITY_FLAG;
+// 		    break;
+// 		  case 0xEC:	/* call pe, address */
+// 		    is_call = PARITY_FLAG;
+// 		    break;
+// 		  case 0xF4:	/* call p, address */
+// 		    is_call = !SIGN_FLAG;
+// 		    break;
+// 		  case 0xFC:	/* call m, address */
+// 		    is_call = SIGN_FLAG;
+// 		    break;
+// 		  case 0xC7:
+// 		  case 0xCF:
+// 		  case 0xD7:
+// 		  case 0xDF:
+// 		  case 0xE7:
+// 		  case 0xEF:
+// 		  case 0xF7:
+// 		  case 0xFF:
+// 		    is_rst = 1;
+// 		    break;
+// 		  case 0xED:
+// 		    switch(mem_read(Z80_PC + 1)) {
+// 		      case 0xB0: /* ldir */
+// 		      case 0xB8: /* lddr */
+// 		      case 0xB1: /* cpir */
+// 		      case 0xB9: /* cpdr */
+// 		      case 0xB2: /* inir */
+// 		      case 0xBA: /* indr */
+// 		      case 0xB3: /* otir */
+// 		      case 0xBB: /* otdr */
+// 		        is_rep = 1;
+// 		        break;
+// 		      default:
+// 		        break;
+// 		    }
+// 		  default:
+// 		    break;
+// 		}
+// 		if (is_call) {
+// 		    set_trap((Z80_PC + 3) % ADDRESS_SPACE, BREAK_ONCE_FLAG);
+// 		    debug_run();
+// 		} else if (is_rst) {
+// 		    set_trap((Z80_PC + 1) % ADDRESS_SPACE, BREAK_ONCE_FLAG);
+// 		    debug_run();
+// 		} else if (is_rep) {
+// 		    set_trap((Z80_PC + 2) % ADDRESS_SPACE, BREAK_ONCE_FLAG);
+// 		    debug_run();
+// 		} else {
+// 		    z80_run((!strcmp(command, "nextint") || !strcmp(command, "ni")) ? 0 : -1);
+// 		}
+// 	    }
+// 	    else if(!strcmp(command, "quit") || !strcmp(command, "q"))
+// 	    {
+// 		done = 1;
+// 	    }
+// 	    else if(!strcmp(command, "reset") || !strcmp(command, "re"))
+// 	    {
+// 		puts("Performing hard reset.");
+// 		trs_reset(1);
+// 	    }
+// 	    else if(!strcmp(command, "softreset") || !strcmp(command, "sr"))
+// 	    {
+// 				soft_reset();
+// 	    }
+// 	    else if(!strcmp(command, "run") || !strcmp(command, "r"))
+// 	    {
+// 				hard_reset();
+// 	    }
+// 	    else if(!strcmp(command, "status") || !strcmp(command, "st"))
+// 	    {
+// 		print_traps();
+// 	    }
+// 	    else if(!strcmp(command, "set") || !strcmp(command, "assign") ||
+// 		    !strcmp(command, "a"))
+// 	    {
+// 		char regname[MAXLINE];
+// 		unsigned int addr, value;
 
-		if(sscanf(input, "stop at %x", &address) != 1 &&
-		   sscanf(input, "%*s %x", &address) != 1)
-		{
-		    address = Z80_PC;
-		}
-		address %= ADDRESS_SPACE;
-		set_trap(address, BREAKPOINT_FLAG);
-	    }
-	    else if(!strcmp(command, "trace") || !strcmp(command, "t"))
-	    {
-		unsigned int address;
+// 		if(sscanf(input, "%*s $%[a-zA-Z] = %x", regname, &value) == 2)
+// 		{
+// 		    if(!strcasecmp(regname, "a")) {
+// 			Z80_A = value;
+// 		    } else if(!strcasecmp(regname, "f")) {
+// 			Z80_F = value;
+// 		    } else if(!strcasecmp(regname, "b")) {
+// 			Z80_B = value;
+// 		    } else if(!strcasecmp(regname, "c")) {
+// 			Z80_C = value;
+// 		    } else if(!strcasecmp(regname, "d")) {
+// 			Z80_D = value;
+// 		    } else if(!strcasecmp(regname, "e")) {
+// 			Z80_E = value;
+// 		    } else if(!strcasecmp(regname, "h")) {
+// 			Z80_H = value;
+// 		    } else if(!strcasecmp(regname, "l")) {
+// 			Z80_L = value;
+// 		    } else if(!strcasecmp(regname, "sp")) {
+// 			Z80_SP = value;
+// 		    } else if(!strcasecmp(regname, "pc")) {
+// 			Z80_PC = value;
+// 		    } else if(!strcasecmp(regname, "af")) {
+// 			Z80_AF = value;
+// 		    } else if(!strcasecmp(regname, "bc")) {
+// 			Z80_BC = value;
+// 		    } else if(!strcasecmp(regname, "de")) {
+// 			Z80_DE = value;
+// 		    } else if(!strcasecmp(regname, "hl")) {
+// 			Z80_HL = value;
+// 		    } else if(!strcasecmp(regname, "af'")) {
+// 			Z80_AF_PRIME = value;
+// 		    } else if(!strcasecmp(regname, "bc'")) {
+// 			Z80_BC_PRIME = value;
+// 		    } else if(!strcasecmp(regname, "de'")) {
+// 			Z80_DE_PRIME = value;
+// 		    } else if(!strcasecmp(regname, "hl'")) {
+// 			Z80_HL_PRIME = value;
+// 		    } else if(!strcasecmp(regname, "ix")) {
+// 			Z80_IX = value;
+// 		    } else if(!strcasecmp(regname, "iy")) {
+// 			Z80_IY = value;
+// 		    } else if(!strcasecmp(regname, "i")) {
+// 			Z80_I = value;
+// 		    } else if(!strcasecmp(regname, "r")) {
+// 			Z80_R = value;
+// 			Z80_R7 = value & 0x80;
+// 		    } else {
+// 			printf("Unrecognized register name %s.\n", regname);
+// 		    }
+// 		}
+// 		else if(sscanf(input, "%*s I%x = %x", &addr, &value) == 2)
+// 		{
+// 		    z80_out(addr, value);
+// 		}
+// 		else if(sscanf(input, "%*s %x = %x", &addr, &value) == 2)
+// 		{
+// 		    mem_write(addr, value);
+// 		}
+// 		else
+// 		{
+// 		    puts("Syntax error.  (Type \"h(elp)\" for commands.)");
+// 		}
+// 	    }
+// 	    else if(!strcmp(command, "step") || !strcmp(command, "s"))
+// 	    {
+// 		z80_run(-1);
+// 	    }
+// 	    else if(!strcmp(command, "stepint") || !strcmp(command, "si"))
+// 	    {
+// 		z80_run(0);
+// 	    }
+// 	    else if(!strcmp(command, "stop") || !strcmp(command, "break") ||
+// 		    !strcmp(command, "b"))
+// 	    {
+// 		unsigned int address;
 
-		if(sscanf(input, "%*s %x", &address) != 1)
-		{
-		    address = Z80_PC;
-		}
-		address %= ADDRESS_SPACE;
-		set_trap(address, TRACE_FLAG);
-	    }
-	    else if(!strcmp(command, "traceon") || !strcmp(command, "tron"))
-	    {
-		unsigned int address;
+// 		if(sscanf(input, "stop at %x", &address) != 1 &&
+// 		   sscanf(input, "%*s %x", &address) != 1)
+// 		{
+// 		    address = Z80_PC;
+// 		}
+// 		address %= ADDRESS_SPACE;
+// 		set_trap(address, BREAKPOINT_FLAG);
+// 	    }
+// 	    else if(!strcmp(command, "trace") || !strcmp(command, "t"))
+// 	    {
+// 		unsigned int address;
 
-		if(sscanf(input, "traceon at %x", &address) == 1 ||
-		   sscanf(input, "tron %x", &address) == 1)
-		{
-		    set_trap(address, DISASSEMBLE_ON_FLAG);
-		}
-		else
-		{
-		    print_instructions = 1;
-		    puts("Tracing enabled.");
-		}
-	    }
-	    else if(!strcmp(command, "traceoff") || !strcmp(command, "troff"))
-	    {
-		unsigned int address;
+// 		if(sscanf(input, "%*s %x", &address) != 1)
+// 		{
+// 		    address = Z80_PC;
+// 		}
+// 		address %= ADDRESS_SPACE;
+// 		set_trap(address, TRACE_FLAG);
+// 	    }
+// 	    else if(!strcmp(command, "traceon") || !strcmp(command, "tron"))
+// 	    {
+// 		unsigned int address;
 
-		if(sscanf(input, "traceoff at %x", &address) == 1 ||
-		   sscanf(input, "troff %x", &address) == 1)
-		{
-		    set_trap(address, DISASSEMBLE_OFF_FLAG);
-		}
-		else
-		{
-		    print_instructions = 0;
-		    puts("Tracing disabled.");
-		}
-	    }
-	    else if(!strcmp(command, "watch") || !strcmp(command, "w"))
-	    {
-		unsigned int address;
+// 		if(sscanf(input, "traceon at %x", &address) == 1 ||
+// 		   sscanf(input, "tron %x", &address) == 1)
+// 		{
+// 		    set_trap(address, DISASSEMBLE_ON_FLAG);
+// 		}
+// 		else
+// 		{
+// 		    print_instructions = 1;
+// 		    puts("Tracing enabled.");
+// 		}
+// 	    }
+// 	    else if(!strcmp(command, "traceoff") || !strcmp(command, "troff"))
+// 	    {
+// 		unsigned int address;
 
-		if(sscanf(input, "%*s %x", &address) == 1)
-		{
-		    address %= ADDRESS_SPACE;
-		    set_trap(address, WATCHPOINT_FLAG);
-		}
-	    }
-	    else if(!strcmp(command, "timeroff"))
-	    {
-	        /* Turn off emulated real time clock interrupt */
-	        trs_timer_off();
-            }
-	    else if(!strcmp(command, "timeron"))
-	    {
-	        /* Turn off emulated real time clock interrupt */
-	        trs_timer_on();
-            }
-	    else if(!strcmp(command, "diskdump") || !strcmp(command, "dd"))
-	    {
-		trs_disk_debug();
-	    }
-	    else if(!strcmp(command, "diskdebug"))
-	    {
-		trs_disk_debug_flags = 0;
-		sscanf(input, "diskdebug %x", (unsigned int *)&trs_disk_debug_flags);
-	    }
-	    else if(!strcmp(command, "iodebug"))
-	    {
-		trs_io_debug_flags = 0;
-		sscanf(input, "iodebug %x", (unsigned int *)&trs_io_debug_flags);
-	    }
-	    else
-	    {
-		unsigned int start_address, end_address, num_bytes;
+// 		if(sscanf(input, "traceoff at %x", &address) == 1 ||
+// 		   sscanf(input, "troff %x", &address) == 1)
+// 		{
+// 		    set_trap(address, DISASSEMBLE_OFF_FLAG);
+// 		}
+// 		else
+// 		{
+// 		    print_instructions = 0;
+// 		    puts("Tracing disabled.");
+// 		}
+// 	    }
+// 	    else if(!strcmp(command, "watch") || !strcmp(command, "w"))
+// 	    {
+// 		unsigned int address;
 
-		if(sscanf(input, "%x , %x / ", &start_address, &end_address) == 2)
-		{
-		    print_memory(start_address, end_address - start_address);
-		}
-		else if(sscanf(input, "%x / %x ", &start_address, &num_bytes) == 2)
-		{
-		    print_memory(start_address, num_bytes);
-		}
-		else if(sscanf(input, "%x = ", &start_address) == 1)
-		{
-		    print_memory(start_address, 1);
-		}
-		else
-		{
-		    puts("Syntax error.  (Type \"h(elp)\" for commands.)");
-		}
-	    }
-	}
-    }
+// 		if(sscanf(input, "%*s %x", &address) == 1)
+// 		{
+// 		    address %= ADDRESS_SPACE;
+// 		    set_trap(address, WATCHPOINT_FLAG);
+// 		}
+// 	    }
+// 	    else if(!strcmp(command, "timeroff"))
+// 	    {
+// 	        /* Turn off emulated real time clock interrupt */
+// 	        trs_timer_off();
+//             }
+// 	    else if(!strcmp(command, "timeron"))
+// 	    {
+// 	        /* Turn off emulated real time clock interrupt */
+// 	        trs_timer_on();
+//             }
+// 	    else if(!strcmp(command, "diskdump") || !strcmp(command, "dd"))
+// 	    {
+// 		trs_disk_debug();
+// 	    }
+// 	    else if(!strcmp(command, "diskdebug"))
+// 	    {
+// 		trs_disk_debug_flags = 0;
+// 		sscanf(input, "diskdebug %x", (unsigned int *)&trs_disk_debug_flags);
+// 	    }
+// 	    else if(!strcmp(command, "iodebug"))
+// 	    {
+// 		trs_io_debug_flags = 0;
+// 		sscanf(input, "iodebug %x", (unsigned int *)&trs_io_debug_flags);
+// 	    }
+// 	    else
+// 	    {
+// 		unsigned int start_address, end_address, num_bytes;
+
+// 		if(sscanf(input, "%x , %x / ", &start_address, &end_address) == 2)
+// 		{
+// 		    print_memory(start_address, end_address - start_address);
+// 		}
+// 		else if(sscanf(input, "%x / %x ", &start_address, &num_bytes) == 2)
+// 		{
+// 		    print_memory(start_address, num_bytes);
+// 		}
+// 		else if(sscanf(input, "%x = ", &start_address) == 1)
+// 		{
+// 		    print_memory(start_address, 1);
+// 		}
+// 		else
+// 		{
+// 		    puts("Syntax error.  (Type \"h(elp)\" for commands.)");
+// 		}
+// 	    }
+// 	}
+//     }
 #ifdef READLINE
     write_history(history_file);
 #endif

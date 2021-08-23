@@ -53,6 +53,7 @@
 #include "trs_state_save.h"
 #include "trs_stringy.h"
 #include "trs_uart.h"
+#include "web_debugger.h"
 
 #define MAX_RECTS 2048
 #define MAX_SCALE 4
@@ -1769,6 +1770,7 @@ void trs_get_event(int wait)
 
     switch (event.type) {
       case SDL_QUIT:
+        trx_shutdown();
         trs_exit(0);
         break;
 #ifdef SDL2
