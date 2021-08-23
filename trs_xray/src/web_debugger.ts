@@ -14,26 +14,43 @@ class TrsXray {
   private socket: WebSocket | null = null;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private programCounter: number;
+  private stackPointer: number;
   private memRegions: MemoryRegions;
   private memInfo: Map<number, number>;
+  private memHeatmap: Map<number, number>;
+  private memoryData: Uint8Array | null;
+  private memoryPrevData: Uint8Array | null;
+  private selectedMemoryRegion: number;
+
+  private enableDataViz: boolean;
 
   constructor() {
     this.canvas = document.getElementById("memory-container") as HTMLCanvasElement;
     this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
+    this.programCounter = 0;
+    this.stackPointer = 0;
     this.memRegions = getMemoryRegions();
     this.memInfo = new Map();
+    this.memHeatmap = new Map();
+    this.memoryData = null;
+    this.memoryPrevData = null;
+    this.selectedMemoryRegion = -1;
+
+    this.enableDataViz = false;
 
     this.memRegions.map((region, idx) => {
       for (let i = region.address[0]; i<= region.address[region.address.length - 1]; ++i) {
         this.memInfo.set(i, idx);
       }
     });
-    console.log(this.memInfo);
   }
 
   private onMessageFromEmulator(json: IDataFromEmulator): void {
     if (!!json.context) this.onContextUpdate(json.context);
-    if (!!json.registers) this.onRegisterUpdate(json.registers);
+    if (!!json.registers) {
+      this.onRegisterUpdate(json.registers);
+    }
   }
 
   private onControl(action: string): void {
@@ -41,21 +58,28 @@ class TrsXray {
   }
 
   public onLoad(): void {
-    $('input:text').keydown(function(e){e.stopPropagation();});
+    $('input:text').on("keydown", (evt) => {evt.stopPropagation();});
     document.addEventListener("keydown", (evt) => {
       switch (evt.key) {
         case 'j':
           this.onControl("step");
+          this.onControl("get_memory/0/65536");
           break;
         case 't':
           this.debug_insertTestData();
+          break;
+        case 'd':
+          this.enableDataViz = !this.enableDataViz;
           break;
         default:
           console.log(`Unhandled key event: ${evt.key}`);
       }
     });
 
-    $("#step-btn").on("click", () => { this.onControl("step") });
+    $("#step-btn").on("click", () => {
+      this.onControl("step");
+      this.onControl("get_memory/0/65536");
+    });
     $("#step-over-btn").on("click", () => { this.onControl("step-over") });
     $("#play-btn").on("click", () => { this.onControl("continue") });
     $("#reset-btn").on("click", (ev) => {
@@ -94,8 +118,15 @@ class TrsXray {
       this.onControl("refresh");
     }
     this.socket.onmessage = (evt) =>  {
-      var json = JSON.parse(evt.data);
-      this.onMessageFromEmulator(json);
+      if (evt.data instanceof Blob) {
+        evt.data.arrayBuffer().then((data) => {
+          this.onMemoryUpdate(new Uint8Array(data));
+        });
+      } else {
+        var json = JSON.parse(evt.data);
+        this.onMessageFromEmulator(json);
+      }
+      this.renderMemoryRegions();
     };
   }
 
@@ -194,6 +225,16 @@ class TrsXray {
     setFlag("#flag-pv", flag_overflow);
     setFlag("#flag-n",  flag_subtract);
     setFlag("#flag-c",  flag_carry);
+
+    this.programCounter = registers.pc;
+    this.stackPointer = registers.sp;
+  }
+
+  private onMemoryUpdate(memory: Uint8Array): void {
+    // TODO: Compare previous and new data.
+    //       Indicate changed bytes.
+    this.memoryPrevData = this.memoryData;
+    this.memoryData = memory;
   }
 
   private createMemoryRegions(): void {
@@ -203,35 +244,66 @@ class TrsXray {
       $("<div></div>")
           .addClass("map-region-list-entry")
           .text(region.description)
-          .on("mouseover", () => {this.onMemoryRegionSelect(region)})
+          .on("mouseover", () => {this.onMemoryRegionSelect(idx)})
           .appendTo(container);
     });
-    this.renderMemoryRegions(new Array<number>());
+    this.renderMemoryRegions();
   }
 
-  private onMemoryRegionSelect(region: MemoryRegionMetadata): void {
-    this.renderMemoryRegions(region.address);
+  private onMemoryRegionSelect(region: number): void {
+    this.selectedMemoryRegion = region;
+    this.renderMemoryRegions();
   }
 
-  private renderMemoryRegions(addressRange: Array<number>): void {
+  private getColorForByte(addr: number): string {
+    // Set base color for addresses we have data for
+    let color = !!this.memInfo.get(addr) ? "#666" : "#444";
+    // Any byte with value zero get blacked out.
+    if (!!this.memoryData && this.memoryData[addr] == 0) color = "#000";
+
+    if (this.enableDataViz && !!this.memoryData) {
+      let hexValue = (this.memoryData[addr] >> 1).toString(16);
+      if (hexValue.length == 1) hexValue = `0${hexValue}`;
+      color = `#${hexValue}${hexValue}${hexValue}`;
+    }
+
+    // Mark selected range bytes.
+    if (this.selectedMemoryRegion >= 0) {
+      let addressRange = this.memRegions[this.selectedMemoryRegion].address
+      const highlightStart = addressRange[0];
+      const highlightEnd = addressRange[addressRange.length - 1];
+      color = (addr >= highlightStart && addr <= highlightEnd) ? "#F00" : color;
+    }
+
+    // Highlight bytes that have changed with the most recent update.
+    if (!!this.memoryData && !!this.memoryPrevData) {
+      if (this.memoryData[addr] !=
+          this.memoryPrevData[addr]) color = "#FFA500";
+    }
+
+    // Mark special program and stack pointers.
+    if (addr == this.programCounter) color = "#0F0";
+    if (addr == this.stackPointer) color = "#FF0";
+
+    return color;
+  }
+
+  private renderMemoryRegions(): void {
     const gap = 1;
-    const byteSize = 3;
-    const bytesWidth = 256;
-    const bytesHeight = 256;
+    const byteSize = 6;
+    const bytesWidth = 192;
+    const bytesHeight = 192;
     this.canvas.width = bytesWidth * (byteSize + gap);
     this.canvas.height = bytesHeight * (byteSize + gap);
     this.canvas.style.width = this.canvas.width + "px";
     this.canvas.style.height = this.canvas.height + "px";
     this.ctx.beginPath();
 
-    const highlightStart = addressRange[0];
-    const highlightEnd = addressRange[addressRange.length - 1];
 
     for (let y = 0; y < bytesHeight; ++y) {
       for (let x = 0; x < bytesWidth; ++x) {
         let addr = (y * bytesWidth) + x;
-        let defaultColor = !!this.memInfo.get(addr) ? "#666" : "#444";
-        this.ctx.fillStyle = (addr >= highlightStart && addr <= highlightEnd) ? "#F00" : defaultColor;
+        this.ctx.fillStyle = this.getColorForByte(addr);
         this.ctx.fillRect(x*(byteSize+gap), y*(byteSize+gap), byteSize, byteSize);
       }
     }
