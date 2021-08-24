@@ -1,6 +1,11 @@
 function getMemoryRegions() {
 return [
   {
+    "address": [0x3C00, 0x3FFF],
+    "model_code": [1, 3],
+    "description": "Video RAM"
+  },
+  {
     "address": [0x37E1],
     "model_code": [1],
     "description": "Disk drive select"
@@ -44,11 +49,6 @@ return [
     "address": [0x3800, 0x3840],
     "model_code": [1, 3],
     "description": "Keyboard matrix"
-  },
-  {
-    "address": [0x3C00, 0x3FFF],
-    "model_code": [1, 3],
-    "description": "Video RAM"
   },
   {
     "address": [0x3FCD, 0x3FCE],

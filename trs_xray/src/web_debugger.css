@@ -161,3 +161,7 @@ h1 {
 .map-region-list-entry:hover {
   background: rgba(255, 0, 0, 0.5)
 }
+
+#screen {
+  font-family: 'TreasureMIII64C' 'Roboto Mono', 'Courier New', Courier, monospace;
+}

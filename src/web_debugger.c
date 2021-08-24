@@ -135,6 +135,8 @@ static void on_frontend_message(const char* msg) {
     send_update_to_web_debugger();
   } else if (strcmp("action/continue", msg) == 0) {
     ctx->control_callback(TRX_CONTROL_TYPE_CONTINUE);
+  } else if (strcmp("action/stop", msg) == 0) {
+    ctx->control_callback(TRX_CONTROL_TYPE_HALT);
   } else if (strcmp("action/pause", msg) == 0) {
     ctx->control_callback(TRX_CONTROL_TYPE_PAUSE);
     send_update_to_web_debugger();

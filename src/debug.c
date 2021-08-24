@@ -348,9 +348,22 @@ void hard_reset() {
 	debug_run();
 }
 
+void run_emulation() {
+	int c = 0;
+	while (c++ < 1000) {
+  	z80_run(-1);
+	}
+}
+
+void halt_emulation() {
+	puts("Halting Emulation");
+	// FIXME
+}
+
 void on_trx_control_callback(TRX_CONTROL_TYPE type) {
 	if (type == TRX_CONTROL_TYPE_STEP) z80_run(-1);
-	else if (type == TRX_CONTROL_TYPE_CONTINUE) debug_run();
+	else if (type == TRX_CONTROL_TYPE_CONTINUE) run_emulation();
+	else if (type == TRX_CONTROL_TYPE_HALT) halt_emulation();
 	else if (type == TRX_CONTROL_TYPE_SOFT_RESET) soft_reset();
 	else if (type == TRX_CONTROL_TYPE_HARD_RESET) hard_reset();
 }
@@ -842,7 +855,7 @@ void debug_shell(void)
 // 	    }
 // 	    else if(!strcmp(command, "step") || !strcmp(command, "s"))
 // 	    {
-// 		z80_run(-1);
+// 		z80_run(-1);`
 // 	    }
 // 	    else if(!strcmp(command, "stepint") || !strcmp(command, "si"))
 // 	    {
