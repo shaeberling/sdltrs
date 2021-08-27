@@ -9,7 +9,6 @@
 #include "SDL.h"
 #include "trs.h"
 
-
 static struct mg_mgr www_mgr;
 static SDL_Thread* thread;
 static SDL_Thread* emu_run_thread;
@@ -205,7 +204,7 @@ static void handleDynamicUpdate() {
   uint32_t now_millis = SDL_GetTicks();
   uint32_t diff_millis = now_millis - last_update_sent;
 
-  if (diff_millis < 100) return;
+  if (diff_millis < 90) return;
   send_update_to_web_debugger();
   send_memory_segment("0/65536");
   last_update_sent = now_millis;

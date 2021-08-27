@@ -37,6 +37,7 @@ char* web_debugger_html = "<!DOCTYPE html>\n\
       <div id=\"sut-name\">N/A</div>&nbsp;<div id=\"sut-model-no\">[]</div>\n\
     </div></div>\n\
 \n\
+    <div id=\"left-hand-side\">\n\
     <div class=\"section\">\n\
       <div class=\"section-title\">Registers</div>\n\
       <div id=\"registers\" class=\"panel\">\n\
@@ -79,6 +80,17 @@ char* web_debugger_html = "<!DOCTYPE html>\n\
     </div>\n\
 \n\
     <div class=\"section\">\n\
+      <div class=\"section-title\">Selection</div>\n\
+      <div id=\"selection\">\n\
+        <label>Selected</label><input id=\"selected-addr-1\" type=\"text\" class=\"register\" maxlength=\"2\" /><input id=\"selected-addr-2\" type=\"text\" class=\"register\" maxlength=\"2\" />\n\
+        <label>Value</label>\n\
+        <div></div>\n\
+        <input id=\"selected-val\" type=\"text\" class=\"register\" maxlength=\"2\" />\n\
+      </div>\n\
+    </div>\n\
+    </div>\n\
+\n\
+    <div class=\"section\">\n\
       <div class=\"section-title\">Memory</div>\n\
       <canvas id=\"memory-container\">\n\
       </canvas>\n\
@@ -116,6 +128,7 @@ char* web_debugger_html = "<!DOCTYPE html>\n\
   </body>\n\
 </html>";
 char* web_debugger_js = "\"use strict\";\n\
+const numToHex = (num) => ((num <= 0xF ? \"0\" : \"\") + num.toString(16)).toUpperCase();\n\
 const CARRY_MASK = 0x1;\n\
 const SUBTRACT_MASK = 0x2;\n\
 const OVERFLOW_MASK = 0x4;\n\
@@ -163,6 +176,12 @@ const M3_TO_UTF = [\n\
     \"\\u00a4\", \"\\u00b6\", \"\\u00a2\", \"\\u00ae\", \"\\ue0f4\", \"\\ue0f5\", \"\\ue0f6\", \"\\u211e\",\n\
     \"\\u2105\", \"\\u2642\", \"\\u2640\", \"\\ue0fb\", \"\\ue0fc\", \"\\ue0fd\", \"\\ue0fe\", \"\\u2302\"\n\
 ];\n\
+var MouseAction;\n\
+(function (MouseAction) {\n\
+    MouseAction[MouseAction[\"MOVE\"] = 1] = \"MOVE\";\n\
+    MouseAction[MouseAction[\"UP\"] = 2] = \"UP\";\n\
+    MouseAction[MouseAction[\"DOWN\"] = 3] = \"DOWN\";\n\
+})(MouseAction || (MouseAction = {}));\n\
 class TrsXray {\n\
     constructor() {\n\
         this.socket = null;\n\
@@ -173,9 +192,10 @@ class TrsXray {\n\
         this.memRegions = getMemoryRegions();\n\
         this.memInfo = new Map();\n\
         this.memoryData = null;\n\
-        this.memoryPrevData = null;\n\
+        this.memoryChanged = new Uint8Array(0);\n\
         this.selectedMemoryRegion = -1;\n\
-        this.highlightedByte = -1;\n\
+        this.hoveredByte = -1;\n\
+        this.selectedByte = -1;\n\
         this.enableDataViz = false;\n\
         this.memRegions.map((region, idx) => {\n\
             for (let i = region.address[0]; i <= region.address[region.address.length - 1]; ++i) {\n\
@@ -184,9 +204,9 @@ class TrsXray {\n\
         });\n\
     }\n\
     onMessageFromEmulator(json) {\n\
-        if (!!json.context)\n\
+        if (json.context)\n\
             this.onContextUpdate(json.context);\n\
-        if (!!json.registers) {\n\
+        if (json.registers) {\n\
             this.onRegisterUpdate(json.registers);\n\
         }\n\
     }\n\
@@ -223,7 +243,10 @@ class TrsXray {\n\
             this.onControl(ev.shiftKey ? \"hard_reset\" : \"soft_reset\");\n\
         });\n\
         $(\"#memory-container\").on(\"mousemove\", (evt) => {\n\
-            this.onMouseMoveOnCanvas(evt.offsetX, evt.offsetY);\n\
+            this.onMouseActionOnCanvas(evt.offsetX, evt.offsetY, MouseAction.MOVE);\n\
+        });\n\
+        $(\"#memory-container\").on(\"mouseup\", (evt) => {\n\
+            this.onMouseActionOnCanvas(evt.offsetX, evt.offsetY, MouseAction.UP);\n\
         });\n\
         this.createMemoryRegions();\n\
         if (!isDebugMode())\n\
@@ -311,7 +334,6 @@ class TrsXray {\n\
         let flag_overflow = f & OVERFLOW_MASK;\n\
         let flag_subtract = f & SUBTRACT_MASK;\n\
         let flag_carry = f & CARRY_MASK;\n\
-        const numToHex = (num) => (num <= 0xF ? \"0\" : \"\") + num.toString(16);\n\
         $(\"#reg-af-1\").val(numToHex(a));\n\
         $(\"#reg-af-2\").val(numToHex(f));\n\
         $(\"#reg-bc-1\").val(numToHex(b));\n\
@@ -357,10 +379,26 @@ class TrsXray {\n\
         this.stackPointer = registers.sp;\n\
     }\n\
     onMemoryUpdate(memory) {\n\
-        // TODO: Compare previous and new data.\n\
-        //       Indicate changed bytes.\n\
-        this.memoryPrevData = this.memoryData;\n\
+        this.memoryChanged = new Uint8Array(memory.length);\n\
+        for (let i = 0; i < memory.length; ++i) {\n\
+            if (this.memoryData && this.memoryData.length == memory.length) {\n\
+                this.memoryChanged[i] = memory[i] == this.memoryData[i] ? 0 : 1;\n\
+            }\n\
+            else {\n\
+                this.memoryChanged[i] = 1;\n\
+            }\n\
+        }\n\
         this.memoryData = memory;\n\
+        this.onSelectionUpdate();\n\
+    }\n\
+    onSelectionUpdate() {\n\
+        let hi = (this.selectedByte & 0xFF00) >> 8;\n\
+        let lo = (this.selectedByte & 0x00FF);\n\
+        $(\"#selected-addr-1\").val(numToHex(hi));\n\
+        $(\"#selected-addr-2\").val(numToHex(lo));\n\
+        if (this.memoryData && this.selectedByte >= 0) {\n\
+            $(\"#selected-val\").val(numToHex(this.memoryData[this.selectedByte]));\n\
+        }\n\
     }\n\
     createMemoryRegions() {\n\
         const regions = getMemoryRegions();\n\
@@ -382,10 +420,10 @@ class TrsXray {\n\
         // Set base color for addresses we have data for\n\
         let color = !!this.memInfo.get(addr) ? \"#666\" : \"#444\";\n\
         // Any byte with value zero get blacked out.\n\
-        if (!!this.memoryData && this.memoryData[addr] == 0)\n\
+        if (this.memoryData && this.memoryData[addr] == 0)\n\
             color = \"#000\";\n\
         if (this.enableDataViz && !!this.memoryData) {\n\
-            let hexValue = (this.memoryData[addr] >> 1).toString(16);\n\
+            let hexValue = numToHex(this.memoryData[addr] >> 1);\n\
             if (hexValue.length == 1)\n\
                 hexValue = `0${hexValue}`;\n\
             color = `#${hexValue}${hexValue}${hexValue}`;\n\
@@ -398,10 +436,8 @@ class TrsXray {\n\
             color = (addr >= highlightStart && addr <= highlightEnd) ? \"#F00\" : color;\n\
         }\n\
         // Highlight bytes that have changed with the most recent update.\n\
-        if (!!this.memoryData && !!this.memoryPrevData) {\n\
-            if (this.memoryData[addr] !=\n\
-                this.memoryPrevData[addr])\n\
-                color = \"#FFA500\";\n\
+        if (this.memoryChanged.length > addr && this.memoryChanged[addr] == 1) {\n\
+            color = \"#FFA500\";\n\
         }\n\
         // Mark special program and stack pointers.\n\
         if (addr == this.programCounter)\n\
@@ -413,8 +449,9 @@ class TrsXray {\n\
     renderByte(x, y, removeHighlight = false) {\n\
         const addr = (y * NUM_BYTES_X) + x;\n\
         const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;\n\
-        if (addr == this.highlightedByte || removeHighlight) {\n\
-            this.ctx.fillStyle = removeHighlight ? \"#000\" : \"#FFF\";\n\
+        if (addr == this.selectedByte || addr == this.hoveredByte || removeHighlight) {\n\
+            this.ctx.fillStyle = addr == this.hoveredByte ? \"#88A\" :\n\
+                (addr == this.selectedByte ? \"#FFF\" : \"#000\");\n\
             this.ctx.fillRect(x * totalByteSize - 1, y * totalByteSize - 1, BYTE_SIZE_PX + 2, BYTE_SIZE_PX + 2);\n\
         }\n\
         this.ctx.fillStyle = this.getColorForByte(addr);\n\
@@ -435,18 +472,28 @@ class TrsXray {\n\
         }\n\
         console.timeEnd(\"renderMemoryRegions\");\n\
     }\n\
-    onMouseMoveOnCanvas(x, y) {\n\
+    onMouseActionOnCanvas(x, y, a) {\n\
+        let setter = a == MouseAction.MOVE ?\n\
+            (newAddr) => { this.hoveredByte = newAddr; } :\n\
+            (newAddr) => { this.selectedByte = newAddr; };\n\
+        let getter = a == MouseAction.MOVE ?\n\
+            () => { return this.hoveredByte; } :\n\
+            () => { return this.selectedByte; };\n\
         const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;\n\
         const byteX = Math.floor(x / totalByteSize);\n\
         const byteY = Math.floor(y / totalByteSize);\n\
-        const prevHighlightedByte = this.highlightedByte;\n\
-        this.highlightedByte = byteY * NUM_BYTES_X + byteX;\n\
-        const prevByteY = Math.floor(prevHighlightedByte / NUM_BYTES_X);\n\
-        const prevByteX = prevHighlightedByte - (prevByteY * NUM_BYTES_X);\n\
+        const prevByte = getter();\n\
+        setter(byteY * NUM_BYTES_X + byteX);\n\
+        const prevByteY = Math.floor(prevByte / NUM_BYTES_X);\n\
+        const prevByteX = prevByte - (prevByteY * NUM_BYTES_X);\n\
         this.renderByte(prevByteX, prevByteY, true);\n\
         this.renderByte(byteX, byteY);\n\
+        if (a == MouseAction.UP) {\n\
+            this.onSelectionUpdate();\n\
+        }\n\
     }\n\
     renderDisplay() {\n\
+        console.time(\"renderDisplay\");\n\
         if (!this.memoryData)\n\
             return;\n\
         // FIXME: Need to determine when we have 64x16 or 80x24\n\
@@ -461,6 +508,7 @@ class TrsXray {\n\
             screenStr += \"\\n\";\n\
         }\n\
         $(\"#screen\").text(screenStr);\n\
+        console.timeEnd(\"renderDisplay\");\n\
     }\n\
     debug_insertTestData() {\n\
         console.log(\"Inserting test data for debugging...\");\n\
@@ -682,6 +730,10 @@ char* web_debugger_css = "body {\n\
   margin: 0;\n\
 }\n\
 \n\
+input {\n\
+  font-size: 1em;\n\
+}\n\
+\n\
 h1 {\n\
   font-family: 'Roboto', sans-serif;\n\
   padding: 0;\n\
@@ -761,7 +813,12 @@ h1 {\n\
   padding: 10px;\n\
 }\n\
 \n\
-#registers * {\n\
+#left-hand-side {\n\
+  display: inline-grid;\n\
+  grid-template-columns: auto;\n\
+}\n\
+\n\
+#registers *, #selection * {\n\
   font-family: 'Roboto Mono', 'Courier New', Courier, monospace;\n\
   text-transform: uppercase;\n\
 }\n\
@@ -780,6 +837,15 @@ h1 {\n\
   color: #0D0;\n\
   border: 1px rgb(0, 88, 0) solid;\n\
   width: 2ch;\n\
+}\n\
+\n\
+#selection {\n\
+  padding: 8px;\n\
+  display: grid;\n\
+  grid-template-columns: auto min-content min-content\n\
+}\n\
+#selection label {\n\
+  margin-right: 2em;\n\
 }\n\
 \n\
 #flags{\n\
