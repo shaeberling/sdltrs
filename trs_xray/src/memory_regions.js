@@ -1,3 +1,4 @@
+// Big thanks to http://www.trs-80.com/ for a majority of these!
 function getMemoryRegions() {
 return [
   {

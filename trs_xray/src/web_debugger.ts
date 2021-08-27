@@ -10,6 +10,12 @@ const UNDOC5_MASK = 0x20;
 const ZERO_MASK = 0x40;
 const	SIGN_MASK = 0x80;
 
+// Rendering parameters for the memory map.
+const BYTE_RENDER_GAP = 1;
+const BYTE_SIZE_PX = 8;
+const NUM_BYTES_X = 132;
+const NUM_BYTES_Y = 132;
+
 const M3_TO_UTF = [
   "\u0020", "\u00a3", "\u007c", "\u00e9", "\u00dc", "\u00c5", "\u00ac", "\u00f6",
   "\u00d8", "\u00f9", "\u00f1", "\u0060", "\u0101", "\ue00d", "\u00c4", "\u00c3",
@@ -56,6 +62,7 @@ class TrsXray {
   private memoryData: Uint8Array | null;
   private memoryPrevData: Uint8Array | null;
   private selectedMemoryRegion: number;
+  private highlightedByte: number;
 
   private enableDataViz: boolean;
 
@@ -69,6 +76,7 @@ class TrsXray {
     this.memoryData = null;
     this.memoryPrevData = null;
     this.selectedMemoryRegion = -1;
+    this.highlightedByte = -1;
 
     this.enableDataViz = false;
 
@@ -118,6 +126,9 @@ class TrsXray {
     $("#stop-btn").on("click", () => { this.onControl("stop") });
     $("#reset-btn").on("click", (ev) => {
       this.onControl(ev.shiftKey ? "hard_reset" : "soft_reset")
+    });
+    $("#memory-container").on("mousemove", (evt) => {
+      this.onMouseMoveOnCanvas(evt.offsetX, evt.offsetY);
     });
 
     this.createMemoryRegions();
@@ -323,26 +334,50 @@ class TrsXray {
     return color;
   }
 
+  private renderByte(x: number, y: number, removeHighlight = false): void {
+    const addr = (y * NUM_BYTES_X) + x;
+    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
+
+    if (addr == this.highlightedByte || removeHighlight) {
+      this.ctx.fillStyle = removeHighlight ? "#000" : "#FFF";
+      this.ctx.fillRect(x * totalByteSize - 1, y * totalByteSize - 1,
+                        BYTE_SIZE_PX + 2, BYTE_SIZE_PX + 2);
+    }
+
+    this.ctx.fillStyle = this.getColorForByte(addr);
+    this.ctx.fillRect(x * totalByteSize, y * totalByteSize,
+                      BYTE_SIZE_PX, BYTE_SIZE_PX);
+  }
+
   private renderMemoryRegions(): void {
     console.time("renderMemoryRegions");
-    const gap = 1;
-    const byteSize = 8;
-    const bytesWidth = 132;
-    const bytesHeight = 132;
-    this.canvas.width = bytesWidth * (byteSize + gap);
-    this.canvas.height = bytesHeight * (byteSize + gap);
+    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
+    this.canvas.width = NUM_BYTES_X * totalByteSize;
+    this.canvas.height = NUM_BYTES_Y * totalByteSize;
     this.canvas.style.width = this.canvas.width + "px";
     this.canvas.style.height = this.canvas.height + "px";
     this.ctx.beginPath();
 
-    for (let y = 0; y < bytesHeight; ++y) {
-      for (let x = 0; x < bytesWidth; ++x) {
-        let addr = (y * bytesWidth) + x;
-        this.ctx.fillStyle = this.getColorForByte(addr);
-        this.ctx.fillRect(x*(byteSize+gap), y*(byteSize+gap), byteSize, byteSize);
+    for (let y = 0; y < NUM_BYTES_Y; ++y) {
+      for (let x = 0; x < NUM_BYTES_X; ++x) {
+        this.renderByte(x, y);
       }
     }
     console.timeEnd("renderMemoryRegions");
+  }
+
+  private onMouseMoveOnCanvas(x: number, y: number): void {
+    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
+    const byteX = Math.floor(x / totalByteSize);
+    const byteY = Math.floor(y / totalByteSize);
+
+    const prevHighlightedByte = this.highlightedByte;
+    this.highlightedByte = byteY * NUM_BYTES_X + byteX;
+
+    const prevByteY = Math.floor(prevHighlightedByte / NUM_BYTES_X);
+    const prevByteX = prevHighlightedByte - (prevByteY * NUM_BYTES_X);
+    this.renderByte(prevByteX, prevByteY, true);
+    this.renderByte(byteX, byteY);
   }
 
   private renderDisplay(): void {

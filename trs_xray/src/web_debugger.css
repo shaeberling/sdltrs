@@ -163,5 +163,10 @@ h1 {
 }
 
 #screen {
-  font-family: 'TreasureMIII64C' 'Roboto Mono', 'Courier New', Courier, monospace;
+  font-family: 'TreasureMIII64C', 'Roboto Mono', 'Courier New', Courier, monospace;
+  font-size: 2em;
+  background: black;
+  border-radius: 10px;
+  margin: 10px;
+  padding: 5px;
 }
