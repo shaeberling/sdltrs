@@ -349,15 +349,12 @@ void hard_reset() {
 }
 
 void run_emulation() {
-	int c = 0;
-	while (c++ < 1000) {
-  	z80_run(-1);
-	}
+	z80_run(1);
 }
 
 void halt_emulation() {
 	puts("Halting Emulation");
-	// FIXME
+	stop_signaled = 1;
 }
 
 void on_trx_control_callback(TRX_CONTROL_TYPE type) {

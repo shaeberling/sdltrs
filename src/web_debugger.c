@@ -12,6 +12,7 @@
 
 static struct mg_mgr www_mgr;
 static SDL_Thread* thread;
+static SDL_Thread* emu_run_thread;
 static struct mg_connection* status_conn = NULL;
 static TRX_Context* ctx = NULL;
 static bool trx_running = true;
@@ -19,14 +20,23 @@ static bool trx_running = true;
 static bool init_webserver(void);
 static char* get_registers_json(void);
 
+static int emu_run_looper(void *ptr);
+static bool emulation_running = false;
+static uint32_t last_update_sent;
+
+static TRX_CONTROL_TYPE next_async_action = TRX_CONTROL_TYPE_NOOP;
+
 // public
 bool init_trs_xray(TRX_Context* ctx_param) {
 	if (!init_webserver()) {
     puts("ERROR(TRX): Aborting initialization.");
     return false;
   }
+  last_update_sent = clock();
   ctx = ctx_param;
-  return true; // TODO
+  emu_run_thread =
+      SDL_CreateThread(emu_run_looper, "TRX Emu Run Thread", (void *)NULL);
+  return true;
 }
 
 // public
@@ -124,6 +134,20 @@ static char* get_registers_json(void) {
     return str;
 }
 
+// Waits until it gets the signal to initiate continuous running.
+static int emu_run_looper(void *ptr) {
+  while(trx_running) {
+    SDL_Delay(50);
+    if (next_async_action != TRX_CONTROL_TYPE_NOOP) {
+      emulation_running = true;
+      ctx->control_callback(next_async_action);
+      emulation_running = false;
+      next_async_action = TRX_CONTROL_TYPE_NOOP;
+    }
+  }
+  return 0;
+}
+
 static void on_frontend_message(const char* msg) {
   if (strcmp("action/refresh", msg) == 0) {
     send_update_to_web_debugger();
@@ -134,7 +158,8 @@ static void on_frontend_message(const char* msg) {
     ctx->control_callback(TRX_CONTROL_TYPE_STEP_OVER);
     send_update_to_web_debugger();
   } else if (strcmp("action/continue", msg) == 0) {
-    ctx->control_callback(TRX_CONTROL_TYPE_CONTINUE);
+    // Running is done asynchronously to not block the main TRX thread.
+    next_async_action = TRX_CONTROL_TYPE_CONTINUE;
   } else if (strcmp("action/stop", msg) == 0) {
     ctx->control_callback(TRX_CONTROL_TYPE_HALT);
   } else if (strcmp("action/pause", msg) == 0) {
@@ -175,9 +200,22 @@ static void www_handler(struct mg_connection *conn,
 	}
 }
 
+static void handleDynamicUpdate() {
+  if (!emulation_running) return;
+  uint32_t now_millis = SDL_GetTicks();
+  uint32_t diff_millis = now_millis - last_update_sent;
+
+  if (diff_millis < 100) return;
+  send_update_to_web_debugger();
+  send_memory_segment("0/65536");
+  last_update_sent = now_millis;
+}
+
 static int www_looper(void *ptr) {
   while (trx_running) {
-      mg_mgr_poll(&www_mgr, 1000);
+    // puts("Loopey loopey");
+    mg_mgr_poll(&www_mgr, 90);
+    handleDynamicUpdate();
   }
   mg_mgr_free(&www_mgr);
   return 0;
