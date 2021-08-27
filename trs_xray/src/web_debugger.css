@@ -6,6 +6,10 @@ body {
   margin: 0;
 }
 
+input {
+  font-size: 1em;
+}
+
 h1 {
   font-family: 'Roboto', sans-serif;
   padding: 0;
@@ -85,7 +89,12 @@ h1 {
   padding: 10px;
 }
 
-#registers * {
+#left-hand-side {
+  display: inline-grid;
+  grid-template-columns: auto;
+}
+
+#registers *, #selection * {
   font-family: 'Roboto Mono', 'Courier New', Courier, monospace;
   text-transform: uppercase;
 }
@@ -104,6 +113,15 @@ h1 {
   color: #0D0;
   border: 1px rgb(0, 88, 0) solid;
   width: 2ch;
+}
+
+#selection {
+  padding: 8px;
+  display: grid;
+  grid-template-columns: auto min-content min-content
+}
+#selection label {
+  margin-right: 2em;
 }
 
 #flags{
