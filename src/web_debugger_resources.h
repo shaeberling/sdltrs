@@ -193,6 +193,7 @@ class TrsXray {\n\
         this.memInfo = new Map();\n\
         this.memoryData = null;\n\
         this.memoryChanged = new Uint8Array(0);\n\
+        this.lastByteColor = new Array(0xFFFFFF);\n\
         this.selectedMemoryRegion = -1;\n\
         this.hoveredByte = -1;\n\
         this.selectedByte = -1;\n\
@@ -202,6 +203,14 @@ class TrsXray {\n\
                 this.memInfo.set(i, idx);\n\
             }\n\
         });\n\
+        this.initCanvas();\n\
+    }\n\
+    initCanvas() {\n\
+        const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;\n\
+        this.canvas.width = NUM_BYTES_X * totalByteSize;\n\
+        this.canvas.height = NUM_BYTES_Y * totalByteSize;\n\
+        this.canvas.style.width = this.canvas.width + \"px\";\n\
+        this.canvas.style.height = this.canvas.height + \"px\";\n\
     }\n\
     onMessageFromEmulator(json) {\n\
         if (json.context)\n\
@@ -449,22 +458,26 @@ class TrsXray {\n\
     renderByte(x, y, removeHighlight = false) {\n\
         const addr = (y * NUM_BYTES_X) + x;\n\
         const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;\n\
-        if (addr == this.selectedByte || addr == this.hoveredByte || removeHighlight) {\n\
+        const changeHighlight = addr == this.selectedByte ||\n\
+            addr == this.hoveredByte ||\n\
+            removeHighlight;\n\
+        if (changeHighlight) {\n\
             this.ctx.fillStyle = addr == this.hoveredByte ? \"#88A\" :\n\
                 (addr == this.selectedByte ? \"#FFF\" : \"#000\");\n\
             this.ctx.fillRect(x * totalByteSize - 1, y * totalByteSize - 1, BYTE_SIZE_PX + 2, BYTE_SIZE_PX + 2);\n\
         }\n\
-        this.ctx.fillStyle = this.getColorForByte(addr);\n\
-        this.ctx.fillRect(x * totalByteSize, y * totalByteSize, BYTE_SIZE_PX, BYTE_SIZE_PX);\n\
+        // Optimize rendering by only updating changed bytes.\n\
+        // ~10x speed improvement.\n\
+        const color = this.getColorForByte(addr);\n\
+        if (color != this.lastByteColor[addr] || changeHighlight) {\n\
+            this.ctx.fillStyle = color;\n\
+            this.ctx.fillRect(x * totalByteSize, y * totalByteSize, BYTE_SIZE_PX, BYTE_SIZE_PX);\n\
+            this.lastByteColor[addr] = color;\n\
+        }\n\
     }\n\
     renderMemoryRegions() {\n\
         console.time(\"renderMemoryRegions\");\n\
-        const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;\n\
-        this.canvas.width = NUM_BYTES_X * totalByteSize;\n\
-        this.canvas.height = NUM_BYTES_Y * totalByteSize;\n\
-        this.canvas.style.width = this.canvas.width + \"px\";\n\
-        this.canvas.style.height = this.canvas.height + \"px\";\n\
-        this.ctx.beginPath();\n\
+        // this.ctx.beginPath();\n\
         for (let y = 0; y < NUM_BYTES_Y; ++y) {\n\
             for (let x = 0; x < NUM_BYTES_X; ++x) {\n\
                 this.renderByte(x, y);\n\

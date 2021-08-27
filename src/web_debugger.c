@@ -204,7 +204,7 @@ static void handleDynamicUpdate() {
   uint32_t now_millis = SDL_GetTicks();
   uint32_t diff_millis = now_millis - last_update_sent;
 
-  if (diff_millis < 90) return;
+  if (diff_millis < 40) return;
   send_update_to_web_debugger();
   send_memory_segment("0/65536");
   last_update_sent = now_millis;
@@ -213,7 +213,7 @@ static void handleDynamicUpdate() {
 static int www_looper(void *ptr) {
   while (trx_running) {
     // puts("Loopey loopey");
-    mg_mgr_poll(&www_mgr, 90);
+    mg_mgr_poll(&www_mgr, 40);
     handleDynamicUpdate();
   }
   mg_mgr_free(&www_mgr);
