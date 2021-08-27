@@ -69,6 +69,8 @@ class TrsXray {
   private memInfo: Map<number, number>;
   private memoryData: Uint8Array | null;
   private memoryChanged: Uint8Array;
+  private lastByteColor: Array<string>;
+
   private selectedMemoryRegion: number;
   private hoveredByte: number;
   private selectedByte: number;
@@ -84,6 +86,7 @@ class TrsXray {
     this.memInfo = new Map();
     this.memoryData = null;
     this.memoryChanged = new Uint8Array(0);
+    this.lastByteColor = new Array(0xFFFFFF);
     this.selectedMemoryRegion = -1;
     this.hoveredByte = -1;
     this.selectedByte = -1;
@@ -95,6 +98,16 @@ class TrsXray {
         this.memInfo.set(i, idx);
       }
     });
+
+    this.initCanvas();
+  }
+
+  private initCanvas(): void {
+    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
+    this.canvas.width = NUM_BYTES_X * totalByteSize;
+    this.canvas.height = NUM_BYTES_Y * totalByteSize;
+    this.canvas.style.width = this.canvas.width + "px";
+    this.canvas.style.height = this.canvas.height + "px";
   }
 
   private onMessageFromEmulator(json: IDataFromEmulator): void {
@@ -364,26 +377,30 @@ class TrsXray {
     const addr = (y * NUM_BYTES_X) + x;
     const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
 
-    if (addr == this.selectedByte || addr == this.hoveredByte || removeHighlight) {
+    const changeHighlight = addr == this.selectedByte ||
+                            addr == this.hoveredByte ||
+                            removeHighlight;
+    if (changeHighlight) {
       this.ctx.fillStyle = addr == this.hoveredByte ? "#88A" :
                           (addr == this.selectedByte ? "#FFF" : "#000");
       this.ctx.fillRect(x * totalByteSize - 1, y * totalByteSize - 1,
                         BYTE_SIZE_PX + 2, BYTE_SIZE_PX + 2);
     }
 
-    this.ctx.fillStyle = this.getColorForByte(addr);
-    this.ctx.fillRect(x * totalByteSize, y * totalByteSize,
-                      BYTE_SIZE_PX, BYTE_SIZE_PX);
+    // Optimize rendering by only updating changed bytes.
+    // ~10x speed improvement.
+    const color = this.getColorForByte(addr);
+    if (color != this.lastByteColor[addr] || changeHighlight) {
+      this.ctx.fillStyle = color;
+      this.ctx.fillRect(x * totalByteSize, y * totalByteSize,
+                        BYTE_SIZE_PX, BYTE_SIZE_PX);
+      this.lastByteColor[addr] = color;
+    }
   }
 
   private renderMemoryRegions(): void {
     console.time("renderMemoryRegions");
-    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
-    this.canvas.width = NUM_BYTES_X * totalByteSize;
-    this.canvas.height = NUM_BYTES_Y * totalByteSize;
-    this.canvas.style.width = this.canvas.width + "px";
-    this.canvas.style.height = this.canvas.height + "px";
-    this.ctx.beginPath();
+    // this.ctx.beginPath();
 
     for (let y = 0; y < NUM_BYTES_Y; ++y) {
       for (let x = 0; x < NUM_BYTES_X; ++x) {
