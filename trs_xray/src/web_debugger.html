@@ -82,10 +82,15 @@
     <div class="section">
       <div class="section-title">Selection</div>
       <div id="selection">
-        <label>Selected</label><input id="selected-addr-1" type="text" class="register" maxlength="2" /><input id="selected-addr-2" type="text" class="register" maxlength="2" />
-        <label>Value</label>
-        <div></div>
+        <svg id="add-breakpoint-pc" data="pc" class="add-breakpoint" viewBox="0 0 24 24" fill="currentColor"><g><rect height="2" width="11" x="3" y="10"/><rect height="2" width="11" x="3" y="6"/><rect height="2" width="7" x="3" y="14"/><polygon points="16,13 16,21 22,17"/></g></svg>
+        <svg id="add-breakpoint-memory" data="mem" class="add-breakpoint" viewBox="0 0 24 24" fill="currentColor"><g><path d="M14,10H3v2h11V10z M14,6H3v2h11V6z M18,14v-4h-2v4h-4v2h4v4h2v-4h4v-2H18z M3,16h7v-2H3V16z"/></g></svg>
+        <input id="selected-addr-1" type="text" class="register" maxlength="2" /><input id="selected-addr-2" type="text" class="register" maxlength="2" />
         <input id="selected-val" type="text" class="register" maxlength="2" />
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Breakpoints</div>
+      <div id="breakpoints">
       </div>
     </div>
     </div>

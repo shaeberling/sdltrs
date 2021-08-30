@@ -1,3 +1,7 @@
+:root {
+  --label-color: rgb(222,222,222);
+}
+
 body {
   background: #a1a799;
   color: #0D0;
@@ -8,6 +12,10 @@ body {
 
 input {
   font-size: 1em;
+}
+
+label {
+  color: var(--label-color);
 }
 
 h1 {
@@ -112,17 +120,54 @@ h1 {
   background-color: rgba(0, 0, 0, 0.5);
   color: #0D0;
   border: 1px rgb(0, 88, 0) solid;
+  padding: 1px;
+}
+input.register {
   width: 2ch;
 }
 
 #selection {
   padding: 8px;
   display: grid;
-  grid-template-columns: auto min-content min-content
+  grid-template-columns: min-content min-content min-content auto min-content;
 }
 #selection label {
   margin-right: 2em;
 }
+.add-breakpoint {
+  width: 22px;
+  height: 25px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+.add-breakpoint:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.add-breakpoint:active {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+#breakpoints {
+  padding: 10px;
+  display: grid;
+  grid-template-columns: min-content min-content auto min-content;
+  grid-row-gap: 2px;
+}
+.remove-breakpoint {
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="orange"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>');
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+.breakpoint-type {
+  font-size: 0.8em;
+  padding-top: 4px;
+  margin-left: 4px;
+  text-align: center;;
+  color: var(--label-color);
+}
+
 
 #flags{
   display: grid;

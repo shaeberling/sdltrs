@@ -13,6 +13,8 @@ const BYTE_RENDER_GAP = 1;
 const BYTE_SIZE_PX = 8;
 const NUM_BYTES_X = 132;
 const NUM_BYTES_Y = 132;
+// See web_debugger.h for definitions.
+const BP_TYPE_TEXT = ["Program Counter", "Memory Watch", "IO Watch"];
 const M3_TO_UTF = [
     "\u0020", "\u00a3", "\u007c", "\u00e9", "\u00dc", "\u00c5", "\u00ac", "\u00f6",
     "\u00d8", "\u00f9", "\u00f1", "\u0060", "\u0101", "\ue00d", "\u00c4", "\u00c3",
@@ -56,6 +58,7 @@ var MouseAction;
 class TrsXray {
     constructor() {
         this.socket = null;
+        this.lastBreakpoints = Array(0);
         this.canvas = document.getElementById("memory-container");
         this.ctx = this.canvas.getContext("2d");
         this.programCounter = 0;
@@ -86,9 +89,10 @@ class TrsXray {
     onMessageFromEmulator(json) {
         if (json.context)
             this.onContextUpdate(json.context);
-        if (json.registers) {
+        if (json.breakpoints)
+            this.onBreakpointUpdate(json.breakpoints);
+        if (json.registers)
             this.onRegisterUpdate(json.registers);
-        }
     }
     onControl(action) {
         if (this.socket != undefined)
@@ -122,6 +126,21 @@ class TrsXray {
         $("#reset-btn").on("click", (ev) => {
             this.onControl(ev.shiftKey ? "hard_reset" : "soft_reset");
         });
+        const addBreakpointHandler = (ev) => {
+            const type = $(ev.currentTarget).attr("data");
+            console.log(`Click data: ${ev.currentTarget} -> ${type}`);
+            const addr1 = $("#selected-addr-1").val();
+            const addr2 = $("#selected-addr-2").val();
+            console.log(`Add breakpoint for: ${addr1}/${addr2}`);
+            if (!addr1 || addr1.length != 2 || !addr2 || addr2.length != 2) {
+                alert("Invalid address");
+                return;
+            }
+            const addr = parseInt(`${addr1}${addr2}`, 16);
+            this.onControl(`add_breakpoint/${type}/${addr}`);
+        };
+        $("#add-breakpoint-pc").on("click", addBreakpointHandler);
+        $("#add-breakpoint-memory").on("click", addBreakpointHandler);
         $("#memory-container").on("mousemove", (evt) => {
             this.onMouseActionOnCanvas(evt.offsetX, evt.offsetY, MouseAction.MOVE);
         });
@@ -162,14 +181,15 @@ class TrsXray {
             if (evt.data instanceof Blob) {
                 evt.data.arrayBuffer().then((data) => {
                     this.onMemoryUpdate(new Uint8Array(data));
+                    this.renderMemoryRegions();
+                    this.renderDisplay();
                 });
             }
             else {
                 var json = JSON.parse(evt.data);
                 this.onMessageFromEmulator(json);
+                this.renderMemoryRegions();
             }
-            this.renderDisplay();
-            this.renderMemoryRegions();
         };
     }
     onContextUpdate(ctx) {
@@ -257,6 +277,27 @@ class TrsXray {
         setFlag("#flag-c", flag_carry);
         this.programCounter = registers.pc;
         this.stackPointer = registers.sp;
+    }
+    onBreakpointUpdate(breakpoints) {
+        if (JSON.stringify(this.lastBreakpoints) == JSON.stringify(breakpoints))
+            return;
+        this.lastBreakpoints = breakpoints;
+        console.log(JSON.stringify(this.lastBreakpoints));
+        console.log(JSON.stringify(breakpoints));
+        $("#breakpoints").empty();
+        for (var bp of breakpoints) {
+            let r1 = (bp.address & 0xFF00) >> 8;
+            let r2 = (bp.address & 0x00FF);
+            $(`<div class="register">${numToHex(r1)}</div>`).appendTo("#breakpoints");
+            $(`<div class="register">${numToHex(r2)}</div>`).appendTo("#breakpoints");
+            $(`<div class="breakpoint-type">${BP_TYPE_TEXT[bp.type]}</div>`).appendTo("#breakpoints");
+            $(`<div class="remove-breakpoint" data="${bp.id}"></div>`)
+                .on("click", (evt) => {
+                const id = $(evt.currentTarget).attr("data");
+                this.onControl(`remove_breakpoint/${id}`);
+            })
+                .appendTo("#breakpoints");
+        }
     }
     onMemoryUpdate(memory) {
         this.memoryChanged = new Uint8Array(memory.length);
@@ -348,7 +389,6 @@ class TrsXray {
     }
     renderMemoryRegions() {
         console.time("renderMemoryRegions");
-        // this.ctx.beginPath();
         for (let y = 0; y < NUM_BYTES_Y; ++y) {
             for (let x = 0; x < NUM_BYTES_X; ++x) {
                 this.renderByte(x, y);
@@ -396,7 +436,7 @@ class TrsXray {
     }
     debug_insertTestData() {
         console.log("Inserting test data for debugging...");
-        const data = { "context": { "system_name": "sdlTRS", "model": 3 }, "registers": { "pc": 1, "sp": 65535, "af": 65535, "bc": 0, "de": 0, "hl": 0, "af_prime": 0, "bc_prime": 0, "de_prime": 0, "hl_prime": 0, "ix": 0, "iy": 0, "i": 0, "r_1": 0, "r_2": 1, "z80_t_state_counter": 4, "z80_clockspeed": 2.0299999713897705, "z80_iff1": 0, "z80_iff2": 0, "z80_interrupt_mode": 0 } };
+        const data = { "context": { "system_name": "sdlTRS", "model": 3 }, "breakpoints": [{ "id": 0, "address": 4656, "type": 0 }, { "id": 1, "address": 6163, "type": 0 }, { "id": 2, "address": 9545, "type": 0 }], "registers": { "pc": 2, "sp": 65535, "af": 68, "bc": 0, "de": 0, "hl": 0, "af_prime": 0, "bc_prime": 0, "de_prime": 0, "hl_prime": 0, "ix": 0, "iy": 0, "i": 0, "r_1": 0, "r_2": 2, "z80_t_state_counter": 8, "z80_clockspeed": 2.0299999713897705, "z80_iff1": 0, "z80_iff2": 0, "z80_interrupt_mode": 0 } };
         this.onMessageFromEmulator(data);
     }
 }
