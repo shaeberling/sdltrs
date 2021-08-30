@@ -19,20 +19,38 @@ static bool trx_running = true;
 static bool init_webserver(void);
 static char* get_registers_json(void);
 
+static void handleDynamicUpdate();
 static int emu_run_looper(void *ptr);
 static bool emulation_running = false;
-static uint32_t last_update_sent;
+static int emulation_is_halting = false;
+static uint32_t last_update_sent = 0;
+
+typedef struct {
+  uint16_t address;
+  TRX_BREAK_TYPE type;
+  bool enabled;
+} TRX_Breakpoint;
+
+#define MAX_BREAKPOINTS 128
+static TRX_Breakpoint breakpoints[MAX_BREAKPOINTS];
 
 static TRX_CONTROL_TYPE next_async_action = TRX_CONTROL_TYPE_NOOP;
 
 // public
 bool init_trs_xray(TRX_Context* ctx_param) {
 	if (!init_webserver()) {
-    puts("ERROR(TRX): Aborting initialization.");
+    puts("[TRX] ERROR: Aborting initialization.");
     return false;
   }
   last_update_sent = clock();
   ctx = ctx_param;
+
+  for (int id = 0; id < MAX_BREAKPOINTS; ++id) {
+    breakpoints[id].address = 0;
+    breakpoints[id].type = 0;
+    breakpoints[id].enabled = false;
+  }
+
   emu_run_thread =
       SDL_CreateThread(emu_run_looper, "TRX Emu Run Thread", (void *)NULL);
   return true;
@@ -46,7 +64,7 @@ void trx_waitForExit() {
 
 // public
 void trx_shutdown() {
-  puts("Shutting down TRS X-ray Web debugger");
+  puts("[TRX] Shutting down Web debugger");
   trx_running = false;
 }
 
@@ -68,6 +86,40 @@ static void send_memory_segment(const char* params) {
   ctx->get_memory_segment(0, 0xFFFF, &segment);
   // Send registers.
   mg_ws_send(status_conn, (const char*)segment.data, segment.range.length, WEBSOCKET_OP_BINARY);
+}
+
+// Params: [address in decimal]. e.g. "1254"
+static void add_breakpoint(const char* params, TRX_BREAK_TYPE type) {
+  int addr = atoi(params);
+  if (addr == 0 && strcmp("0", params) != 0) {
+    puts("[TRX] Error: Cannot parse address.");
+    return;
+  }
+
+  int id = 0;
+  for (id = 0; id < MAX_BREAKPOINTS; ++id) {
+    if (!breakpoints[id].enabled) break;
+  }
+  breakpoints[id].address = addr;
+  breakpoints[id].type = type;
+  breakpoints[id].enabled = true;
+  ctx->breakpoint_callback(id, addr, type);
+  send_update_to_web_debugger();
+}
+
+static void remove_breakpoint(const char* params) {
+  int id = atoi(params);
+  if (id == 0 && strcmp("0", params) != 0) {
+    puts("[TRX] Error: Cannot parse breakpoint ID.");
+    return;
+  }
+  if (id >= MAX_BREAKPOINTS) {
+    puts("[TRX] Error: Breakpoint ID too large.");
+    return;
+  }
+  breakpoints[id].enabled = false;
+  ctx->remove_breakpoint_callback(id);
+  send_update_to_web_debugger();
 }
 
 static void handle_http_request(struct mg_connection *conn,
@@ -95,6 +147,17 @@ static char* get_registers_json(void) {
     cJSON_AddNumberToObject(context, "model", ctx->model);
     cJSON_AddItemToObject(json, "context", context);
 
+    cJSON* breaks = cJSON_CreateArray();
+    for (int i = 0; i < MAX_BREAKPOINTS; ++i) {
+      if (!breakpoints[i].enabled) continue;
+      cJSON* breakpoint = cJSON_CreateObject();
+      cJSON_AddNumberToObject(breakpoint, "id", i);
+      cJSON_AddNumberToObject(breakpoint, "address", breakpoints[i].address);
+      cJSON_AddNumberToObject(breakpoint, "type", breakpoints[i].type);
+      cJSON_AddItemToArray(breaks, breakpoint);
+    }
+    cJSON_AddItemToObject(json, "breakpoints", breaks);
+
     cJSON* registers = cJSON_CreateObject();
     cJSON_AddNumberToObject(registers, "pc", Z80_PC);
     cJSON_AddNumberToObject(registers, "sp", Z80_SP);
@@ -118,14 +181,6 @@ static char* get_registers_json(void) {
     cJSON_AddNumberToObject(registers, "z80_iff2", z80_state.iff2);
     cJSON_AddNumberToObject(registers, "z80_interrupt_mode", z80_state.interrupt_mode);
 
-    cJSON_AddNumberToObject(registers, "flag_sign", SIGN_FLAG != 0);
-    cJSON_AddNumberToObject(registers, "flag_zero", ZERO_FLAG != 0);
-    cJSON_AddNumberToObject(registers, "flag_undoc5", (Z80_F & UNDOC5_MASK) != 0);
-    cJSON_AddNumberToObject(registers, "flag_half_carry", HALF_CARRY_FLAG != 0);
-    cJSON_AddNumberToObject(registers, "flag_undoc3", (Z80_F & UNDOC3_MASK) != 0);
-    cJSON_AddNumberToObject(registers, "flag_overflow", OVERFLOW_FLAG != 0);
-    cJSON_AddNumberToObject(registers, "flag_subtract", SUBTRACT_FLAG != 0);
-    cJSON_AddNumberToObject(registers, "flag_carry", CARRY_FLAG != 0);
     cJSON_AddItemToObject(json, "registers", registers);
 
     char* str = cJSON_PrintUnformatted(json);
@@ -141,6 +196,7 @@ static int emu_run_looper(void *ptr) {
       emulation_running = true;
       ctx->control_callback(next_async_action);
       emulation_running = false;
+      emulation_is_halting = true;
       next_async_action = TRX_CONTROL_TYPE_NOOP;
     }
   }
@@ -170,8 +226,14 @@ static void on_frontend_message(const char* msg) {
     ctx->control_callback(TRX_CONTROL_TYPE_HARD_RESET);
   } else if (strncmp("action/get_memory", msg, 17) == 0) {
     send_memory_segment(msg + 18);
+  } else if (strncmp("action/add_breakpoint/pc", msg, 24) == 0) {
+    add_breakpoint(msg + 25, TRX_BREAK_PC);
+  } else if (strncmp("action/add_breakpoint/mem", msg, 25) == 0) {
+    add_breakpoint(msg + 26, TRX_BREAK_MEMORY);
+  } else if (strncmp("action/remove_breakpoint", msg, 24) == 0) {
+    remove_breakpoint(msg + 25);
   } else {
-    printf("WARNING(TRX): Unknown message: '%s'", msg);
+    printf("[TRX] WARNING: Unknown message: '%s'\n", msg);
   }
 }
 
@@ -200,19 +262,25 @@ static void www_handler(struct mg_connection *conn,
 }
 
 static void handleDynamicUpdate() {
-  if (!emulation_running) return;
+  // We want to send one last update when the running emulation shut down so
+  // that the frontend has the latest state.
+  if (!emulation_is_halting && !emulation_running) return;
+
+  if (emulation_is_halting) {
+    puts("[TRX] Haling emulation; sending one more update.");
+  }
   uint32_t now_millis = SDL_GetTicks();
   uint32_t diff_millis = now_millis - last_update_sent;
 
-  if (diff_millis < 40) return;
+  if (diff_millis < 40 && !emulation_is_halting) return;
   send_update_to_web_debugger();
   send_memory_segment("0/65536");
   last_update_sent = now_millis;
+  emulation_is_halting = false;
 }
 
 static int www_looper(void *ptr) {
   while (trx_running) {
-    // puts("Loopey loopey");
     mg_mgr_poll(&www_mgr, 40);
     handleDynamicUpdate();
   }
@@ -225,12 +293,12 @@ static bool init_webserver(void) {
   struct mg_connection *conn = mg_http_listen(
       &www_mgr, "0.0.0.0:8080", &www_handler, NULL /*fn_data args */);
   if (conn == NULL) {
-    puts("ERROR(Mongoose): Cannot set up listener!");
+    puts("[TRX] ERROR(Mongoose): Cannot set up listener!");
     return false;
   }
   thread = SDL_CreateThread(www_looper, "Mongoose thread", (void *)NULL);
   if (thread == NULL) {
-    puts("ERROR(Mongoose): Unable to create thread!");
+    puts("[TRX] ERROR(Mongoose/SDL): Unable to create thread!");
     return false;
   }
   return true;

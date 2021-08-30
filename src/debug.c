@@ -79,7 +79,7 @@ static struct
 } trap_table[MAX_TRAPS];
 
 
-static void debug_run(void);
+static void debug_run(int disable_continuous);
 
 static void help_message(void)
 {
@@ -345,16 +345,17 @@ void soft_reset() {
 void hard_reset() {
 	puts("Performing hard reset and running.");
 	trs_reset(1);
-	debug_run();
+	debug_run(0);
 }
 
 void run_emulation() {
-	z80_run(1);
+	// Forces non-continuous run, while handling traps.
+	debug_run(/* disable_continuous= */ 1);
 }
 
 void halt_emulation() {
 	puts("Halting Emulation");
-	stop_signaled = 1;
+	set_trap(Z80_PC, BREAK_ONCE_FLAG);
 }
 
 void on_trx_control_callback(TRX_CONTROL_TYPE type) {
@@ -372,6 +373,16 @@ void on_trx_get_memory_segment(int start, int length, TRX_MemorySegment* segment
 	for (int i = 0; i < length; ++i) {
 	  segment->data[i] = mem_read(start + i);
 	}
+}
+
+void on_trx_add_breakpoint(int bp_id, uint16_t addr, TRX_BREAK_TYPE type) {
+	int flag = BREAKPOINT_FLAG;  // TRX_BREAK_PC
+	if (type == TRX_BREAK_MEMORY) flag = WATCHPOINT_FLAG;
+	set_trap(addr, flag);
+}
+
+void on_trx_remove_breakpoint(int bp_id) {
+	clear_trap(bp_id);
 }
 
 void trs_debug(void)
@@ -413,6 +424,8 @@ void debug_init(void)
 		ctx.capabilities.memory_range.length = 0x200000;  // from trs_memory.c
     ctx.control_callback = &on_trx_control_callback;
 		ctx.get_memory_segment = &on_trx_get_memory_segment;
+		ctx.breakpoint_callback = &on_trx_add_breakpoint;
+		ctx.remove_breakpoint_callback = &on_trx_remove_breakpoint;
 		init_trs_xray(&ctx);
 }
 
@@ -454,7 +467,7 @@ static void print_memory(Uint16 address, int num_bytes)
     }
 }
 
-static void debug_run(void)
+static void debug_run(int disable_continuous)
 {
     Uint8 t;
     Uint8 byte;
@@ -486,11 +499,13 @@ static void debug_run(void)
 
 	if(print_instructions) disassemble(Z80_PC);
 
-	continuous = (!print_instructions && num_traps == 0);
+	continuous = !disable_continuous && (!print_instructions && num_traps == 0);
 	if (z80_run(continuous)) {
 	  puts("emt_debug instruction executed.");
 	  stop_signaled = 1;
 	}
+
+	// printf("Step: %.4x\n", Z80_PC);
 
 	t = traps[Z80_PC];
 	if(t & BREAKPOINT_FLAG)
@@ -616,7 +631,7 @@ void debug_shell(void)
 // 	    }
 // 	    else if(!strcmp(command, "cont") || !strcmp(command, "c"))
 // 	    {
-// 		debug_run();
+// 		debug_run(0);
 // 	    }
 // 	    else if(!strcmp(command, "dump") || !strcmp(command, "p"))
 // 	    {
@@ -748,13 +763,13 @@ void debug_shell(void)
 // 		}
 // 		if (is_call) {
 // 		    set_trap((Z80_PC + 3) % ADDRESS_SPACE, BREAK_ONCE_FLAG);
-// 		    debug_run();
+// 		    debug_run(0);
 // 		} else if (is_rst) {
 // 		    set_trap((Z80_PC + 1) % ADDRESS_SPACE, BREAK_ONCE_FLAG);
-// 		    debug_run();
+// 		    debug_run(0);
 // 		} else if (is_rep) {
 // 		    set_trap((Z80_PC + 2) % ADDRESS_SPACE, BREAK_ONCE_FLAG);
-// 		    debug_run();
+// 		    debug_run(0);
 // 		} else {
 // 		    z80_run((!strcmp(command, "nextint") || !strcmp(command, "ni")) ? 0 : -1);
 // 		}

@@ -82,7 +82,7 @@ typedef enum {
   TRX_BREAK_MEMORY = 1,
   TRX_BREAK_IO = 2
 } TRX_BREAK_TYPE;
-typedef void (*TRX_SetBreakPointCallback)(int bp_id, uint8_t addr, TRX_BREAK_TYPE type);
+typedef void (*TRX_SetBreakPointCallback)(int bp_id, uint16_t addr, TRX_BREAK_TYPE type);
 typedef void (*TRX_RemoveBreakPointCallback)(int bp_id);
 
 typedef struct {

@@ -82,10 +82,15 @@ char* web_debugger_html = "<!DOCTYPE html>\n\
     <div class=\"section\">\n\
       <div class=\"section-title\">Selection</div>\n\
       <div id=\"selection\">\n\
-        <label>Selected</label><input id=\"selected-addr-1\" type=\"text\" class=\"register\" maxlength=\"2\" /><input id=\"selected-addr-2\" type=\"text\" class=\"register\" maxlength=\"2\" />\n\
-        <label>Value</label>\n\
-        <div></div>\n\
+        <svg id=\"add-breakpoint-pc\" data=\"pc\" class=\"add-breakpoint\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><g><rect height=\"2\" width=\"11\" x=\"3\" y=\"10\"/><rect height=\"2\" width=\"11\" x=\"3\" y=\"6\"/><rect height=\"2\" width=\"7\" x=\"3\" y=\"14\"/><polygon points=\"16,13 16,21 22,17\"/></g></svg>\n\
+        <svg id=\"add-breakpoint-memory\" data=\"mem\" class=\"add-breakpoint\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><g><path d=\"M14,10H3v2h11V10z M14,6H3v2h11V6z M18,14v-4h-2v4h-4v2h4v4h2v-4h4v-2H18z M3,16h7v-2H3V16z\"/></g></svg>\n\
+        <input id=\"selected-addr-1\" type=\"text\" class=\"register\" maxlength=\"2\" /><input id=\"selected-addr-2\" type=\"text\" class=\"register\" maxlength=\"2\" />\n\
         <input id=\"selected-val\" type=\"text\" class=\"register\" maxlength=\"2\" />\n\
+      </div>\n\
+    </div>\n\
+    <div class=\"section\">\n\
+      <div class=\"section-title\">Breakpoints</div>\n\
+      <div id=\"breakpoints\">\n\
       </div>\n\
     </div>\n\
     </div>\n\
@@ -142,6 +147,8 @@ const BYTE_RENDER_GAP = 1;\n\
 const BYTE_SIZE_PX = 8;\n\
 const NUM_BYTES_X = 132;\n\
 const NUM_BYTES_Y = 132;\n\
+// See web_debugger.h for definitions.\n\
+const BP_TYPE_TEXT = [\"Program Counter\", \"Memory Watch\", \"IO Watch\"];\n\
 const M3_TO_UTF = [\n\
     \"\\u0020\", \"\\u00a3\", \"\\u007c\", \"\\u00e9\", \"\\u00dc\", \"\\u00c5\", \"\\u00ac\", \"\\u00f6\",\n\
     \"\\u00d8\", \"\\u00f9\", \"\\u00f1\", \"\\u0060\", \"\\u0101\", \"\\ue00d\", \"\\u00c4\", \"\\u00c3\",\n\
@@ -185,6 +192,7 @@ var MouseAction;\n\
 class TrsXray {\n\
     constructor() {\n\
         this.socket = null;\n\
+        this.lastBreakpoints = Array(0);\n\
         this.canvas = document.getElementById(\"memory-container\");\n\
         this.ctx = this.canvas.getContext(\"2d\");\n\
         this.programCounter = 0;\n\
@@ -215,9 +223,10 @@ class TrsXray {\n\
     onMessageFromEmulator(json) {\n\
         if (json.context)\n\
             this.onContextUpdate(json.context);\n\
-        if (json.registers) {\n\
+        if (json.breakpoints)\n\
+            this.onBreakpointUpdate(json.breakpoints);\n\
+        if (json.registers)\n\
             this.onRegisterUpdate(json.registers);\n\
-        }\n\
     }\n\
     onControl(action) {\n\
         if (this.socket != undefined)\n\
@@ -251,6 +260,21 @@ class TrsXray {\n\
         $(\"#reset-btn\").on(\"click\", (ev) => {\n\
             this.onControl(ev.shiftKey ? \"hard_reset\" : \"soft_reset\");\n\
         });\n\
+        const addBreakpointHandler = (ev) => {\n\
+            const type = $(ev.currentTarget).attr(\"data\");\n\
+            console.log(`Click data: ${ev.currentTarget} -> ${type}`);\n\
+            const addr1 = $(\"#selected-addr-1\").val();\n\
+            const addr2 = $(\"#selected-addr-2\").val();\n\
+            console.log(`Add breakpoint for: ${addr1}/${addr2}`);\n\
+            if (!addr1 || addr1.length != 2 || !addr2 || addr2.length != 2) {\n\
+                alert(\"Invalid address\");\n\
+                return;\n\
+            }\n\
+            const addr = parseInt(`${addr1}${addr2}`, 16);\n\
+            this.onControl(`add_breakpoint/${type}/${addr}`);\n\
+        };\n\
+        $(\"#add-breakpoint-pc\").on(\"click\", addBreakpointHandler);\n\
+        $(\"#add-breakpoint-memory\").on(\"click\", addBreakpointHandler);\n\
         $(\"#memory-container\").on(\"mousemove\", (evt) => {\n\
             this.onMouseActionOnCanvas(evt.offsetX, evt.offsetY, MouseAction.MOVE);\n\
         });\n\
@@ -291,14 +315,15 @@ class TrsXray {\n\
             if (evt.data instanceof Blob) {\n\
                 evt.data.arrayBuffer().then((data) => {\n\
                     this.onMemoryUpdate(new Uint8Array(data));\n\
+                    this.renderMemoryRegions();\n\
+                    this.renderDisplay();\n\
                 });\n\
             }\n\
             else {\n\
                 var json = JSON.parse(evt.data);\n\
                 this.onMessageFromEmulator(json);\n\
+                this.renderMemoryRegions();\n\
             }\n\
-            this.renderDisplay();\n\
-            this.renderMemoryRegions();\n\
         };\n\
     }\n\
     onContextUpdate(ctx) {\n\
@@ -386,6 +411,27 @@ class TrsXray {\n\
         setFlag(\"#flag-c\", flag_carry);\n\
         this.programCounter = registers.pc;\n\
         this.stackPointer = registers.sp;\n\
+    }\n\
+    onBreakpointUpdate(breakpoints) {\n\
+        if (JSON.stringify(this.lastBreakpoints) == JSON.stringify(breakpoints))\n\
+            return;\n\
+        this.lastBreakpoints = breakpoints;\n\
+        console.log(JSON.stringify(this.lastBreakpoints));\n\
+        console.log(JSON.stringify(breakpoints));\n\
+        $(\"#breakpoints\").empty();\n\
+        for (var bp of breakpoints) {\n\
+            let r1 = (bp.address & 0xFF00) >> 8;\n\
+            let r2 = (bp.address & 0x00FF);\n\
+            $(`<div class=\"register\">${numToHex(r1)}</div>`).appendTo(\"#breakpoints\");\n\
+            $(`<div class=\"register\">${numToHex(r2)}</div>`).appendTo(\"#breakpoints\");\n\
+            $(`<div class=\"breakpoint-type\">${BP_TYPE_TEXT[bp.type]}</div>`).appendTo(\"#breakpoints\");\n\
+            $(`<div class=\"remove-breakpoint\" data=\"${bp.id}\"></div>`)\n\
+                .on(\"click\", (evt) => {\n\
+                const id = $(evt.currentTarget).attr(\"data\");\n\
+                this.onControl(`remove_breakpoint/${id}`);\n\
+            })\n\
+                .appendTo(\"#breakpoints\");\n\
+        }\n\
     }\n\
     onMemoryUpdate(memory) {\n\
         this.memoryChanged = new Uint8Array(memory.length);\n\
@@ -477,7 +523,6 @@ class TrsXray {\n\
     }\n\
     renderMemoryRegions() {\n\
         console.time(\"renderMemoryRegions\");\n\
-        // this.ctx.beginPath();\n\
         for (let y = 0; y < NUM_BYTES_Y; ++y) {\n\
             for (let x = 0; x < NUM_BYTES_X; ++x) {\n\
                 this.renderByte(x, y);\n\
@@ -525,7 +570,7 @@ class TrsXray {\n\
     }\n\
     debug_insertTestData() {\n\
         console.log(\"Inserting test data for debugging...\");\n\
-        const data = { \"context\": { \"system_name\": \"sdlTRS\", \"model\": 3 }, \"registers\": { \"pc\": 1, \"sp\": 65535, \"af\": 65535, \"bc\": 0, \"de\": 0, \"hl\": 0, \"af_prime\": 0, \"bc_prime\": 0, \"de_prime\": 0, \"hl_prime\": 0, \"ix\": 0, \"iy\": 0, \"i\": 0, \"r_1\": 0, \"r_2\": 1, \"z80_t_state_counter\": 4, \"z80_clockspeed\": 2.0299999713897705, \"z80_iff1\": 0, \"z80_iff2\": 0, \"z80_interrupt_mode\": 0 } };\n\
+        const data = { \"context\": { \"system_name\": \"sdlTRS\", \"model\": 3 }, \"breakpoints\": [{ \"id\": 0, \"address\": 4656, \"type\": 0 }, { \"id\": 1, \"address\": 6163, \"type\": 0 }, { \"id\": 2, \"address\": 9545, \"type\": 0 }], \"registers\": { \"pc\": 2, \"sp\": 65535, \"af\": 68, \"bc\": 0, \"de\": 0, \"hl\": 0, \"af_prime\": 0, \"bc_prime\": 0, \"de_prime\": 0, \"hl_prime\": 0, \"ix\": 0, \"iy\": 0, \"i\": 0, \"r_1\": 0, \"r_2\": 2, \"z80_t_state_counter\": 8, \"z80_clockspeed\": 2.0299999713897705, \"z80_iff1\": 0, \"z80_iff2\": 0, \"z80_interrupt_mode\": 0 } };\n\
         this.onMessageFromEmulator(data);\n\
     }\n\
 }\n\
@@ -735,7 +780,11 @@ return [\n\
   }\n\
 ];\n\
 }";
-char* web_debugger_css = "body {\n\
+char* web_debugger_css = ":root {\n\
+  --label-color: rgb(222,222,222);\n\
+}\n\
+\n\
+body {\n\
   background: #a1a799;\n\
   color: #0D0;\n\
   border: 0;\n\
@@ -745,6 +794,10 @@ char* web_debugger_css = "body {\n\
 \n\
 input {\n\
   font-size: 1em;\n\
+}\n\
+\n\
+label {\n\
+  color: var(--label-color);\n\
 }\n\
 \n\
 h1 {\n\
@@ -849,17 +902,54 @@ h1 {\n\
   background-color: rgba(0, 0, 0, 0.5);\n\
   color: #0D0;\n\
   border: 1px rgb(0, 88, 0) solid;\n\
+  padding: 1px;\n\
+}\n\
+input.register {\n\
   width: 2ch;\n\
 }\n\
 \n\
 #selection {\n\
   padding: 8px;\n\
   display: grid;\n\
-  grid-template-columns: auto min-content min-content\n\
+  grid-template-columns: min-content min-content min-content auto min-content;\n\
 }\n\
 #selection label {\n\
   margin-right: 2em;\n\
 }\n\
+.add-breakpoint {\n\
+  width: 22px;\n\
+  height: 25px;\n\
+  cursor: pointer;\n\
+  margin-right: 5px;\n\
+}\n\
+.add-breakpoint:hover {\n\
+  background: rgba(255, 255, 255, 0.2);\n\
+}\n\
+.add-breakpoint:active {\n\
+  background: rgba(255, 255, 255, 0.3);\n\
+  color: white;\n\
+}\n\
+\n\
+#breakpoints {\n\
+  padding: 10px;\n\
+  display: grid;\n\
+  grid-template-columns: min-content min-content auto min-content;\n\
+  grid-row-gap: 2px;\n\
+}\n\
+.remove-breakpoint {\n\
+  background: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"orange\"><path d=\"M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z\"/></svg>');\n\
+  width: 20px;\n\
+  height: 20px;\n\
+  cursor: pointer;\n\
+}\n\
+.breakpoint-type {\n\
+  font-size: 0.8em;\n\
+  padding-top: 4px;\n\
+  margin-left: 4px;\n\
+  text-align: center;;\n\
+  color: var(--label-color);\n\
+}\n\
+\n\
 \n\
 #flags{\n\
   display: grid;\n\
