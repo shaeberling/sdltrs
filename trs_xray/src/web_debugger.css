@@ -23,6 +23,8 @@ h1 {
   padding: 0;
   margin: 0;
   display: inline-block;
+  border: 2px solid green;
+  padding: 3px 6px;
 }
 
 #navbar {

@@ -15,8 +15,8 @@ const	SIGN_MASK = 0x80;
 // Rendering parameters for the memory map.
 const BYTE_RENDER_GAP = 1;
 const BYTE_SIZE_PX = 8;
-const NUM_BYTES_X = 132;
-const NUM_BYTES_Y = 132;
+const NUM_BYTES_X = 256; //132;
+const NUM_BYTES_Y = 128; // 132;
 
 // See web_debugger.h for definitions.
 const BP_TYPE_TEXT = ["Program Counter", "Memory Watch", "IO Watch"];
@@ -67,6 +67,7 @@ class TrsXray {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private programCounter: number;
+  private prevProgramCounter: number;
   private stackPointer: number;
   private memRegions: MemoryRegions;
   private memInfo: Map<number, number>;
@@ -79,11 +80,13 @@ class TrsXray {
   private selectedByte: number;
 
   private enableDataViz: boolean;
+  private enableLineViz: boolean;
 
   constructor() {
     this.canvas = document.getElementById("memory-container") as HTMLCanvasElement;
     this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
     this.programCounter = 0;
+    this.prevProgramCounter = 0;
     this.stackPointer = 0;
     this.memRegions = getMemoryRegions();
     this.memInfo = new Map();
@@ -95,6 +98,7 @@ class TrsXray {
     this.selectedByte = -1;
 
     this.enableDataViz = false;
+    this.enableLineViz = false;
 
     this.memRegions.map((region, idx) => {
       for (let i = region.address[0]; i<= region.address[region.address.length - 1]; ++i) {
@@ -136,6 +140,9 @@ class TrsXray {
           break;
         case 'd':
           this.enableDataViz = !this.enableDataViz;
+          break;
+        case 'e':
+          this.enableLineViz = !this.enableLineViz;
           break;
         default:
           console.log(`Unhandled key event: ${evt.key}`);
@@ -317,6 +324,7 @@ class TrsXray {
     setFlag("#flag-n",  flag_subtract);
     setFlag("#flag-c",  flag_carry);
 
+    this.prevProgramCounter = this.programCounter;
     this.programCounter = registers.pc;
     this.stackPointer = registers.sp;
   }
@@ -442,6 +450,27 @@ class TrsXray {
     }
   }
 
+  private renderEffects(): void {
+    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
+    const addrPc0Y = Math.floor(this.prevProgramCounter / NUM_BYTES_X);
+    const addrPc0X = this.prevProgramCounter % NUM_BYTES_X;
+    const addrPc1Y = Math.floor(this.programCounter / NUM_BYTES_X);
+    const addrPc1X = this.programCounter % NUM_BYTES_X;
+
+    const pc0Y = addrPc0Y * totalByteSize + BYTE_SIZE_PX/2;
+    const pc0X = addrPc0X * totalByteSize + BYTE_SIZE_PX/2;
+    const pc1Y = addrPc1Y * totalByteSize + BYTE_SIZE_PX/2;
+    const pc1X = addrPc1X * totalByteSize + BYTE_SIZE_PX/2;
+
+    console.log(`Line: ${pc0X},${pc0Y} -> ${pc1X},${pc1Y}`);
+
+    this.ctx.beginPath();
+    this.ctx.strokeStyle = "yellow";
+    this.ctx.moveTo(pc0X, pc0Y);
+    this.ctx.lineTo(pc1X, pc1Y);
+    this.ctx.stroke();
+  }
+
   private renderMemoryRegions(): void {
     console.time("renderMemoryRegions");
     for (let y = 0; y < NUM_BYTES_Y; ++y) {
@@ -449,6 +478,7 @@ class TrsXray {
         this.renderByte(x, y);
       }
     }
+    if (this.enableLineViz) this.renderEffects();
     console.timeEnd("renderMemoryRegions");
   }
 
