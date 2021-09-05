@@ -367,22 +367,49 @@ void on_trx_control_callback(TRX_CONTROL_TYPE type) {
 	else if (type == TRX_CONTROL_TYPE_HARD_RESET) hard_reset();
 }
 
-void on_trx_get_memory_segment(int start, int length, TRX_MemorySegment* segment) {
-	segment->range.start = start;
-	segment->range.length = length;
-	for (int i = 0; i < length; ++i) {
-	  segment->data[i] = mem_read(start + i);
-	}
+void on_trx_get_memory_segment(int start, int length,
+                               TRX_MemorySegment* segment,
+                               bool force_full_update) {
+  // Only send a range of data that changed (within the given params).
+  static uint8_t previous_memory_[0xFFFF] = {0};
+  int start_actual = start;
+  if (!force_full_update) {
+    for (int i = start; i < start + length; ++i) {
+      int data = mem_read(i);
+      if (previous_memory_[i] != data) {
+        start_actual = i;
+        break;
+      }
+    }
+  }
+
+  int length_actual = length;
+  if (!force_full_update) {
+    for (int i = start + length - 1; i >= start; --i) {
+      int data = mem_read(i);
+      if (previous_memory_[i] != data) {
+        length_actual = (i - start_actual) + 1;
+        break;
+      }
+    }
+  }
+  segment->range.start = start_actual;
+  segment->range.length = length_actual;
+  for (int i = start_actual; i < start_actual + length_actual; ++i) {
+    int data = mem_read(i);
+    segment->data[i - start_actual] = data;
+    previous_memory_[i] = data;
+  }
 }
 
 void on_trx_add_breakpoint(int bp_id, uint16_t addr, TRX_BREAK_TYPE type) {
-	int flag = BREAKPOINT_FLAG;  // TRX_BREAK_PC
-	if (type == TRX_BREAK_MEMORY) flag = WATCHPOINT_FLAG;
-	set_trap(addr, flag);
+  int flag = BREAKPOINT_FLAG;  // TRX_BREAK_PC
+  if (type == TRX_BREAK_MEMORY) flag = WATCHPOINT_FLAG;
+  set_trap(addr, flag);
 }
 
 void on_trx_remove_breakpoint(int bp_id) {
-	clear_trap(bp_id);
+  clear_trap(bp_id);
 }
 
 char* on_trx_get_resource(TRX_RESOURCE_TYPE type) {

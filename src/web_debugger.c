@@ -89,21 +89,29 @@ static void send_memory_segment(const char* params) {
   if (status_conn == NULL) return;
   // printf("TRX: MemorySegment request: '%s'.", params);
 
-  // Extract parameters
-  int delim_pos = strchr(params, '/') - params;
-  char param_start_str[delim_pos + 1];
-  memcpy(param_start_str, params, delim_pos );
-  param_start_str[delim_pos] = '\0';
-  int param_start = atoi(param_start_str);
+  int param_start = 0;
+  int param_length = 0xFFFF;
 
-  int substr_length = strlen(params) - delim_pos;
-  char param_length_str[substr_length];
-  memcpy(param_length_str, params + delim_pos + 1, substr_length - 1);
-  param_length_str[substr_length - 1] = '\0';
-  int param_length = atoi(param_length_str);
-  // printf("Parameters: start(%d) length(%d)\n", param_start, param_length);
+  bool force_update = strcmp("force_update", params) == 0;
 
-  ctx->get_memory_segment(param_start, param_length, &memory_query_cache);
+  if (!force_update) {
+    // Extract parameters
+    int delim_pos = strchr(params, '/') - params;
+    char param_start_str[delim_pos + 1];
+    memcpy(param_start_str, params, delim_pos );
+    param_start_str[delim_pos] = '\0';
+    param_start = atoi(param_start_str);
+
+    int substr_length = strlen(params) - delim_pos;
+    char param_length_str[substr_length];
+    memcpy(param_length_str, params + delim_pos + 1, substr_length - 1);
+    param_length_str[substr_length - 1] = '\0';
+    param_length = atoi(param_length_str);
+    // printf("Parameters: start(%d) length(%d)\n", param_start, param_length);
+  }
+
+  ctx->get_memory_segment(param_start, param_length, &memory_query_cache,
+                          force_update);
   const TRX_MemorySegment* seg = &memory_query_cache;
 
   // // Add start metadata.

@@ -102,7 +102,7 @@ class TrsXray {
 
     this.enableDataViz = false;
     this.enableLineViz = false;
-    this.enableFullMemoryUpdate = false;
+    this.enableFullMemoryUpdate = true;
     this.memoryUpdateStartAddress = 0;
 
     this.memRegions.map((region, idx) => {
@@ -162,6 +162,9 @@ class TrsXray {
         case 'm':
           this.enableFullMemoryUpdate = !this.enableFullMemoryUpdate;
           break;
+        case 'r':
+          this.onControl("get_memory/force_update");
+          break;
         default:
           console.log(`Unhandled key event: ${evt.key}`);
       }
@@ -175,7 +178,8 @@ class TrsXray {
     $("#play-btn").on("click", () => { this.onControl("continue") });
     $("#stop-btn").on("click", () => { this.onControl("stop") });
     $("#reset-btn").on("click", (ev) => {
-      this.onControl(ev.shiftKey ? "hard_reset" : "soft_reset")
+      // this.onControl(ev.shiftKey ? "hard_reset" : "soft_reset")
+      this.onControl("get_memory/force_update");
     });
 
     const addBreakpointHandler = (ev: JQuery.ClickEvent) => {
@@ -373,13 +377,15 @@ class TrsXray {
   }
 
   private onMemoryUpdate(memory: Uint8Array): void {
+    // The first two bytes are the start offset address.
     let startAddr = (memory[0] << 8) + memory[1];
     console.log(`Starting Addr: ${startAddr}`);
     this.memoryChanged = new Uint8Array(0xFFFF);
     for (let i = 2; i < memory.length; ++i) {
-      if (this.memoryData[startAddr + i - 2] != memory[i]) {
-        this.memoryChanged[i - 2] = 1;
-        this.memoryData[startAddr + i - 2] = memory[i];
+      let addr = startAddr + i - 2;
+      if (this.memoryData[addr] != memory[i]) {
+        this.memoryChanged[addr] = 1;
+        this.memoryData[addr] = memory[i];
       }
     }
     this.onSelectionUpdate();

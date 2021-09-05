@@ -211,7 +211,7 @@ class TrsXray {\n\
         this.selectedByte = -1;\n\
         this.enableDataViz = false;\n\
         this.enableLineViz = false;\n\
-        this.enableFullMemoryUpdate = false;\n\
+        this.enableFullMemoryUpdate = true;\n\
         this.memoryUpdateStartAddress = 0;\n\
         this.memRegions.map((region, idx) => {\n\
             for (let i = region.address[0]; i <= region.address[region.address.length - 1]; ++i) {\n\
@@ -269,6 +269,9 @@ class TrsXray {\n\
                 case 'm':\n\
                     this.enableFullMemoryUpdate = !this.enableFullMemoryUpdate;\n\
                     break;\n\
+                case 'r':\n\
+                    this.onControl(\"get_memory/force_update\");\n\
+                    break;\n\
                 default:\n\
                     console.log(`Unhandled key event: ${evt.key}`);\n\
             }\n\
@@ -281,7 +284,8 @@ class TrsXray {\n\
         $(\"#play-btn\").on(\"click\", () => { this.onControl(\"continue\"); });\n\
         $(\"#stop-btn\").on(\"click\", () => { this.onControl(\"stop\"); });\n\
         $(\"#reset-btn\").on(\"click\", (ev) => {\n\
-            this.onControl(ev.shiftKey ? \"hard_reset\" : \"soft_reset\");\n\
+            // this.onControl(ev.shiftKey ? \"hard_reset\" : \"soft_reset\")\n\
+            this.onControl(\"get_memory/force_update\");\n\
         });\n\
         const addBreakpointHandler = (ev) => {\n\
             const type = $(ev.currentTarget).attr(\"data\");\n\
@@ -460,13 +464,15 @@ class TrsXray {\n\
         }\n\
     }\n\
     onMemoryUpdate(memory) {\n\
+        // The first two bytes are the start offset address.\n\
         let startAddr = (memory[0] << 8) + memory[1];\n\
         console.log(`Starting Addr: ${startAddr}`);\n\
         this.memoryChanged = new Uint8Array(0xFFFF);\n\
         for (let i = 2; i < memory.length; ++i) {\n\
-            if (this.memoryData[startAddr + i - 2] != memory[i]) {\n\
-                this.memoryChanged[i - 2] = 1;\n\
-                this.memoryData[startAddr + i - 2] = memory[i];\n\
+            let addr = startAddr + i - 2;\n\
+            if (this.memoryData[addr] != memory[i]) {\n\
+                this.memoryChanged[addr] = 1;\n\
+                this.memoryData[addr] = memory[i];\n\
             }\n\
         }\n\
         this.onSelectionUpdate();\n\

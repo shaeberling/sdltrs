@@ -96,7 +96,9 @@ typedef struct {
   TRX_MemoryRange range;
   uint8_t* data;
 } TRX_MemorySegment;
-typedef void (*TRX_GetMemorySegment)(int start, int length, TRX_MemorySegment* segment);
+typedef void (*TRX_GetMemorySegment)(int start, int length,
+                                     TRX_MemorySegment* segment,
+                                     bool force_full_update);
 typedef void (*TRX_SetMemorySegment)(TRX_MemorySegment* segment);
 
 typedef enum {
