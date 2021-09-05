@@ -1,3 +1,6 @@
+#ifndef __WEB_DEBUGGER_RESOURCES_H__
+#define __WEB_DEBUGGER_RESOURCES_H__
+
 char* web_debugger_html = "<!DOCTYPE html>\n\
 <html>\n\
   <head>\n\
@@ -200,14 +203,16 @@ class TrsXray {\n\
         this.stackPointer = 0;\n\
         this.memRegions = getMemoryRegions();\n\
         this.memInfo = new Map();\n\
-        this.memoryData = null;\n\
-        this.memoryChanged = new Uint8Array(0);\n\
-        this.lastByteColor = new Array(0xFFFFFF);\n\
+        this.memoryData = new Uint8Array(0xFFFF);\n\
+        this.memoryChanged = new Uint8Array(0xFFFF);\n\
+        this.lastByteColor = new Array(0xFFFF);\n\
         this.selectedMemoryRegion = -1;\n\
         this.hoveredByte = -1;\n\
         this.selectedByte = -1;\n\
         this.enableDataViz = false;\n\
         this.enableLineViz = false;\n\
+        this.enableFullMemoryUpdate = false;\n\
+        this.memoryUpdateStartAddress = 0;\n\
         this.memRegions.map((region, idx) => {\n\
             for (let i = region.address[0]; i <= region.address[region.address.length - 1]; ++i) {\n\
                 this.memInfo.set(i, idx);\n\
@@ -234,13 +239,23 @@ class TrsXray {\n\
         if (this.socket != undefined)\n\
             this.socket.send(\"action/\" + action);\n\
     }\n\
+    requestMemoryUpdate() {\n\
+        if (this.enableFullMemoryUpdate) {\n\
+            this.memoryUpdateStartAddress = 0;\n\
+            this.onControl(\"get_memory/0/65536\");\n\
+        }\n\
+        else {\n\
+            this.memoryUpdateStartAddress = 0x3C00;\n\
+            this.onControl(`get_memory/${0x3C00}/${0x3FFF - 0x3C00}`);\n\
+        }\n\
+    }\n\
     onLoad() {\n\
         $('input:text').on(\"keydown\", (evt) => { evt.stopPropagation(); });\n\
         document.addEventListener(\"keydown\", (evt) => {\n\
             switch (evt.key) {\n\
                 case 'j':\n\
                     this.onControl(\"step\");\n\
-                    this.onControl(\"get_memory/0/65536\");\n\
+                    this.requestMemoryUpdate();\n\
                     break;\n\
                 case 't':\n\
                     this.debug_insertTestData();\n\
@@ -251,13 +266,16 @@ class TrsXray {\n\
                 case 'e':\n\
                     this.enableLineViz = !this.enableLineViz;\n\
                     break;\n\
+                case 'm':\n\
+                    this.enableFullMemoryUpdate = !this.enableFullMemoryUpdate;\n\
+                    break;\n\
                 default:\n\
                     console.log(`Unhandled key event: ${evt.key}`);\n\
             }\n\
         });\n\
         $(\"#step-btn\").on(\"click\", () => {\n\
             this.onControl(\"step\");\n\
-            this.onControl(\"get_memory/0/65536\");\n\
+            this.requestMemoryUpdate();\n\
         });\n\
         $(\"#step-over-btn\").on(\"click\", () => { this.onControl(\"step-over\"); });\n\
         $(\"#play-btn\").on(\"click\", () => { this.onControl(\"continue\"); });\n\
@@ -320,7 +338,9 @@ class TrsXray {\n\
             if (evt.data instanceof Blob) {\n\
                 evt.data.arrayBuffer().then((data) => {\n\
                     this.onMemoryUpdate(new Uint8Array(data));\n\
-                    this.renderMemoryRegions();\n\
+                    // Unnecessary as we also request a register update that will queue\n\
+                    // a full memory region draw event.\n\
+                    // this.renderMemoryRegions();\n\
                     this.renderDisplay();\n\
                 });\n\
             }\n\
@@ -440,16 +460,15 @@ class TrsXray {\n\
         }\n\
     }\n\
     onMemoryUpdate(memory) {\n\
-        this.memoryChanged = new Uint8Array(memory.length);\n\
-        for (let i = 0; i < memory.length; ++i) {\n\
-            if (this.memoryData && this.memoryData.length == memory.length) {\n\
-                this.memoryChanged[i] = memory[i] == this.memoryData[i] ? 0 : 1;\n\
-            }\n\
-            else {\n\
-                this.memoryChanged[i] = 1;\n\
+        let startAddr = (memory[0] << 8) + memory[1];\n\
+        console.log(`Starting Addr: ${startAddr}`);\n\
+        this.memoryChanged = new Uint8Array(0xFFFF);\n\
+        for (let i = 2; i < memory.length; ++i) {\n\
+            if (this.memoryData[startAddr + i - 2] != memory[i]) {\n\
+                this.memoryChanged[i - 2] = 1;\n\
+                this.memoryData[startAddr + i - 2] = memory[i];\n\
             }\n\
         }\n\
-        this.memoryData = memory;\n\
         this.onSelectionUpdate();\n\
     }\n\
     onSelectionUpdate() {\n\
@@ -1042,3 +1061,5 @@ input.register {\n\
   margin: 10px;\n\
   padding: 5px;\n\
 }";
+
+#endif  // __WEB_DEBUGGER_RESOURCES_H__

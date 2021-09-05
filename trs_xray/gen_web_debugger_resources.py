@@ -2,6 +2,8 @@ import os
 import sys
 
 def main(out_path):
+  prefix_str = "#ifndef __WEB_DEBUGGER_RESOURCES_H__\n#define __WEB_DEBUGGER_RESOURCES_H__\n\n"
+  postfix_str = "\n#endif  // __WEB_DEBUGGER_RESOURCES_H__"
   html_str = escape_c_string(read_file("src/web_debugger.html"))
   ts_str = escape_c_string(read_file("dist/web_debugger.js"))
   mem_regions_str = escape_c_string(read_file("src/memory_regions.js"))
@@ -11,15 +13,21 @@ def main(out_path):
 
   norm_out_path = normalize_path(out_path)
   write_file(f'{norm_out_path}/web_debugger_resources.h',
-               html_str, ts_str + jquery_str + mem_regions_str, css_str)
+               prefix_str,
+               html_str,
+               ts_str + jquery_str + mem_regions_str,
+               css_str,
+               postfix_str)
 
-def write_file(filename, html_str, js_str, css_str):
+def write_file(filename, prefix_str, html_str, js_str, css_str, postfix_str):
   filename = normalize_path(filename)
   try:
     with open(filename, "w") as f:
+      f.write(prefix_str)
       f.write(f'char* web_debugger_html = "{html_str}";\n')
       f.write(f'char* web_debugger_js = "{js_str}";\n')
       f.write(f'char* web_debugger_css = "{css_str}";\n')
+      f.write(postfix_str)
   except:
     print(f"Cannot write to file '${filename}'.")
   print(f"Wrote to '${filename}'.")

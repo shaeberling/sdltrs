@@ -1,5 +1,4 @@
 #include "web_debugger.h"
-#include "web_debugger_resources.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -16,8 +15,10 @@ static struct mg_connection* status_conn = NULL;
 static TRX_Context* ctx = NULL;
 static bool trx_running = true;
 
+static TRX_MemorySegment memory_query_cache;
+
 static bool init_webserver(void);
-static char* get_registers_json(void);
+static char* get_registers_json(const TRX_StatusRegistersAndFlags* registers);
 
 static void handleDynamicUpdate();
 static int emu_run_looper(void *ptr);
@@ -51,6 +52,9 @@ bool init_trs_xray(TRX_Context* ctx_param) {
     breakpoints[id].enabled = false;
   }
 
+  // Pre-allocate for performance to max required size.
+  memory_query_cache.data = (uint8_t*) malloc(sizeof(uint8_t) * 0xFFFF);
+
   emu_run_thread =
       SDL_CreateThread(emu_run_looper, "TRX Emu Run Thread", (void *)NULL);
   return true;
@@ -71,8 +75,11 @@ void trx_shutdown() {
 static void send_update_to_web_debugger() {
   if (status_conn == NULL) return;
 
+  TRX_SystemState state;
+  ctx->get_state_update(&state);
+
   // Send registers.
-  char* message = get_registers_json();
+  char* message = get_registers_json(&state.registers);
   mg_ws_send(status_conn, message, strlen(message), WEBSOCKET_OP_TEXT);
   free(message);
 }
@@ -81,11 +88,36 @@ static void send_update_to_web_debugger() {
 static void send_memory_segment(const char* params) {
   if (status_conn == NULL) return;
   // printf("TRX: MemorySegment request: '%s'.", params);
-  // FIXME: Parse and use parameters!
-  TRX_MemorySegment segment;
-  ctx->get_memory_segment(0, 0xFFFF, &segment);
+
+  // Extract parameters
+  int delim_pos = strchr(params, '/') - params;
+  char param_start_str[delim_pos + 1];
+  memcpy(param_start_str, params, delim_pos );
+  param_start_str[delim_pos] = '\0';
+  int param_start = atoi(param_start_str);
+
+  int substr_length = strlen(params) - delim_pos;
+  char param_length_str[substr_length];
+  memcpy(param_length_str, params + delim_pos + 1, substr_length - 1);
+  param_length_str[substr_length - 1] = '\0';
+  int param_length = atoi(param_length_str);
+  // printf("Parameters: start(%d) length(%d)\n", param_start, param_length);
+
+  ctx->get_memory_segment(param_start, param_length, &memory_query_cache);
+  const TRX_MemorySegment* seg = &memory_query_cache;
+
+  // // Add start metadata.
+  uint8_t* data_to_send = (uint8_t*) malloc(sizeof(uint8_t) * (seg->range.length + 2));
+  uint8_t param_start_1 = (seg->range.start & 0xFF00) >> 8;
+  uint8_t param_start_2 = seg->range.start & 0x00FF;
+  data_to_send[0] = param_start_1;
+  data_to_send[1] = param_start_2;
+  // printf("Start param pieces: %d %d\n", param_start_1, param_start_2);
+  memcpy(data_to_send + 2, seg->data, seg->range.length);
+
   // Send registers.
-  mg_ws_send(status_conn, (const char*)segment.data, segment.range.length, WEBSOCKET_OP_BINARY);
+  mg_ws_send(status_conn, (const char*)data_to_send, seg->range.length + 2, WEBSOCKET_OP_BINARY);
+  free(data_to_send);
 }
 
 // Params: [address in decimal]. e.g. "1254"
@@ -122,24 +154,29 @@ static void remove_breakpoint(const char* params) {
   send_update_to_web_debugger();
 }
 
-static void handle_http_request(struct mg_connection *conn,
+static bool handle_http_request(struct mg_connection *conn,
                                 struct mg_http_message* message) {
   if (mg_http_match_uri(message, "/") || mg_http_match_uri(message, "/index.html")) {
-    mg_http_reply(conn, 200, "Content-Type: text/html\r\nConnection: close\r\n", web_debugger_html);
+    mg_http_reply(conn, 200, "Content-Type: text/html\r\nConnection: close\r\n",
+                  ctx->get_resource(TRX_RES_MAIN_HTML));
   } else if (mg_http_match_uri(message, "/web_debugger.js")) {
-    mg_http_reply(conn, 200, "Content-Type: application/javascript\r\nConnection: close\r\n", web_debugger_js);
+    mg_http_reply(conn, 200, "Content-Type: application/javascript\r\nConnection: close\r\n",
+                  ctx->get_resource(TRX_RES_MAIN_JS));
   } else if (mg_http_match_uri(message, "/web_debugger.css")) {
-    mg_http_reply(conn, 200, "Content-Type: text/css\r\nConnection: close\r\n", web_debugger_css);
+    mg_http_reply(conn, 200, "Content-Type: text/css\r\nConnection: close\r\n",
+                  ctx->get_resource(TRX_RES_MAIN_CSS));
   } else if (mg_http_match_uri(message, "/channel")) {
 		mg_ws_upgrade(conn, message, NULL);
 		status_conn = conn;
   } else {
     // Resource not found.
     mg_http_reply(conn, 404, "Content-Type: text/html\r\nConnection: close\r\n", "");
+    return false;
   }
+  return true;
 }
 
-static char* get_registers_json(void) {
+static char* get_registers_json(const TRX_StatusRegistersAndFlags* regs) {
 	  cJSON* json = cJSON_CreateObject();
 
     cJSON* context = cJSON_CreateObject();
@@ -159,27 +196,27 @@ static char* get_registers_json(void) {
     cJSON_AddItemToObject(json, "breakpoints", breaks);
 
     cJSON* registers = cJSON_CreateObject();
-    cJSON_AddNumberToObject(registers, "pc", Z80_PC);
-    cJSON_AddNumberToObject(registers, "sp", Z80_SP);
-    cJSON_AddNumberToObject(registers, "af", Z80_AF);
-    cJSON_AddNumberToObject(registers, "bc", Z80_BC);
-    cJSON_AddNumberToObject(registers, "de", Z80_DE);
-    cJSON_AddNumberToObject(registers, "hl", Z80_HL);
-    cJSON_AddNumberToObject(registers, "af_prime", Z80_AF_PRIME);
-    cJSON_AddNumberToObject(registers, "bc_prime", Z80_BC_PRIME);
-    cJSON_AddNumberToObject(registers, "de_prime", Z80_DE_PRIME);
-    cJSON_AddNumberToObject(registers, "hl_prime", Z80_HL_PRIME);
-    cJSON_AddNumberToObject(registers, "ix", Z80_IX);
-    cJSON_AddNumberToObject(registers, "iy", Z80_IY);
-    cJSON_AddNumberToObject(registers, "i", Z80_I);
-    cJSON_AddNumberToObject(registers, "r_1", Z80_R7);
-    cJSON_AddNumberToObject(registers, "r_2", (Z80_R & 0x7f));
+    cJSON_AddNumberToObject(registers, "pc", regs->pc);
+    cJSON_AddNumberToObject(registers, "sp", regs->sp);
+    cJSON_AddNumberToObject(registers, "af", regs->af);
+    cJSON_AddNumberToObject(registers, "bc", regs->bc);
+    cJSON_AddNumberToObject(registers, "de", regs->de);
+    cJSON_AddNumberToObject(registers, "hl", regs->hl);
+    cJSON_AddNumberToObject(registers, "af_prime", regs->af_prime);
+    cJSON_AddNumberToObject(registers, "bc_prime", regs->bc_prime);
+    cJSON_AddNumberToObject(registers, "de_prime", regs->de_prime);
+    cJSON_AddNumberToObject(registers, "hl_prime", regs->hl_prime);
+    cJSON_AddNumberToObject(registers, "ix", regs->ix);
+    cJSON_AddNumberToObject(registers, "iy", regs->iy);
+    cJSON_AddNumberToObject(registers, "i", regs->i);
+    cJSON_AddNumberToObject(registers, "r_1", regs->r);
+    cJSON_AddNumberToObject(registers, "r_2", (regs->r7 & 0x7f));
 
-    cJSON_AddNumberToObject(registers, "z80_t_state_counter", z80_state.t_count);
-    cJSON_AddNumberToObject(registers, "z80_clockspeed", z80_state.clockMHz);
-		cJSON_AddNumberToObject(registers, "z80_iff1", z80_state.iff1);
-    cJSON_AddNumberToObject(registers, "z80_iff2", z80_state.iff2);
-    cJSON_AddNumberToObject(registers, "z80_interrupt_mode", z80_state.interrupt_mode);
+    cJSON_AddNumberToObject(registers, "z80_t_state_counter", regs->t_count);
+    cJSON_AddNumberToObject(registers, "z80_clockspeed", regs->clock_mhz);
+		cJSON_AddNumberToObject(registers, "z80_iff1", regs->iff1);
+    cJSON_AddNumberToObject(registers, "z80_iff2", regs->iff2);
+    cJSON_AddNumberToObject(registers, "z80_interrupt_mode", regs->interrupt_mode);
 
     cJSON_AddItemToObject(json, "registers", registers);
 
@@ -267,7 +304,7 @@ static void handleDynamicUpdate() {
   if (!emulation_is_halting && !emulation_running) return;
 
   if (emulation_is_halting) {
-    puts("[TRX] Haling emulation; sending one more update.");
+    puts("[TRX] Halting emulation; sending one more update.");
   }
   uint32_t now_millis = SDL_GetTicks();
   uint32_t diff_millis = now_millis - last_update_sent;

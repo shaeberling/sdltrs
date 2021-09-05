@@ -71,7 +71,7 @@ class TrsXray {
   private stackPointer: number;
   private memRegions: MemoryRegions;
   private memInfo: Map<number, number>;
-  private memoryData: Uint8Array | null;
+  private memoryData: Uint8Array;
   private memoryChanged: Uint8Array;
   private lastByteColor: Array<string>;
 
@@ -81,6 +81,9 @@ class TrsXray {
 
   private enableDataViz: boolean;
   private enableLineViz: boolean;
+  // If false, only screen and registers are updated.
+  private enableFullMemoryUpdate: boolean;
+  private memoryUpdateStartAddress: number;
 
   constructor() {
     this.canvas = document.getElementById("memory-container") as HTMLCanvasElement;
@@ -90,15 +93,17 @@ class TrsXray {
     this.stackPointer = 0;
     this.memRegions = getMemoryRegions();
     this.memInfo = new Map();
-    this.memoryData = null;
-    this.memoryChanged = new Uint8Array(0);
-    this.lastByteColor = new Array(0xFFFFFF);
+    this.memoryData = new Uint8Array(0xFFFF);
+    this.memoryChanged = new Uint8Array(0xFFFF);
+    this.lastByteColor = new Array(0xFFFF);
     this.selectedMemoryRegion = -1;
     this.hoveredByte = -1;
     this.selectedByte = -1;
 
     this.enableDataViz = false;
     this.enableLineViz = false;
+    this.enableFullMemoryUpdate = false;
+    this.memoryUpdateStartAddress = 0;
 
     this.memRegions.map((region, idx) => {
       for (let i = region.address[0]; i<= region.address[region.address.length - 1]; ++i) {
@@ -127,13 +132,23 @@ class TrsXray {
     if (this.socket != undefined) this.socket.send("action/" + action);
   }
 
+  private requestMemoryUpdate(): void {
+    if (this.enableFullMemoryUpdate) {
+      this.memoryUpdateStartAddress = 0;
+      this.onControl("get_memory/0/65536");
+    } else {
+      this.memoryUpdateStartAddress = 0x3C00;
+      this.onControl(`get_memory/${0x3C00}/${0x3FFF-0x3C00}`);
+    }
+  }
+
   public onLoad(): void {
     $('input:text').on("keydown", (evt) => {evt.stopPropagation();});
     document.addEventListener("keydown", (evt) => {
       switch (evt.key) {
         case 'j':
           this.onControl("step");
-          this.onControl("get_memory/0/65536");
+          this.requestMemoryUpdate();
           break;
         case 't':
           this.debug_insertTestData();
@@ -144,6 +159,9 @@ class TrsXray {
         case 'e':
           this.enableLineViz = !this.enableLineViz;
           break;
+        case 'm':
+          this.enableFullMemoryUpdate = !this.enableFullMemoryUpdate;
+          break;
         default:
           console.log(`Unhandled key event: ${evt.key}`);
       }
@@ -151,7 +169,7 @@ class TrsXray {
 
     $("#step-btn").on("click", () => {
       this.onControl("step");
-      this.onControl("get_memory/0/65536");
+      this.requestMemoryUpdate();
     });
     $("#step-over-btn").on("click", () => { this.onControl("step-over") });
     $("#play-btn").on("click", () => { this.onControl("continue") });
@@ -219,7 +237,9 @@ class TrsXray {
       if (evt.data instanceof Blob) {
         evt.data.arrayBuffer().then((data) => {
           this.onMemoryUpdate(new Uint8Array(data));
-          this.renderMemoryRegions();
+          // Unnecessary as we also request a register update that will queue
+          // a full memory region draw event.
+          // this.renderMemoryRegions();
           this.renderDisplay();
         });
       } else {
@@ -353,15 +373,15 @@ class TrsXray {
   }
 
   private onMemoryUpdate(memory: Uint8Array): void {
-    this.memoryChanged = new Uint8Array(memory.length);
-    for (let i = 0; i < memory.length; ++i) {
-      if (this.memoryData && this.memoryData.length == memory.length) {
-        this.memoryChanged[i] = memory[i] == this.memoryData[i] ? 0 : 1;
-      } else {
-        this.memoryChanged[i] = 1;
+    let startAddr = (memory[0] << 8) + memory[1];
+    console.log(`Starting Addr: ${startAddr}`);
+    this.memoryChanged = new Uint8Array(0xFFFF);
+    for (let i = 2; i < memory.length; ++i) {
+      if (this.memoryData[startAddr + i - 2] != memory[i]) {
+        this.memoryChanged[i - 2] = 1;
+        this.memoryData[startAddr + i - 2] = memory[i];
       }
     }
-    this.memoryData = memory;
     this.onSelectionUpdate();
   }
 

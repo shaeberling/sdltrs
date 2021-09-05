@@ -52,6 +52,7 @@
 #include "error.h"
 #include "trs.h"
 #include "web_debugger.h"
+#include "web_debugger_resources.h"
 
 #define MAXLINE		(256)
 #define ADDRESS_SPACE	(0x10000)
@@ -369,7 +370,6 @@ void on_trx_control_callback(TRX_CONTROL_TYPE type) {
 void on_trx_get_memory_segment(int start, int length, TRX_MemorySegment* segment) {
 	segment->range.start = start;
 	segment->range.length = length;
-	segment->data = malloc(sizeof(uint8_t) * length);
 	for (int i = 0; i < length; ++i) {
 	  segment->data[i] = mem_read(start + i);
 	}
@@ -383,6 +383,49 @@ void on_trx_add_breakpoint(int bp_id, uint16_t addr, TRX_BREAK_TYPE type) {
 
 void on_trx_remove_breakpoint(int bp_id) {
 	clear_trap(bp_id);
+}
+
+char* on_trx_get_resource(TRX_RESOURCE_TYPE type) {
+	switch(type) {
+		case TRX_RES_MAIN_HTML:
+		  return web_debugger_html;
+		case TRX_RES_MAIN_JS:
+		  return web_debugger_js;
+		case TRX_RES_MAIN_CSS:
+		  return web_debugger_css;
+		case TRX_RES_TRS_FONT:
+		  // FIXME
+		  return web_debugger_html;
+		case TRX_RES_JQUERY:
+		  // FIXME
+		  return web_debugger_html;
+		default:
+		  printf("ERROR: Unknown resource type.");
+		  return web_debugger_html;
+	}
+}
+
+void on_trx_get_state_update(TRX_SystemState* state) {
+  state->registers.pc = Z80_PC;
+  state->registers.sp = Z80_SP;
+  state->registers.af = Z80_AF;
+  state->registers.bc = Z80_BC;
+  state->registers.de = Z80_DE;
+  state->registers.hl = Z80_HL;
+  state->registers.af_prime = Z80_AF_PRIME;
+  state->registers.bc_prime = Z80_BC_PRIME;
+  state->registers.de_prime = Z80_DE_PRIME;
+  state->registers.hl_prime = Z80_HL_PRIME;
+  state->registers.ix = Z80_IX;
+  state->registers.iy = Z80_IY;
+  state->registers.i = Z80_I;
+  state->registers.r7 = Z80_R7;
+  state->registers.r = Z80_R;
+  state->registers.t_count = z80_state.t_count;
+  state->registers.clock_mhz = z80_state.clockMHz;
+  state->registers.iff1 = z80_state.iff1;
+  state->registers.iff2 = z80_state.iff2;
+  state->registers.interrupt_mode = z80_state.interrupt_mode;
 }
 
 void trs_debug(void)
@@ -426,6 +469,8 @@ void debug_init(void)
 		ctx.get_memory_segment = &on_trx_get_memory_segment;
 		ctx.breakpoint_callback = &on_trx_add_breakpoint;
 		ctx.remove_breakpoint_callback = &on_trx_remove_breakpoint;
+		ctx.get_resource = &on_trx_get_resource;
+		ctx.get_state_update = &on_trx_get_state_update;
 		init_trs_xray(&ctx);
 }
 

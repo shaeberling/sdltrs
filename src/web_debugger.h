@@ -16,9 +16,16 @@ typedef struct {
   uint16_t ix;
   uint16_t iy;
 
-  uint16_t i;
-  uint16_t iff1;
-  uint16_t iff2;
+  uint8_t i;  /* interrupt-page address register */
+  uint8_t r;  /* memory-refresh register */
+  uint8_t r7; /* bit 7 of refresh register saved */
+
+  uint8_t iff1;
+  uint8_t iff2;
+
+  uint64_t t_count;
+  float clock_mhz;
+  uint8_t interrupt_mode;
 } TRX_StatusRegistersAndFlags;
 
 typedef enum {
@@ -62,7 +69,7 @@ typedef struct {
   //       (For read and write)
 } TRX_Capabilities;
 
-typedef void (*TRX_UpdateState)(const TRX_SystemState* state);
+typedef void (*TRX_UpdateState)(TRX_SystemState* state);
 
 typedef enum {
   TRX_CONTROL_TYPE_NOOP = 0,
@@ -92,9 +99,18 @@ typedef struct {
 typedef void (*TRX_GetMemorySegment)(int start, int length, TRX_MemorySegment* segment);
 typedef void (*TRX_SetMemorySegment)(TRX_MemorySegment* segment);
 
+typedef enum {
+  TRX_RES_MAIN_HTML = 0,
+  TRX_RES_MAIN_JS = 1,
+  TRX_RES_MAIN_CSS = 2,
+  TRX_RES_TRS_FONT = 3,
+  TRX_RES_JQUERY = 4,
+} TRX_RESOURCE_TYPE;
+typedef char* (*TRX_GetResource)(TRX_RESOURCE_TYPE type);
+
 typedef struct {
   // Descriptive name of the system under test (SUT).
-  char* system_name;
+  const char* system_name;
 
   // TRS model type.
   TRX_ModelType model;
@@ -111,9 +127,10 @@ typedef struct {
   TRX_RemoveBreakPointCallback remove_breakpoint_callback;
   TRX_GetMemorySegment get_memory_segment;
   TRX_SetMemorySegment set_memory_segment;
+  TRX_GetResource get_resource;
 
   // Tells the frontend about state changes of the SUT.
-  const TRX_UpdateState update_state;
+  TRX_UpdateState get_state_update;
 
 } TRX_Context;
 
