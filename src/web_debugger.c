@@ -197,6 +197,14 @@ static void remove_breakpoint(const char* params) {
   send_update_to_web_debugger();
 }
 
+static void key_event(const char* params) {
+  printf("Key Event: '%s'\n", params);
+  // bool down = params[0] == '1';
+  // bool shift = params[2] == '1';
+  // const char* key = params + 4;
+  // TODO: Pipe into SDL keyboard queue.
+}
+
 static bool handle_http_request(struct mg_connection *conn,
                                 struct mg_http_message* message) {
   if (mg_http_match_uri(message, "/") || mg_http_match_uri(message, "/index.html")) {
@@ -312,6 +320,8 @@ static void on_frontend_message(const char* msg) {
     add_breakpoint(msg + 26, TRX_BREAK_MEMORY);
   } else if (strncmp("action/remove_breakpoint", msg, 24) == 0) {
     remove_breakpoint(msg + 25);
+  } else if (strncmp("action/key_event", msg, 16) == 0) {
+    key_event(msg + 17);
   } else {
     printf("[TRX] WARNING: Unknown message: '%s'\n", msg);
   }

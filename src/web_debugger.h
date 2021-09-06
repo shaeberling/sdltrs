@@ -108,6 +108,11 @@ typedef enum {
 } TRX_RESOURCE_TYPE;
 typedef char* (*TRX_GetResource)(TRX_RESOURCE_TYPE type);
 
+typedef void (*TRX_OnPokeMemory)(uint16_t addr, uint8_t value, void* clazz);
+typedef void (*TRX_RegisterCallbacks)(void* clazz, TRX_OnPokeMemory opm);
+
+typedef void (*TRX_KeyEvent)(const char* key, bool down, bool shift);
+
 typedef struct {
   // Descriptive name of the system under test (SUT).
   const char* system_name;
@@ -128,6 +133,9 @@ typedef struct {
   TRX_MemoryRead read_memory;
   TRX_MemoryWrite write_memory;
   TRX_GetResource get_resource;
+  TRX_KeyEvent key_event;
+
+  TRX_RegisterCallbacks register_callbacks;
 
   // Tells the frontend about state changes of the SUT.
   TRX_UpdateState get_state_update;

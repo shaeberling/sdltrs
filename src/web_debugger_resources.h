@@ -209,6 +209,7 @@ class TrsXray {\n\
         this.selectedMemoryRegion = -1;\n\
         this.hoveredByte = -1;\n\
         this.selectedByte = -1;\n\
+        this.isMouseOnScreen = false;\n\
         this.enableDataViz = false;\n\
         this.enableLineViz = false;\n\
         this.enableFullMemoryUpdate = true;\n\
@@ -249,32 +250,49 @@ class TrsXray {\n\
             this.onControl(`get_memory/${0x3C00}/${0x3FFF - 0x3C00}`);\n\
         }\n\
     }\n\
+    /** Key pressed that is to be send to SUT. */\n\
+    onKeyPressForSut(direction, evt) {\n\
+        evt.preventDefault();\n\
+        if (evt.repeat)\n\
+            return;\n\
+        let shift = evt.shiftKey ? \"1\" : \"0\";\n\
+        let dir = direction == \"down\" ? \"1\" : \"0\";\n\
+        this.onControl(`key_event/${dir}/${shift}/${evt.key}`);\n\
+    }\n\
     onLoad() {\n\
         $('input:text').on(\"keydown\", (evt) => { evt.stopPropagation(); });\n\
         document.addEventListener(\"keydown\", (evt) => {\n\
-            switch (evt.key) {\n\
-                case 'j':\n\
-                    this.onControl(\"step\");\n\
-                    this.requestMemoryUpdate();\n\
-                    break;\n\
-                case 't':\n\
-                    this.debug_insertTestData();\n\
-                    break;\n\
-                case 'd':\n\
-                    this.enableDataViz = !this.enableDataViz;\n\
-                    break;\n\
-                case 'e':\n\
-                    this.enableLineViz = !this.enableLineViz;\n\
-                    break;\n\
-                case 'm':\n\
-                    this.enableFullMemoryUpdate = !this.enableFullMemoryUpdate;\n\
-                    break;\n\
-                case 'r':\n\
-                    this.onControl(\"get_memory/force_update\");\n\
-                    break;\n\
-                default:\n\
-                    console.log(`Unhandled key event: ${evt.key}`);\n\
+            if (this.isMouseOnScreen)\n\
+                this.onKeyPressForSut(\"down\", evt);\n\
+            else {\n\
+                switch (evt.key) {\n\
+                    case 'j':\n\
+                        this.onControl(\"step\");\n\
+                        this.requestMemoryUpdate();\n\
+                        break;\n\
+                    case 't':\n\
+                        this.debug_insertTestData();\n\
+                        break;\n\
+                    case 'd':\n\
+                        this.enableDataViz = !this.enableDataViz;\n\
+                        break;\n\
+                    case 'e':\n\
+                        this.enableLineViz = !this.enableLineViz;\n\
+                        break;\n\
+                    case 'm':\n\
+                        this.enableFullMemoryUpdate = !this.enableFullMemoryUpdate;\n\
+                        break;\n\
+                    case 'r':\n\
+                        this.onControl(\"get_memory/force_update\");\n\
+                        break;\n\
+                    default:\n\
+                        console.log(`Unhandled key event: ${evt.key}`);\n\
+                }\n\
             }\n\
+        });\n\
+        document.addEventListener(\"keyup\", (evt) => {\n\
+            if (this.isMouseOnScreen)\n\
+                this.onKeyPressForSut(\"up\", evt);\n\
         });\n\
         $(\"#step-btn\").on(\"click\", () => {\n\
             this.onControl(\"step\");\n\
@@ -308,6 +326,8 @@ class TrsXray {\n\
         $(\"#memory-container\").on(\"mouseup\", (evt) => {\n\
             this.onMouseActionOnCanvas(evt.offsetX, evt.offsetY, MouseAction.UP);\n\
         });\n\
+        $(\"#screen\").on(\"mouseenter\", () => { this.isMouseOnScreen = true; })\n\
+            .on(\"mouseleave\", () => { this.isMouseOnScreen = false; });\n\
         this.createMemoryRegions();\n\
         if (!isDebugMode())\n\
             this.keepConnectionAliveLoop();\n\
@@ -570,7 +590,7 @@ class TrsXray {\n\
         this.ctx.stroke();\n\
     }\n\
     renderMemoryRegions() {\n\
-        console.time(\"renderMemoryRegions\");\n\
+        // console.time(\"renderMemoryRegions\");\n\
         for (let y = 0; y < NUM_BYTES_Y; ++y) {\n\
             for (let x = 0; x < NUM_BYTES_X; ++x) {\n\
                 this.renderByte(x, y);\n\
@@ -578,7 +598,7 @@ class TrsXray {\n\
         }\n\
         if (this.enableLineViz)\n\
             this.renderEffects();\n\
-        console.timeEnd(\"renderMemoryRegions\");\n\
+        // console.timeEnd(\"renderMemoryRegions\");\n\
     }\n\
     onMouseActionOnCanvas(x, y, a) {\n\
         let setter = a == MouseAction.MOVE ?\n\
@@ -601,7 +621,7 @@ class TrsXray {\n\
         }\n\
     }\n\
     renderDisplay() {\n\
-        console.time(\"renderDisplay\");\n\
+        // console.time(\"renderDisplay\");\n\
         if (!this.memoryData)\n\
             return;\n\
         // FIXME: Need to determine when we have 64x16 or 80x24\n\
@@ -616,7 +636,7 @@ class TrsXray {\n\
             screenStr += \"\\n\";\n\
         }\n\
         $(\"#screen\").text(screenStr);\n\
-        console.timeEnd(\"renderDisplay\");\n\
+        // console.timeEnd(\"renderDisplay\");\n\
     }\n\
     debug_insertTestData() {\n\
         console.log(\"Inserting test data for debugging...\");\n\
