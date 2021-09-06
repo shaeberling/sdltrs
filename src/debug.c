@@ -367,41 +367,6 @@ void on_trx_control_callback(TRX_CONTROL_TYPE type) {
 	else if (type == TRX_CONTROL_TYPE_HARD_RESET) hard_reset();
 }
 
-void on_trx_get_memory_segment(int start, int length,
-                               TRX_MemorySegment* segment,
-                               bool force_full_update) {
-  // Only send a range of data that changed (within the given params).
-  static uint8_t previous_memory_[0xFFFF] = {0};
-  int start_actual = start;
-  if (!force_full_update) {
-    for (int i = start; i < start + length; ++i) {
-      int data = mem_read(i);
-      if (previous_memory_[i] != data) {
-        start_actual = i;
-        break;
-      }
-    }
-  }
-
-  int length_actual = length;
-  if (!force_full_update) {
-    for (int i = start + length - 1; i >= start; --i) {
-      int data = mem_read(i);
-      if (previous_memory_[i] != data) {
-        length_actual = (i - start_actual) + 1;
-        break;
-      }
-    }
-  }
-  segment->range.start = start_actual;
-  segment->range.length = length_actual;
-  for (int i = start_actual; i < start_actual + length_actual; ++i) {
-    int data = mem_read(i);
-    segment->data[i - start_actual] = data;
-    previous_memory_[i] = data;
-  }
-}
-
 void on_trx_add_breakpoint(int bp_id, uint16_t addr, TRX_BREAK_TYPE type) {
   int flag = BREAKPOINT_FLAG;  // TRX_BREAK_PC
   if (type == TRX_BREAK_MEMORY) flag = WATCHPOINT_FLAG;
@@ -455,6 +420,10 @@ void on_trx_get_state_update(TRX_SystemState* state) {
   state->registers.interrupt_mode = z80_state.interrupt_mode;
 }
 
+uint8_t trx_read_memory(uint16_t addr) {
+  return (uint8_t)mem_read(addr);
+}
+
 void trs_debug(void)
 {
     stop_signaled = 1;
@@ -475,7 +444,6 @@ void debug_init(void)
 
     puts("Type \"h(elp)\" for a list of commands.");
 
-
 		// FIXME: Add a flag to choose between CLI debugger UI and TRX.
     static TRX_Context ctx;
 
@@ -483,17 +451,10 @@ void debug_init(void)
 		ctx.model = trs_model;
 		ctx.rom_version = 0;
 
-		ctx.capabilities.control_step = true;
-		ctx.capabilities.control_step_over = true;
-		ctx.capabilities.control_continue = true;
-		ctx.capabilities.control_pause = true;
-		ctx.capabilities.pc_breakpoints = true;
-		ctx.capabilities.memory_breakpoints = true;
-		ctx.capabilities.io_breakpoints = true;
 		ctx.capabilities.memory_range.start = 0;
-		ctx.capabilities.memory_range.length = 0x200000;  // from trs_memory.c
+		ctx.capabilities.memory_range.length = 0xFFFF;
     ctx.control_callback = &on_trx_control_callback;
-		ctx.get_memory_segment = &on_trx_get_memory_segment;
+    ctx.read_memory = &trx_read_memory;
 		ctx.breakpoint_callback = &on_trx_add_breakpoint;
 		ctx.remove_breakpoint_callback = &on_trx_remove_breakpoint;
 		ctx.get_resource = &on_trx_get_resource;

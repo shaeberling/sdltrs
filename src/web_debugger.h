@@ -96,10 +96,8 @@ typedef struct {
   TRX_MemoryRange range;
   uint8_t* data;
 } TRX_MemorySegment;
-typedef void (*TRX_GetMemorySegment)(int start, int length,
-                                     TRX_MemorySegment* segment,
-                                     bool force_full_update);
-typedef void (*TRX_SetMemorySegment)(TRX_MemorySegment* segment);
+typedef uint8_t (*TRX_MemoryRead)(uint16_t addr);
+typedef void (*TRX_MemoryWrite)(uint16_t addr, uint8_t value);
 
 typedef enum {
   TRX_RES_MAIN_HTML = 0,
@@ -127,8 +125,8 @@ typedef struct {
   TRX_ControlCallback control_callback;
   TRX_SetBreakPointCallback breakpoint_callback;
   TRX_RemoveBreakPointCallback remove_breakpoint_callback;
-  TRX_GetMemorySegment get_memory_segment;
-  TRX_SetMemorySegment set_memory_segment;
+  TRX_MemoryRead read_memory;
+  TRX_MemoryWrite write_memory;
   TRX_GetResource get_resource;
 
   // Tells the frontend about state changes of the SUT.

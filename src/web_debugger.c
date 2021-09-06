@@ -84,6 +84,41 @@ static void send_update_to_web_debugger() {
   free(message);
 }
 
+void get_memory_segment(int start, int length,
+                        TRX_MemorySegment* segment,
+                        bool force_full_update) {
+  // Only send a range of data that changed (within the given params).
+  static uint8_t previous_memory_[0xFFFF] = {0};
+  int start_actual = start;
+  if (!force_full_update) {
+    for (int i = start; i < start + length; ++i) {
+      int data = ctx->read_memory(i);
+      if (previous_memory_[i] != data) {
+        start_actual = i;
+        break;
+      }
+    }
+  }
+
+  int length_actual = length;
+  if (!force_full_update) {
+    for (int i = start + length - 1; i >= start; --i) {
+      int data = ctx->read_memory(i);
+      if (previous_memory_[i] != data) {
+        length_actual = (i - start_actual) + 1;
+        break;
+      }
+    }
+  }
+  segment->range.start = start_actual;
+  segment->range.length = length_actual;
+  for (int i = start_actual; i < start_actual + length_actual; ++i) {
+    int data = ctx->read_memory(i);
+    segment->data[i - start_actual] = data;
+    previous_memory_[i] = data;
+  }
+}
+
 // Params: [start]/[length], e.g. "0/65536"
 static void send_memory_segment(const char* params) {
   if (status_conn == NULL) return;
@@ -110,8 +145,8 @@ static void send_memory_segment(const char* params) {
     // printf("Parameters: start(%d) length(%d)\n", param_start, param_length);
   }
 
-  ctx->get_memory_segment(param_start, param_length, &memory_query_cache,
-                          force_update);
+  get_memory_segment(param_start, param_length, &memory_query_cache,
+                     force_update);
   const TRX_MemorySegment* seg = &memory_query_cache;
 
   // // Add start metadata.
