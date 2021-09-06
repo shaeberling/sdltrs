@@ -72,6 +72,7 @@ class TrsXray {
         this.selectedMemoryRegion = -1;
         this.hoveredByte = -1;
         this.selectedByte = -1;
+        this.isMouseOnScreen = false;
         this.enableDataViz = false;
         this.enableLineViz = false;
         this.enableFullMemoryUpdate = true;
@@ -112,32 +113,49 @@ class TrsXray {
             this.onControl(`get_memory/${0x3C00}/${0x3FFF - 0x3C00}`);
         }
     }
+    /** Key pressed that is to be send to SUT. */
+    onKeyPressForSut(direction, evt) {
+        evt.preventDefault();
+        if (evt.repeat)
+            return;
+        let shift = evt.shiftKey ? "1" : "0";
+        let dir = direction == "down" ? "1" : "0";
+        this.onControl(`key_event/${dir}/${shift}/${evt.key}`);
+    }
     onLoad() {
         $('input:text').on("keydown", (evt) => { evt.stopPropagation(); });
         document.addEventListener("keydown", (evt) => {
-            switch (evt.key) {
-                case 'j':
-                    this.onControl("step");
-                    this.requestMemoryUpdate();
-                    break;
-                case 't':
-                    this.debug_insertTestData();
-                    break;
-                case 'd':
-                    this.enableDataViz = !this.enableDataViz;
-                    break;
-                case 'e':
-                    this.enableLineViz = !this.enableLineViz;
-                    break;
-                case 'm':
-                    this.enableFullMemoryUpdate = !this.enableFullMemoryUpdate;
-                    break;
-                case 'r':
-                    this.onControl("get_memory/force_update");
-                    break;
-                default:
-                    console.log(`Unhandled key event: ${evt.key}`);
+            if (this.isMouseOnScreen)
+                this.onKeyPressForSut("down", evt);
+            else {
+                switch (evt.key) {
+                    case 'j':
+                        this.onControl("step");
+                        this.requestMemoryUpdate();
+                        break;
+                    case 't':
+                        this.debug_insertTestData();
+                        break;
+                    case 'd':
+                        this.enableDataViz = !this.enableDataViz;
+                        break;
+                    case 'e':
+                        this.enableLineViz = !this.enableLineViz;
+                        break;
+                    case 'm':
+                        this.enableFullMemoryUpdate = !this.enableFullMemoryUpdate;
+                        break;
+                    case 'r':
+                        this.onControl("get_memory/force_update");
+                        break;
+                    default:
+                        console.log(`Unhandled key event: ${evt.key}`);
+                }
             }
+        });
+        document.addEventListener("keyup", (evt) => {
+            if (this.isMouseOnScreen)
+                this.onKeyPressForSut("up", evt);
         });
         $("#step-btn").on("click", () => {
             this.onControl("step");
@@ -171,6 +189,8 @@ class TrsXray {
         $("#memory-container").on("mouseup", (evt) => {
             this.onMouseActionOnCanvas(evt.offsetX, evt.offsetY, MouseAction.UP);
         });
+        $("#screen").on("mouseenter", () => { this.isMouseOnScreen = true; })
+            .on("mouseleave", () => { this.isMouseOnScreen = false; });
         this.createMemoryRegions();
         if (!isDebugMode())
             this.keepConnectionAliveLoop();
@@ -433,7 +453,7 @@ class TrsXray {
         this.ctx.stroke();
     }
     renderMemoryRegions() {
-        console.time("renderMemoryRegions");
+        // console.time("renderMemoryRegions");
         for (let y = 0; y < NUM_BYTES_Y; ++y) {
             for (let x = 0; x < NUM_BYTES_X; ++x) {
                 this.renderByte(x, y);
@@ -441,7 +461,7 @@ class TrsXray {
         }
         if (this.enableLineViz)
             this.renderEffects();
-        console.timeEnd("renderMemoryRegions");
+        // console.timeEnd("renderMemoryRegions");
     }
     onMouseActionOnCanvas(x, y, a) {
         let setter = a == MouseAction.MOVE ?
@@ -464,7 +484,7 @@ class TrsXray {
         }
     }
     renderDisplay() {
-        console.time("renderDisplay");
+        // console.time("renderDisplay");
         if (!this.memoryData)
             return;
         // FIXME: Need to determine when we have 64x16 or 80x24
@@ -479,7 +499,7 @@ class TrsXray {
             screenStr += "\n";
         }
         $("#screen").text(screenStr);
-        console.timeEnd("renderDisplay");
+        // console.timeEnd("renderDisplay");
     }
     debug_insertTestData() {
         console.log("Inserting test data for debugging...");
