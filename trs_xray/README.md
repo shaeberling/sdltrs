@@ -17,3 +17,5 @@ Install TypeScript globally:
 Install jquery types:
 `npm install --save-dev @types/jquery`
 
+Webpack
+npm install webpack ts-loader --save-dev

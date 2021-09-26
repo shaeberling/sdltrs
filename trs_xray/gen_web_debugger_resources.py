@@ -2,17 +2,17 @@ import os
 import sys
 
 def main(out_path):
-  prefix_str = "#ifndef __WEB_DEBUGGER_RESOURCES_H__\n#define __WEB_DEBUGGER_RESOURCES_H__\n\n"
-  postfix_str = "\n#endif  // __WEB_DEBUGGER_RESOURCES_H__"
-  html_str = escape_c_string(read_file("src/web_debugger.html"))
-  ts_str = escape_c_string(read_file("dist/web_debugger.js"))
+  prefix_str = "#ifndef __TRS_XRAY_RESOURCES_H__\n#define __TRS_XRAY_RESOURCES_H__\n\n"
+  postfix_str = "\n#endif  // __TRS_XRAY_RESOURCES_H__"
+  html_str = escape_c_string(read_file("src/trs_xray.html"))
+  ts_str = escape_c_string(read_file("dist/webpack/trs_xray.js"))
   mem_regions_str = escape_c_string(read_file("src/memory_regions.js"))
-  css_str = escape_c_string(read_file("src/web_debugger.css"))
+  css_str = escape_c_string(read_file("src/trs_xray.css"))
 
   jquery_str = escape_c_string(read_file("src/jquery.js"))
 
   norm_out_path = normalize_path(out_path)
-  write_file(f'{norm_out_path}/web_debugger_resources.h',
+  write_file(f'{norm_out_path}/trs_xray_resources.h',
                prefix_str,
                html_str,
                ts_str + jquery_str + mem_regions_str,
@@ -24,12 +24,12 @@ def write_file(filename, prefix_str, html_str, js_str, css_str, postfix_str):
   try:
     with open(filename, "w") as f:
       f.write(prefix_str)
-      f.write(f'char* web_debugger_html = "{html_str}";\n')
-      f.write(f'char* web_debugger_js = "{js_str}";\n')
-      f.write(f'char* web_debugger_css = "{css_str}";\n')
+      f.write(f'char* trs_xray_html = "{html_str}";\n')
+      f.write(f'char* trs_xray_js = "{js_str}";\n')
+      f.write(f'char* trs_xray_css = "{css_str}";\n')
       f.write(postfix_str)
   except:
-    print(f"Cannot write to file '${filename}'.")
+    print(f"Generator: Cannot write to file '${filename}'.")
   print(f"Wrote to '${filename}'.")
 
 def read_file(filename) -> str:
@@ -39,7 +39,8 @@ def read_file(filename) -> str:
       contents = f.read()
     return contents
   except:
-    print(f"Cannot read file {filename}")
+    print(f"Generator: Cannot read file {filename}")
+    exit(1)
   return ""
 
 def normalize_path(filename) -> str:

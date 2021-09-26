@@ -1,9 +1,23 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "module": "none",
-    "outDir": "dist",
-    "sourceMap": true,
+    "module": "es6",
+    "outDir": "dist/ts",
+    "moduleResolution": "node",
     "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "incremental": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "esModuleInterop": false,
   },
+  "lib": [
+    "es2015",
+    "dom"
+  ],
+  "types": [
+    "jquery",
+  ]
 }
