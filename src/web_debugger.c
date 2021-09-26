@@ -40,6 +40,28 @@ static bool alt_single_step_mode_ = false;
 static TRX_CONTROL_TYPE next_async_action = TRX_CONTROL_TYPE_NOOP;
 
 // public
+// Create context with default values. Caller own object.
+TRX_Context* get_default_trx_context() {
+  TRX_Context* ctx = malloc(sizeof(TRX_Context));
+  ctx->system_name = "";
+  ctx->model = 1;
+  ctx->rom_version = 0;
+  ctx->capabilities.memory_range.start = 0;
+  ctx->capabilities.memory_range.length = 0xFFFF;
+  ctx->capabilities.max_breakpoints = 128;
+  ctx->capabilities.alt_single_step_mode = false;
+  ctx->control_callback = NULL;
+  ctx->read_memory = NULL;
+  ctx->write_memory = NULL;
+  ctx->breakpoint_callback = NULL;
+  ctx->remove_breakpoint_callback = NULL;
+  ctx->get_resource = NULL;
+  ctx->get_state_update = NULL;
+  ctx->set_pc = NULL;
+  return ctx;
+}
+
+// public
 bool init_trs_xray(TRX_Context* ctx_param) {
   if (ctx != NULL) {
     puts("[TRX] ERROR: Already initialized.");

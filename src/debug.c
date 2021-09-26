@@ -453,25 +453,23 @@ void debug_init(void)
     puts("Type \"h(elp)\" for a list of commands.");
 
 		// FIXME: Add a flag to choose between CLI debugger UI and TRX.
-    static TRX_Context ctx;
+    TRX_Context* ctx = get_default_trx_context();
 
-		ctx.system_name = "sdlTRS";
-		ctx.model = trs_model;
-		ctx.rom_version = 0;
-
-		ctx.capabilities.memory_range.start = 0;
-		ctx.capabilities.memory_range.length = 0xFFFF;
-        ctx.capabilities.max_breakpoints = 128;
-        ctx.capabilities.alt_single_step_mode = true;
-        ctx.control_callback = &on_trx_control_callback;
-        ctx.read_memory = &trx_read_memory;
-        ctx.write_memory = &trx_write_memory;
-		ctx.breakpoint_callback = &on_trx_add_breakpoint;
-		ctx.remove_breakpoint_callback = &on_trx_remove_breakpoint;
-		ctx.get_resource = &on_trx_get_resource;
-		ctx.get_state_update = &on_trx_get_state_update;
-        ctx.set_pc = trx_set_pc;
-		init_trs_xray(&ctx);
+    ctx->system_name = "sdlTRS";
+    ctx->model = trs_model;
+    ctx->capabilities.memory_range.start = 0;
+    ctx->capabilities.memory_range.length = 0xFFFF;
+    ctx->capabilities.max_breakpoints = 128;
+    ctx->capabilities.alt_single_step_mode = true;
+    ctx->control_callback = &on_trx_control_callback;
+    ctx->read_memory = &trx_read_memory;
+    ctx->write_memory = &trx_write_memory;
+    ctx->breakpoint_callback = &on_trx_add_breakpoint;
+    ctx->remove_breakpoint_callback = &on_trx_remove_breakpoint;
+    ctx->get_resource = &on_trx_get_resource;
+    ctx->get_state_update = &on_trx_get_state_update;
+    ctx->set_pc = trx_set_pc;
+    init_trs_xray(ctx);
 }
 
 static void print_memory(Uint16 address, int num_bytes)

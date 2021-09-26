@@ -149,6 +149,9 @@ typedef struct {
 
 } TRX_Context;
 
+// Create context with default values. Caller owns the object.
+TRX_Context* get_default_trx_context();
+
 // Initialize the web debugger.
 bool init_trs_xray(TRX_Context* ctx);
 
