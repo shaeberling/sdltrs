@@ -33,26 +33,32 @@ typedef struct {
   bool synthetic; // TODO: NEW
 } TRX_Breakpoint;
 
-// TODO: Limit to max_breakpoints. And add logic to ensure not more can be
-// created + UX handling (error).
-#define MAX_BREAKPOINTS 128
-static TRX_Breakpoint breakpoints[MAX_BREAKPOINTS];
+static TRX_Breakpoint* breakpoints_ = NULL;
+static int max_breakpoints_ = 0;
+static bool alt_single_step_mode_ = false;
 
 static TRX_CONTROL_TYPE next_async_action = TRX_CONTROL_TYPE_NOOP;
 
 // public
 bool init_trs_xray(TRX_Context* ctx_param) {
-	if (!init_webserver()) {
-    puts("[TRX] ERROR: Aborting initialization.");
+  if (ctx != NULL) {
+    puts("[TRX] ERROR: Already initialized.");
     return false;
   }
+	if (!init_webserver()) {
+    puts("[TRX] ERROR: Cannot init webserver. Aborting initialization.");
+    return false;
+  }
+  max_breakpoints_ = ctx_param->capabilities.max_breakpoints;
+  alt_single_step_mode_ = ctx_param->capabilities.alt_single_step_mode;
   last_update_sent = clock();
   ctx = ctx_param;
 
-  for (int id = 0; id < MAX_BREAKPOINTS; ++id) {
-    breakpoints[id].address = 0;
-    breakpoints[id].type = 0;
-    breakpoints[id].enabled = false;
+  breakpoints_ = malloc(sizeof(TRX_Breakpoint) * max_breakpoints_);
+  for (int id = 0; id < max_breakpoints_; ++id) {
+    breakpoints_[id].address = 0;
+    breakpoints_[id].type = 0;
+    breakpoints_[id].enabled = false;
   }
 
   // Pre-allocate for performance to max required size.
@@ -77,6 +83,7 @@ void trx_shutdown() {
 
 static void inject_demo_program(void) {
   const uint16_t START = 0x8000;
+  // This is the screen fill demo, shown at Tandy Assembly 2021.
   uint8_t prog[15] = { 0x21, 0x00, 0x3c, 0x01, 0x00, 0x04, 0x36, 0xbf, 0x23,
                        0x0b, 0x78, 0xb1, 0x20, 0xf8, 0xc9 };
   for (int i = 0; i < 15; i++) {
@@ -201,12 +208,12 @@ static void add_breakpoint(const char* params, TRX_BREAK_TYPE type) {
   }
 
   int id = 0;
-  for (id = 0; id < MAX_BREAKPOINTS; ++id) {
-    if (!breakpoints[id].enabled) break;
+  for (id = 0; id < max_breakpoints_; ++id) {
+    if (!breakpoints_[id].enabled) break;
   }
-  breakpoints[id].address = addr;
-  breakpoints[id].type = type;
-  breakpoints[id].enabled = true;
+  breakpoints_[id].address = addr;
+  breakpoints_[id].type = type;
+  breakpoints_[id].enabled = true;
   ctx->breakpoint_callback(id, addr, type);
   send_update_to_web_debugger();
 }
@@ -217,11 +224,11 @@ static void remove_breakpoint(const char* params) {
     puts("[TRX] Error: Cannot parse breakpoint ID.");
     return;
   }
-  if (id >= MAX_BREAKPOINTS) {
+  if (id >= max_breakpoints_) {
     puts("[TRX] Error: Breakpoint ID too large.");
     return;
   }
-  breakpoints[id].enabled = false;
+  breakpoints_[id].enabled = false;
   ctx->remove_breakpoint_callback(id);
   send_update_to_web_debugger();
 }
@@ -265,12 +272,12 @@ static char* get_registers_json(const TRX_StatusRegistersAndFlags* regs) {
     cJSON_AddItemToObject(json, "context", context);
 
     cJSON* breaks = cJSON_CreateArray();
-    for (int i = 0; i < MAX_BREAKPOINTS; ++i) {
-      if (!breakpoints[i].enabled) continue;
+    for (int i = 0; i < max_breakpoints_; ++i) {
+      if (!breakpoints_[i].enabled) continue;
       cJSON* breakpoint = cJSON_CreateObject();
       cJSON_AddNumberToObject(breakpoint, "id", i);
-      cJSON_AddNumberToObject(breakpoint, "address", breakpoints[i].address);
-      cJSON_AddNumberToObject(breakpoint, "type", breakpoints[i].type);
+      cJSON_AddNumberToObject(breakpoint, "address", breakpoints_[i].address);
+      cJSON_AddNumberToObject(breakpoint, "type", breakpoints_[i].type);
       cJSON_AddItemToArray(breaks, breakpoint);
     }
     cJSON_AddItemToObject(json, "breakpoints", breaks);
