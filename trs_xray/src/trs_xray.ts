@@ -141,7 +141,6 @@ class TrsXray {
       this.onControl("step");
       this.requestMemoryUpdate();
     });
-    $("#step-over-btn").on("click", () => { this.onControl("step-over") });
     $("#play-btn").on("click", () => { this.onControl("continue") });
     $("#stop-btn").on("click", () => { this.onControl("stop") });
     $("#reset-btn").on("click", (ev) => {
@@ -247,7 +246,6 @@ class TrsXray {
   private onMemoryUpdate(memory: Uint8Array): void {
     // The first two bytes are the start offset address.
     let startAddr = (memory[0] << 8) + memory[1];
-    console.log(`Starting Addr: ${startAddr}`);
     for (let i = 2; i < memory.length; ++i) {
       let addr = startAddr + i - 2;
       if (this.memoryData[addr] != memory[i]) {
@@ -263,9 +261,7 @@ class TrsXray {
   private onSelectionUpdate(sel: number): void {
     if (sel >= 0) {
       this.selectedByte = sel;
-      console.log(`Selected: ${sel} -1-> ${this.selectedByte}`);
     }
-    console.log(`Selected: ${sel} -2-> ${this.selectedByte}`);
 
     let hi = (this.selectedByte & 0xFF00) >> 8;
     let lo = (this.selectedByte & 0x00FF);

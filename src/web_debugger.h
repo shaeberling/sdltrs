@@ -79,13 +79,11 @@ typedef void (*TRX_UpdateState)(TRX_SystemState* state);
 typedef enum {
   TRX_CONTROL_TYPE_NOOP = 0,
   TRX_CONTROL_TYPE_STEP = 1,
-  TRX_CONTROL_TYPE_STEP_OVER = 2,
   // Note: This is called asynchronously so doesn't need to return immediately.
-  TRX_CONTROL_TYPE_CONTINUE = 3,
-  TRX_CONTROL_TYPE_HALT = 4,
-  TRX_CONTROL_TYPE_PAUSE = 5,
-  TRX_CONTROL_TYPE_SOFT_RESET = 6,
-  TRX_CONTROL_TYPE_HARD_RESET = 7
+  TRX_CONTROL_TYPE_CONTINUE = 2,
+  TRX_CONTROL_TYPE_HALT = 3,
+  TRX_CONTROL_TYPE_SOFT_RESET = 4,
+  TRX_CONTROL_TYPE_HARD_RESET = 5
 } TRX_CONTROL_TYPE;
 typedef void (*TRX_ControlCallback)(TRX_CONTROL_TYPE type);
 
