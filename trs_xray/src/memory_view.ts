@@ -100,9 +100,8 @@ export class MemoryView {
 
   public onRegisterUpdate(pc: number, sp: number) {
     this.prevProgramCounter = this.programCounter;
-    this.prevProgramCounter = pc;
+    this.programCounter = pc;
     this.stackPointer = sp;
-
   }
 
   private initCanvas(): void {

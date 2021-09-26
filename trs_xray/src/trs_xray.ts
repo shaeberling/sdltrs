@@ -135,6 +135,12 @@ class TrsXray {
           case 'e':
             this.memoryView.toggleLineViz();
             break;
+          case 'M':
+            this.toggleVisibility("memory-regions-section");
+            break;
+          case 'S':
+            this.toggleVisibility("screen-section");
+            break;
           case 'm':
             this.enableFullMemoryUpdate = !this.enableFullMemoryUpdate;
             break;
@@ -183,6 +189,10 @@ class TrsXray {
     this.createMemoryRegions();
 
     if (!isDebugMode()) this.keepConnectionAliveLoop();
+  }
+
+  private toggleVisibility(elementId: string): void {
+    $(`#${elementId}`).toggle();
   }
 
   private keepConnectionAliveLoop() {
