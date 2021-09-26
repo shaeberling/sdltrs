@@ -79,6 +79,11 @@ export class MemoryView {
     this.renderMemoryRegions();
   }
 
+  public onSelectedByteChanged(addr: number): void {
+    this.selectedByte = addr;
+    this.renderMemoryRegions();
+  }
+
   public renderMemoryRegions(): void {
     // console.time("renderMemoryRegions");
     for (let y = 0; y < NUM_BYTES_Y; ++y) {

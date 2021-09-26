@@ -168,6 +168,7 @@ input.register {
   margin-left: 4px;
   text-align: center;;
   color: var(--label-color);
+  cursor: zoom-in;
 }
 
 

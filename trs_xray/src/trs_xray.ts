@@ -39,18 +39,6 @@ class TrsXray {
     this.registersView = new RegisterPanel();
     this.enableFullMemoryUpdate = true;
     this.memoryUpdateStartAddress = 0;
-
-    $("#selected-val").on('keyup', (evt) => {
-      if (evt.key == "Enter") {
-        const valStr = $('#selected-val').val() as string;
-        const value = parseInt(valStr, 16);
-        if (value != NaN) {
-          this.writeMem(this.selectedByte, value);
-        } else {
-          console.error(`Cannot parse value: '${valStr}'`);
-        }
-      }
-    });
   }
 
   private writeMem(addr: number, value: number): void {
@@ -172,23 +160,56 @@ class TrsXray {
     const addBreakpointHandler = (ev: JQuery.ClickEvent) => {
       const type = $(ev.currentTarget).attr("data");
       console.log(`Click data: ${ev.currentTarget} -> ${type}`);
-      const addr1 = $("#selected-addr-1").val() as string;
-      const addr2 = $("#selected-addr-2").val() as string;
-      console.log(`Add breakpoint for: ${addr1}/${addr2}`);
+      const addr = this.getSelectionFromTextfields();
+      console.log(`Add breakpoint for: ${numToHex(addr)}(${addr})`);
 
-      if (!addr1 || addr1.length != 2 || !addr2 || addr2.length != 2) {
+      if (addr == NaN) {
         alert("Invalid address");
         return;
       }
-      const addr = parseInt(`${addr1}${addr2}`, 16);
       this.onControl(`add_breakpoint/${type}/${addr}`)
     };
+    $("#selected-val").on("keyup", (evt) => {
+      if (evt.key == "Enter") {
+        const valStr = $("#selected-val").val() as string;
+        const value = parseInt(valStr, 16);
+        if (value != NaN) {
+          this.writeMem(this.selectedByte, value);
+        } else {
+          console.error(`Cannot parse value: '${valStr}'`);
+        }
+      }
+    });
+    $("#selected-addr-1").on("focusout", (evt) => {
+      this.updateSelectionFromTextField();
+    });
+    $("#selected-addr-2").on("focusout", (evt) => {
+      this.updateSelectionFromTextField();
+    });
     $("#add-breakpoint-pc").on("click", addBreakpointHandler);
     $("#add-breakpoint-memory").on("click", addBreakpointHandler);
 
     this.createMemoryRegions();
+    this.toggleVisibility("memory-regions-section");  // Hide by default.
 
     if (!isDebugMode()) this.keepConnectionAliveLoop();
+  }
+
+  private updateSelectionFromTextField(): void {
+    const newSelection = this.getSelectionFromTextfields();
+    if (newSelection != NaN) {
+      this.onSelectionUpdate(newSelection);
+      this.memoryView.onSelectedByteChanged(this.selectedByte);
+    }
+  }
+
+  private getSelectionFromTextfields(): number {
+    const addr1 = $("#selected-addr-1").val() as string;
+    const addr2 = $("#selected-addr-2").val() as string;
+    if (!addr1 || addr1.length != 2 || !addr2 || addr2.length != 2) {
+      return NaN;
+    }
+    return parseInt(`${addr1}${addr2}`, 16);
   }
 
   private toggleVisibility(elementId: string): void {
@@ -254,11 +275,17 @@ class TrsXray {
     console.log(JSON.stringify(breakpoints));
     $("#breakpoints").empty();
     for (var bp of breakpoints) {
-      let r1 = (bp.address & 0xFF00) >> 8;
-      let r2 = (bp.address & 0x00FF);
-      $(`<div class="register">${numToHex(r1)}</div>`).appendTo("#breakpoints");
-      $(`<div class="register">${numToHex(r2)}</div>`).appendTo("#breakpoints");
-      $(`<div class="breakpoint-type">${BP_TYPE_TEXT[bp.type]}</div>`).appendTo("#breakpoints");
+      let r1 = numToHex((bp.address & 0xFF00) >> 8);
+      let r2 = numToHex((bp.address & 0x00FF));
+      $(`<div class="register">${r1}</div>`).appendTo("#breakpoints");
+      $(`<div class="register">${r2}</div>`).appendTo("#breakpoints");
+      $(`<div class="breakpoint-type">${BP_TYPE_TEXT[bp.type]}</div>`)
+          .on("click", (evt) => {
+            $("#selected-addr-1").val(r1);
+            $("#selected-addr-2").val(r2);
+            this.updateSelectionFromTextField();
+          })
+          .appendTo("#breakpoints");
       $(`<div class="remove-breakpoint" data="${bp.id}"></div>`)
           .on("click", (evt) => {
             const id = $(evt.currentTarget).attr("data");
@@ -283,9 +310,9 @@ class TrsXray {
     this.onSelectionUpdate(-1);
   }
 
-  private onSelectionUpdate(sel: number): void {
-    if (sel >= 0) {
-      this.selectedByte = sel;
+  private onSelectionUpdate(addr: number): void {
+    if (addr >= 0) {
+      this.selectedByte = addr;
     }
 
     let hi = (this.selectedByte & 0xFF00) >> 8;
