@@ -127,7 +127,7 @@ static void send_memory_segment(const char* params) {
   int param_start = 0;
   int param_length = 0xFFFF;
 
-  bool force_update = strcmp("force_update", params) == 0;
+  bool force_update = true; //strcmp("force_update", params) == 0;
 
   if (!force_update) {
     // Extract parameters
@@ -210,10 +210,10 @@ static bool handle_http_request(struct mg_connection *conn,
   if (mg_http_match_uri(message, "/") || mg_http_match_uri(message, "/index.html")) {
     mg_http_reply(conn, 200, "Content-Type: text/html\r\nConnection: close\r\n",
                   ctx->get_resource(TRX_RES_MAIN_HTML));
-  } else if (mg_http_match_uri(message, "/web_debugger.js")) {
+  } else if (mg_http_match_uri(message, "/trs_xray.js")) {
     mg_http_reply(conn, 200, "Content-Type: application/javascript\r\nConnection: close\r\n",
                   ctx->get_resource(TRX_RES_MAIN_JS));
-  } else if (mg_http_match_uri(message, "/web_debugger.css")) {
+  } else if (mg_http_match_uri(message, "/trs_xray.css")) {
     mg_http_reply(conn, 200, "Content-Type: text/css\r\nConnection: close\r\n",
                   ctx->get_resource(TRX_RES_MAIN_CSS));
   } else if (mg_http_match_uri(message, "/channel")) {

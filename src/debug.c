@@ -52,7 +52,7 @@
 #include "error.h"
 #include "trs.h"
 #include "web_debugger.h"
-#include "web_debugger_resources.h"
+#include "trs_xray_resources.h"
 
 #define MAXLINE		(256)
 #define ADDRESS_SPACE	(0x10000)
@@ -380,20 +380,20 @@ void on_trx_remove_breakpoint(int bp_id) {
 char* on_trx_get_resource(TRX_RESOURCE_TYPE type) {
 	switch(type) {
 		case TRX_RES_MAIN_HTML:
-		  return web_debugger_html;
+		  return trs_xray_html;
 		case TRX_RES_MAIN_JS:
-		  return web_debugger_js;
+		  return trs_xray_js;
 		case TRX_RES_MAIN_CSS:
-		  return web_debugger_css;
+		  return trs_xray_css;
 		case TRX_RES_TRS_FONT:
 		  // FIXME
-		  return web_debugger_html;
+		  return trs_xray_html;
 		case TRX_RES_JQUERY:
 		  // FIXME
-		  return web_debugger_html;
+		  return trs_xray_html;
 		default:
 		  printf("ERROR: Unknown resource type.");
-		  return web_debugger_html;
+		  return trs_xray_html;
 	}
 }
 
