@@ -165,7 +165,7 @@ return [
     "description": "FLAG : 0 = Space compression; Not 0 = special character."
 },{
     "address": [0x4024],
-    "model_code": 3,
+    "model_code": [3],
     "description": "Character Set To Use:  0=Regular"
 },{
     "address": [0x4024],

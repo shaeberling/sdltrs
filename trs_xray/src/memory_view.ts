@@ -5,7 +5,7 @@ import { numToHex } from "./utils";
 const BYTE_RENDER_GAP = 1;
 const BYTE_SIZE_PX = 8;
 const NUM_BYTES_X = 256; //132;
-const NUM_BYTES_Y = 128; // 132;
+const NUM_BYTES_Y = 256; // 132;
 
 enum MouseAction {
   MOVE = 1,
@@ -51,7 +51,7 @@ export class MemoryView {
     this.lastByteColor = new Array(0xFFFF);
     this.selectedMemoryRegion = -1;
     this.hoveredByte = -1;
-    this.selectedByte = -1;
+    this.selectedByte = -23;
     this.enableDataViz = false;
     this.enableLineViz = false;
     this.programCounter = 0;
@@ -212,6 +212,7 @@ export class MemoryView {
     this.renderByte(byteX, byteY);
 
     if (a == MouseAction.UP) {
+      console.log(`Selected: ${this.selectedByte}`);
       this.selectionUpdater(this.selectedByte);
     }
   }

@@ -34,14 +34,28 @@ class TrsXray {
     this.memoryView = new MemoryView("memory-container",
                                      this.memoryData,
                                      this.memoryChanged,
-                                     this.onSelectionUpdate);
+                                     (sel) => this.onSelectionUpdate(sel));
     this.screenView = new Screen("screen");
     this.registersView = new RegisterPanel();
     this.enableFullMemoryUpdate = true;
     this.memoryUpdateStartAddress = 0;
+
+    $("#selected-val").on('keyup', (evt) => {
+      if (evt.key == "Enter") {
+        const valStr = $('#selected-val').val() as string;
+        const value = parseInt(valStr, 16);
+        if (value != NaN) {
+          this.writeMem(this.selectedByte, value);
+        } else {
+          console.error(`Cannot parse value: '${valStr}'`);
+        }
+      }
+    });
   }
 
-
+  private writeMem(addr: number, value: number): void {
+    this.onControl(`set_memory/${addr}/${value}`);
+  }
 
   private createMemoryRegions(): void {
     const regions = MemoryRegions.getMemoryRegions();
@@ -108,11 +122,14 @@ class TrsXray {
           case 'm':
             this.enableFullMemoryUpdate = !this.enableFullMemoryUpdate;
             break;
-          case 'r':
-            this.onControl("get_memory/force_update");
+            case 'r':
+              this.onControl("get_memory/force_update");
+              break;
+          case 'i':
+            this.onControl("inject_demo");
             break;
           default:
-            console.log(`Unhandled key event: ${evt.key}`);
+          console.log(`Unhandled key event: ${evt.key}`);
         }
       }
     });
@@ -231,19 +248,24 @@ class TrsXray {
     // The first two bytes are the start offset address.
     let startAddr = (memory[0] << 8) + memory[1];
     console.log(`Starting Addr: ${startAddr}`);
-    this.memoryChanged = new Uint8Array(0xFFFF);
     for (let i = 2; i < memory.length; ++i) {
       let addr = startAddr + i - 2;
       if (this.memoryData[addr] != memory[i]) {
         this.memoryChanged[addr] = 1;
         this.memoryData[addr] = memory[i];
+      } else {
+        this.memoryChanged[addr] = 0;
       }
     }
-    this.onSelectionUpdate(undefined);
+    this.onSelectionUpdate(-1);
   }
 
-  private onSelectionUpdate(selectedByte: number | undefined): void {
-    if (selectedByte) this.selectedByte = selectedByte;
+  private onSelectionUpdate(sel: number): void {
+    if (sel >= 0) {
+      this.selectedByte = sel;
+      console.log(`Selected: ${sel} -1-> ${this.selectedByte}`);
+    }
+    console.log(`Selected: ${sel} -2-> ${this.selectedByte}`);
 
     let hi = (this.selectedByte & 0xFF00) >> 8;
     let lo = (this.selectedByte & 0x00FF);
@@ -261,13 +283,11 @@ class TrsXray {
   }
 }
 
-
 interface IDataFromEmulator {
   context: ISUT_Context,
   breakpoints: Array<ISUT_Breakpoint>,
   registers: ISUT_Registers
 }
-
 
 // Hook up our code to site onload event.
 // Note: This is important to add as an entry point as webpack would otherwise
