@@ -106,8 +106,24 @@ class TrsXray {
       if (this.screenView.isMouseOnScreen()) this.onKeyPressForSut("down", evt);
       else {
         switch (evt.key) {
-          case 'j':
+          case '1':
             this.onControl("step");
+            this.requestMemoryUpdate();
+            break;
+          case '2':
+            this.onControl("continue");
+            this.requestMemoryUpdate();
+            break;
+          case '3':
+            this.onControl("stop");
+            this.requestMemoryUpdate();
+            break;
+          case '4':
+            this.onControl("soft_reset")
+            this.requestMemoryUpdate();
+            break;
+          case '$': // Shift-4
+            this.onControl("hard_reset")
             this.requestMemoryUpdate();
             break;
           case 't':
@@ -144,8 +160,7 @@ class TrsXray {
     $("#play-btn").on("click", () => { this.onControl("continue") });
     $("#stop-btn").on("click", () => { this.onControl("stop") });
     $("#reset-btn").on("click", (ev) => {
-      // this.onControl(ev.shiftKey ? "hard_reset" : "soft_reset")
-      this.onControl("get_memory/force_update");
+      this.onControl(ev.shiftKey ? "hard_reset" : "soft_reset")
     });
 
     const addBreakpointHandler = (ev: JQuery.ClickEvent) => {
