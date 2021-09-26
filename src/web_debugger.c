@@ -30,8 +30,11 @@ typedef struct {
   uint16_t address;
   TRX_BREAK_TYPE type;
   bool enabled;
+  bool synthetic; // TODO: NEW
 } TRX_Breakpoint;
 
+// TODO: Limit to max_breakpoints. And add logic to ensure not more can be
+// created + UX handling (error).
 #define MAX_BREAKPOINTS 128
 static TRX_Breakpoint breakpoints[MAX_BREAKPOINTS];
 
@@ -70,6 +73,16 @@ void trx_waitForExit() {
 void trx_shutdown() {
   puts("[TRX] Shutting down Web debugger");
   trx_running = false;
+}
+
+static void inject_demo_program(void) {
+  const uint16_t START = 0x8000;
+  uint8_t prog[15] = { 0x21, 0x00, 0x3c, 0x01, 0x00, 0x04, 0x36, 0xbf, 0x23,
+                       0x0b, 0x78, 0xb1, 0x20, 0xf8, 0xc9 };
+  for (int i = 0; i < 15; i++) {
+    ctx->write_memory(START + i, prog[i]);
+  }
+  ctx->set_pc(0x8000);
 }
 
 static void send_update_to_web_debugger() {
@@ -119,6 +132,22 @@ void get_memory_segment(int start, int length,
   }
 }
 
+// Params: [addr]/[value]"
+static void set_memory_segment(const char* params) {
+  int delim_pos = strchr(params, '/') - params;
+  char addr_str[delim_pos + 1];
+  memcpy(addr_str, params, delim_pos);
+  addr_str[delim_pos] = '\0';
+  int addr = atoi(addr_str);
+
+  int substr_length = strlen(params) - delim_pos;
+  char value_str[substr_length];
+  memcpy(value_str, params + delim_pos + 1, substr_length - 1);
+  value_str[substr_length - 1] = '\0';
+  int value = atoi(value_str);
+  ctx->write_memory(addr, value);
+}
+
 // Params: [start]/[length], e.g. "0/65536"
 static void send_memory_segment(const char* params) {
   if (status_conn == NULL) return;
@@ -133,7 +162,7 @@ static void send_memory_segment(const char* params) {
     // Extract parameters
     int delim_pos = strchr(params, '/') - params;
     char param_start_str[delim_pos + 1];
-    memcpy(param_start_str, params, delim_pos );
+    memcpy(param_start_str, params, delim_pos);
     param_start_str[delim_pos] = '\0';
     param_start = atoi(param_start_str);
 
@@ -314,6 +343,8 @@ static void on_frontend_message(const char* msg) {
     ctx->control_callback(TRX_CONTROL_TYPE_HARD_RESET);
   } else if (strncmp("action/get_memory", msg, 17) == 0) {
     send_memory_segment(msg + 18);
+  } else if (strncmp("action/set_memory", msg, 17) == 0) {
+    set_memory_segment(msg + 18);
   } else if (strncmp("action/add_breakpoint/pc", msg, 24) == 0) {
     add_breakpoint(msg + 25, TRX_BREAK_PC);
   } else if (strncmp("action/add_breakpoint/mem", msg, 25) == 0) {
@@ -322,6 +353,8 @@ static void on_frontend_message(const char* msg) {
     remove_breakpoint(msg + 25);
   } else if (strncmp("action/key_event", msg, 16) == 0) {
     key_event(msg + 17);
+  } else if (strncmp("action/inject_demo", msg, 16) == 0) {
+    inject_demo_program();
   } else {
     printf("[TRX] WARNING: Unknown message: '%s'\n", msg);
   }
@@ -393,4 +426,3 @@ static bool init_webserver(void) {
   }
   return true;
 }
-

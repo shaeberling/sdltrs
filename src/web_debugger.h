@@ -63,6 +63,11 @@ typedef struct {
   bool pc_breakpoints;
   bool memory_breakpoints;
   bool io_breakpoints;
+  int max_breakpoints; // TODO: NEW!!!!
+  // If active, will not send a single single_step signal, but instead figures
+  // out the next possible PC values through disassembly and sets synthetic
+  // breakpoints instead before resuming, thus emulating a single step.
+  bool alt_single_step_mode; // TODO: NEW!!!
   TRX_MemoryRange memory_range;
   // TOOD: Supported Memory Segment. (A single segment should suffice)
   //       Model 1 demo will only work on address 32k and up.
@@ -112,6 +117,7 @@ typedef void (*TRX_OnPokeMemory)(uint16_t addr, uint8_t value, void* clazz);
 typedef void (*TRX_RegisterCallbacks)(void* clazz, TRX_OnPokeMemory opm);
 
 typedef void (*TRX_KeyEvent)(const char* key, bool down, bool shift);
+typedef void (*TRX_SetPc)(uint16_t addr);
 
 typedef struct {
   // Descriptive name of the system under test (SUT).
@@ -134,6 +140,7 @@ typedef struct {
   TRX_MemoryWrite write_memory;
   TRX_GetResource get_resource;
   TRX_KeyEvent key_event;
+  TRX_SetPc set_pc;
 
   TRX_RegisterCallbacks register_callbacks;
 

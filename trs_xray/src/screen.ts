@@ -49,7 +49,7 @@ export class Screen {
   /** Whether the mouse is currently hover on the screen area. */
   private mouseOnScreen: boolean = false;
   constructor(elementId: string) {
-    this.root = $(elementId);
+    this.root = $(`#${elementId}`);
     this.root.on("mouseenter", () => {this.mouseOnScreen = true})
              .on("mouseleave", () => {this.mouseOnScreen = false});
   }

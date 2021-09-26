@@ -424,6 +424,14 @@ uint8_t trx_read_memory(uint16_t addr) {
   return (uint8_t)mem_read(addr);
 }
 
+void trx_write_memory(uint16_t addr, uint8_t value) {
+  mem_write(addr, value);
+}
+
+void trx_set_pc(uint16_t addr) {
+  Z80_PC = addr;
+}
+
 void trs_debug(void)
 {
     stop_signaled = 1;
@@ -453,12 +461,14 @@ void debug_init(void)
 
 		ctx.capabilities.memory_range.start = 0;
 		ctx.capabilities.memory_range.length = 0xFFFF;
-    ctx.control_callback = &on_trx_control_callback;
-    ctx.read_memory = &trx_read_memory;
+        ctx.control_callback = &on_trx_control_callback;
+        ctx.read_memory = &trx_read_memory;
+        ctx.write_memory = &trx_write_memory;
 		ctx.breakpoint_callback = &on_trx_add_breakpoint;
 		ctx.remove_breakpoint_callback = &on_trx_remove_breakpoint;
 		ctx.get_resource = &on_trx_get_resource;
 		ctx.get_state_update = &on_trx_get_state_update;
+        ctx.set_pc = trx_set_pc;
 		init_trs_xray(&ctx);
 }
 
@@ -900,7 +910,7 @@ void debug_shell(void)
 // 	    }
 // 	    else if(!strcmp(command, "step") || !strcmp(command, "s"))
 // 	    {
-// 		z80_run(-1);`
+// 		z80_run(-1);
 // 	    }
 // 	    else if(!strcmp(command, "stepint") || !strcmp(command, "si"))
 // 	    {

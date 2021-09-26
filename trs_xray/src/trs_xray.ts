@@ -1,87 +1,59 @@
 declare function isDebugMode(): boolean;
-declare function getMemoryRegions(): MemoryRegions;
+
 
 import { RegisterPanel } from "./register_panel"
 import { ISUT_Context, ISUT_Registers, ISUT_Breakpoint } from "./data_structures";
 import { numToHex } from "./utils";
 import { Screen } from "./screen";
-
-// Rendering parameters for the memory map.
-const BYTE_RENDER_GAP = 1;
-const BYTE_SIZE_PX = 8;
-const NUM_BYTES_X = 256; //132;
-const NUM_BYTES_Y = 128; // 132;
+import { MemoryView } from "./memory_view";
+import { MemoryRegions } from "./memory_regions";
 
 // See web_debugger.h for definitions.
 const BP_TYPE_TEXT = ["Program Counter", "Memory Watch", "IO Watch"];
 
-enum MouseAction {
-  MOVE = 1,
-  UP = 2,
-  DOWN = 3,
-}
-
 class TrsXray {
   private socket: WebSocket | null = null;
-  private canvas: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
-  private screen: Screen;
-  private registers: RegisterPanel;
-  private programCounter: number;
-  private prevProgramCounter: number;
-  private stackPointer: number;
-  private memRegions: MemoryRegions;
-  private memInfo: Map<number, number>;
+
   private memoryData: Uint8Array;
   private memoryChanged: Uint8Array;
-  private lastByteColor: Array<string>;
-
-  private selectedMemoryRegion: number;
-  private hoveredByte: number;
   private selectedByte: number;
 
-  private enableDataViz: boolean;
-  private enableLineViz: boolean;
+  private memoryView: MemoryView;
+  private screenView: Screen;
+  private registersView: RegisterPanel;
+
   // If false, only screen and registers are updated.
   private enableFullMemoryUpdate: boolean;
   private memoryUpdateStartAddress: number;
 
   constructor() {
-    this.canvas = document.getElementById("memory-container") as HTMLCanvasElement;
-    this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
-    this.screen = new Screen("#screen");
-    this.registers = new RegisterPanel();
-    this.programCounter = 0;
-    this.prevProgramCounter = 0;
-    this.stackPointer = 0;
-    this.memRegions = getMemoryRegions();
-    this.memInfo = new Map();
     this.memoryData = new Uint8Array(0xFFFF);
     this.memoryChanged = new Uint8Array(0xFFFF);
-    this.lastByteColor = new Array(0xFFFF);
-    this.selectedMemoryRegion = -1;
-    this.hoveredByte = -1;
     this.selectedByte = -1;
-    this.enableDataViz = false;
-    this.enableLineViz = false;
+
+    this.memoryView = new MemoryView("memory-container",
+                                     this.memoryData,
+                                     this.memoryChanged,
+                                     this.onSelectionUpdate);
+    this.screenView = new Screen("screen");
+    this.registersView = new RegisterPanel();
     this.enableFullMemoryUpdate = true;
     this.memoryUpdateStartAddress = 0;
-
-    this.memRegions.map((region, idx) => {
-      for (let i = region.address[0]; i<= region.address[region.address.length - 1]; ++i) {
-        this.memInfo.set(i, idx);
-      }
-    });
-
-    this.initCanvas();
   }
 
-  private initCanvas(): void {
-    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
-    this.canvas.width = NUM_BYTES_X * totalByteSize;
-    this.canvas.height = NUM_BYTES_Y * totalByteSize;
-    this.canvas.style.width = this.canvas.width + "px";
-    this.canvas.style.height = this.canvas.height + "px";
+
+
+  private createMemoryRegions(): void {
+    const regions = MemoryRegions.getMemoryRegions();
+    const container = $("#memory-regions");
+    regions.map((region, idx) => {
+      $("<div></div>")
+          .addClass("map-region-list-entry")
+          .text(region.description)
+          .on("mouseover", () => {this.memoryView.onMemoryRegionSelect(idx)})
+          .appendTo(container);
+    });
+    this.memoryView.renderMemoryRegions();
   }
 
   private onMessageFromEmulator(json: IDataFromEmulator): void {
@@ -117,7 +89,7 @@ class TrsXray {
   public onLoad(): void {
     $('input:text').on("keydown", (evt) => {evt.stopPropagation();});
     document.addEventListener("keydown", (evt) => {
-      if (this.screen.isMouseOnScreen()) this.onKeyPressForSut("down", evt);
+      if (this.screenView.isMouseOnScreen()) this.onKeyPressForSut("down", evt);
       else {
         switch (evt.key) {
           case 'j':
@@ -128,10 +100,10 @@ class TrsXray {
             this.debug_insertTestData();
             break;
           case 'd':
-            this.enableDataViz = !this.enableDataViz;
+            this.memoryView.toggleDataViz();
             break;
           case 'e':
-            this.enableLineViz = !this.enableLineViz;
+            this.memoryView.toggleLineViz();
             break;
           case 'm':
             this.enableFullMemoryUpdate = !this.enableFullMemoryUpdate;
@@ -145,7 +117,7 @@ class TrsXray {
       }
     });
     document.addEventListener("keyup", (evt) => {
-      if (this.screen.isMouseOnScreen()) this.onKeyPressForSut("up", evt);
+      if (this.screenView.isMouseOnScreen()) this.onKeyPressForSut("up", evt);
     });
 
     $("#step-btn").on("click", () => {
@@ -176,13 +148,6 @@ class TrsXray {
     };
     $("#add-breakpoint-pc").on("click", addBreakpointHandler);
     $("#add-breakpoint-memory").on("click", addBreakpointHandler);
-
-    $("#memory-container").on("mousemove", (evt) => {
-      this.onMouseActionOnCanvas(evt.offsetX, evt.offsetY, MouseAction.MOVE);
-    });
-    $("#memory-container").on("mouseup", (evt) => {
-      this.onMouseActionOnCanvas(evt.offsetX, evt.offsetY, MouseAction.UP);
-    });
 
     this.createMemoryRegions();
 
@@ -219,12 +184,12 @@ class TrsXray {
       if (evt.data instanceof Blob) {
         evt.data.arrayBuffer().then((data) => {
           this.onMemoryUpdate(new Uint8Array(data));
-          this.screen.render(this.memoryData);
+          this.screenView.render(this.memoryData);
         });
       } else {
         var json = JSON.parse(evt.data);
         this.onMessageFromEmulator(json);
-        this.renderMemoryRegions();
+        this.memoryView.renderMemoryRegions();
       }
     };
   }
@@ -235,10 +200,8 @@ class TrsXray {
   }
 
   private onRegisterUpdate(registers: ISUT_Registers): void {
-    this.registers.update(registers);
-    this.prevProgramCounter = this.programCounter;
-    this.programCounter = registers.pc;
-    this.stackPointer = registers.sp;
+    this.registersView.update(registers);
+    this.memoryView.onRegisterUpdate(registers.pc, registers.sp)
   }
 
   lastBreakpoints = Array<ISUT_Breakpoint>(0);
@@ -276,148 +239,18 @@ class TrsXray {
         this.memoryData[addr] = memory[i];
       }
     }
-    this.onSelectionUpdate();
+    this.onSelectionUpdate(undefined);
   }
 
-  private onSelectionUpdate(): void {
+  private onSelectionUpdate(selectedByte: number | undefined): void {
+    if (selectedByte) this.selectedByte = selectedByte;
+
     let hi = (this.selectedByte & 0xFF00) >> 8;
     let lo = (this.selectedByte & 0x00FF);
     $("#selected-addr-1").val(numToHex(hi));
     $("#selected-addr-2").val(numToHex(lo));
     if (this.memoryData && this.selectedByte >= 0) {
       $("#selected-val").val(numToHex(this.memoryData[this.selectedByte]));
-    }
-  }
-
-  private createMemoryRegions(): void {
-    const regions = getMemoryRegions();
-    const container = $("#memory-regions");
-    regions.map((region, idx) => {
-      $("<div></div>")
-          .addClass("map-region-list-entry")
-          .text(region.description)
-          .on("mouseover", () => {this.onMemoryRegionSelect(idx)})
-          .appendTo(container);
-    });
-    this.renderMemoryRegions();
-  }
-
-  private onMemoryRegionSelect(region: number): void {
-    this.selectedMemoryRegion = region;
-    this.renderMemoryRegions();
-  }
-
-  private getColorForByte(addr: number): string {
-    // Set base color for addresses we have data for
-    let color = !!this.memInfo.get(addr) ? "#666" : "#444";
-    // Any byte with value zero get blacked out.
-    if (this.memoryData && this.memoryData[addr] == 0) color = "#000";
-
-    if (this.enableDataViz && !!this.memoryData) {
-      let hexValue = numToHex(this.memoryData[addr] >> 1);
-      if (hexValue.length == 1) hexValue = `0${hexValue}`;
-      color = `#${hexValue}${hexValue}${hexValue}`;
-    }
-
-    // Mark selected range bytes.
-    if (this.selectedMemoryRegion >= 0) {
-      let addressRange = this.memRegions[this.selectedMemoryRegion].address
-      const highlightStart = addressRange[0];
-      const highlightEnd = addressRange[addressRange.length - 1];
-      color = (addr >= highlightStart && addr <= highlightEnd) ? "#F00" : color;
-    }
-
-    // Highlight bytes that have changed with the most recent update.
-    if (this.memoryChanged.length > addr && this.memoryChanged[addr] == 1) {
-      color = "#FFA500";
-    }
-
-    // Mark special program and stack pointers.
-    if (addr == this.programCounter) color = "#0F0";
-    if (addr == this.stackPointer) color = "#FF0";
-
-    return color;
-  }
-
-  private renderByte(x: number, y: number, removeHighlight = false): void {
-    const addr = (y * NUM_BYTES_X) + x;
-    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
-
-    const changeHighlight = addr == this.selectedByte ||
-                            addr == this.hoveredByte ||
-                            removeHighlight;
-    if (changeHighlight) {
-      this.ctx.fillStyle = addr == this.hoveredByte ? "#88A" :
-                          (addr == this.selectedByte ? "#FFF" : "#000");
-      this.ctx.fillRect(x * totalByteSize - 1, y * totalByteSize - 1,
-                        BYTE_SIZE_PX + 2, BYTE_SIZE_PX + 2);
-    }
-
-    // Optimize rendering by only updating changed bytes.
-    // ~10x speed improvement.
-    const color = this.getColorForByte(addr);
-    if (color != this.lastByteColor[addr] || changeHighlight) {
-      this.ctx.fillStyle = color;
-      this.ctx.fillRect(x * totalByteSize, y * totalByteSize,
-                        BYTE_SIZE_PX, BYTE_SIZE_PX);
-      this.lastByteColor[addr] = color;
-    }
-  }
-
-  private renderEffects(): void {
-    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
-    const addrPc0Y = Math.floor(this.prevProgramCounter / NUM_BYTES_X);
-    const addrPc0X = this.prevProgramCounter % NUM_BYTES_X;
-    const addrPc1Y = Math.floor(this.programCounter / NUM_BYTES_X);
-    const addrPc1X = this.programCounter % NUM_BYTES_X;
-
-    const pc0Y = addrPc0Y * totalByteSize + BYTE_SIZE_PX/2;
-    const pc0X = addrPc0X * totalByteSize + BYTE_SIZE_PX/2;
-    const pc1Y = addrPc1Y * totalByteSize + BYTE_SIZE_PX/2;
-    const pc1X = addrPc1X * totalByteSize + BYTE_SIZE_PX/2;
-
-    console.log(`Line: ${pc0X},${pc0Y} -> ${pc1X},${pc1Y}`);
-
-    this.ctx.beginPath();
-    this.ctx.strokeStyle = "yellow";
-    this.ctx.moveTo(pc0X, pc0Y);
-    this.ctx.lineTo(pc1X, pc1Y);
-    this.ctx.stroke();
-  }
-
-  private renderMemoryRegions(): void {
-    // console.time("renderMemoryRegions");
-    for (let y = 0; y < NUM_BYTES_Y; ++y) {
-      for (let x = 0; x < NUM_BYTES_X; ++x) {
-        this.renderByte(x, y);
-      }
-    }
-    if (this.enableLineViz) this.renderEffects();
-    // console.timeEnd("renderMemoryRegions");
-  }
-
-  private onMouseActionOnCanvas(x: number, y: number, a: MouseAction): void {
-    let setter = a == MouseAction.MOVE ?
-                 (newAddr: number) => {this.hoveredByte = newAddr} :
-                 (newAddr: number) => {this.selectedByte = newAddr};
-    let getter = a == MouseAction.MOVE ?
-                 () => {return this.hoveredByte} :
-                 () => {return this.selectedByte};
-
-    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
-    const byteX = Math.floor(x / totalByteSize);
-    const byteY = Math.floor(y / totalByteSize);
-
-    const prevByte = getter();
-    setter(byteY * NUM_BYTES_X + byteX);
-
-    const prevByteY = Math.floor(prevByte / NUM_BYTES_X);
-    const prevByteX = prevByte - (prevByteY * NUM_BYTES_X);
-    this.renderByte(prevByteX, prevByteY, true);
-    this.renderByte(byteX, byteY);
-
-    if (a == MouseAction.UP) {
-      this.onSelectionUpdate();
     }
   }
 
@@ -435,13 +268,6 @@ interface IDataFromEmulator {
   registers: ISUT_Registers
 }
 
-interface MemoryRegionMetadata {
-  address: Array<number>,
-  model_code: Array<number>,
-  description: string
-}
-
-type MemoryRegions = Array<MemoryRegionMetadata>;
 
 // Hook up our code to site onload event.
 // Note: This is important to add as an entry point as webpack would otherwise

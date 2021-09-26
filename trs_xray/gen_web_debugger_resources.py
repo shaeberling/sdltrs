@@ -6,7 +6,6 @@ def main(out_path):
   postfix_str = "\n#endif  // __TRS_XRAY_RESOURCES_H__"
   html_str = escape_c_string(read_file("src/trs_xray.html"))
   ts_str = escape_c_string(read_file("dist/webpack/trs_xray.js"))
-  mem_regions_str = escape_c_string(read_file("src/memory_regions.js"))
   css_str = escape_c_string(read_file("src/trs_xray.css"))
 
   jquery_str = escape_c_string(read_file("src/jquery.js"))
@@ -15,7 +14,7 @@ def main(out_path):
   write_file(f'{norm_out_path}/trs_xray_resources.h',
                prefix_str,
                html_str,
-               ts_str + jquery_str + mem_regions_str,
+               ts_str + jquery_str,
                css_str,
                postfix_str)
 
