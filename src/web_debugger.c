@@ -233,6 +233,11 @@ static void add_breakpoint(const char* params, TRX_BREAK_TYPE type) {
   for (id = 0; id < max_breakpoints_; ++id) {
     if (!breakpoints_[id].enabled) break;
   }
+  if (id >= max_breakpoints_) {
+    puts("[TRX] Error: Too many breakpoints.");
+    return;
+  }
+
   breakpoints_[id].address = addr;
   breakpoints_[id].type = type;
   breakpoints_[id].enabled = true;
