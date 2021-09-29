@@ -7,28 +7,27 @@ export class Disassembler {
   private pc: number;
   private root: JQuery<Element>;
 
+  private instructions: Array<Instruction>;
+
   constructor(elementId: string) {
     this.pc = 0;
     this.root = $(`#${elementId}`);
+    this.instructions = new Array();
   }
 
   /**
-   * Trigger disassembly.
+   * Trigger disassembly and update internal model.
    *
    * @param memory memory to be loaded into the disassembler.
    */
   public disassemble(memory: Uint8Array): Array<string> {
-    const dis = new Disasm();
-    dis.addChunk(memory, 0);
-    dis.addEntryPoint(0);
-    dis.addEntryPoint(this.pc);
-    const result = dis.disassemble();
+    this.runDisassembly(memory);
 
     const dataType = new Array<string>(memory.length);
-    for (var i = 0; i < result.length; ++i) {
-      dataType[result[i].address] = result[i].mnemonic;
+    for (var i = 0; i < this.instructions.length; ++i) {
+      dataType[this.instructions[i].address] = this.instructions[i].mnemonic;
     }
-    this.updateView(result);
+    this.updateView(this.instructions);
     // console.log(result);
     return dataType;
   }
@@ -40,6 +39,42 @@ export class Disassembler {
    */
   public updatePC(addr: number): void {
     this.pc = addr;
+  }
+
+  /**
+   * Calculates and returnes possible values for the PC on the next step.
+   */
+  public predictNextPC(): Array<number> {
+    // Find instruction at current PC.
+    const instr = this.getInstructionAtAddress(this.pc);
+    if (!instr) return [];
+
+    // If there is no jump target, the only possible next PC value is right
+    // after the current instruction.
+    var result = [this.pc + instr.bin.length];
+
+    // If the instruction is a jump, then that target branch is a second option.
+    if (instr.jumpTarget) result.push(instr.jumpTarget);
+
+    return result;
+  }
+
+  /**
+   * O(n) search for the instruction.
+   */
+  private getInstructionAtAddress(addr: number): Instruction | undefined {
+    for (var i = 0; i < this.instructions.length; ++i) {
+      if (this.instructions[i].address == addr) return this.instructions[i];
+    }
+    return undefined;
+  }
+
+  private runDisassembly(memory: Uint8Array): void {
+    const dis = new Disasm();
+    dis.addChunk(memory, 0);
+    dis.addEntryPoint(0);
+    dis.addEntryPoint(this.pc);
+    this.instructions = dis.disassemble();
   }
 
   private updateView(instructions: Instruction[]): void {

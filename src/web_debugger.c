@@ -245,12 +245,7 @@ static void add_breakpoint(const char* params, TRX_BREAK_TYPE type) {
   send_update_to_web_debugger();
 }
 
-static void remove_breakpoint(const char* params) {
-  int id = atoi(params);
-  if (id == 0 && strcmp("0", params) != 0) {
-    puts("[TRX] Error: Cannot parse breakpoint ID.");
-    return;
-  }
+static void remove_breakpoint_with_id(int id) {
   if (id >= max_breakpoints_) {
     puts("[TRX] Error: Breakpoint ID too large.");
     return;
@@ -259,6 +254,26 @@ static void remove_breakpoint(const char* params) {
   ctx->remove_breakpoint_callback(id);
   send_update_to_web_debugger();
 }
+
+static void remove_breakpoint(const char* params) {
+  int id = atoi(params);
+  if (id == 0 && strcmp("0", params) != 0) {
+    puts("[TRX] Error: Cannot parse breakpoint ID.");
+    return;
+  }
+  remove_breakpoint_with_id(id);
+}
+
+// TODO: Should only do this for synthetic breakpoints.
+static void clear_breakpoints() {
+  for (int id = 0; id < max_breakpoints_; ++id) {
+    if (breakpoints_[id].enabled) {
+      remove_breakpoint_with_id(id);
+    }
+  }
+  // send_update_to_web_debugger();
+}
+
 
 static void key_event(const char* params) {
   printf("Key Event: '%s'\n", params);
@@ -382,6 +397,8 @@ static void on_frontend_message(const char* msg) {
     add_breakpoint(msg + 26, TRX_BREAK_MEMORY);
   } else if (strncmp("action/remove_breakpoint", msg, 24) == 0) {
     remove_breakpoint(msg + 25);
+  } else if (strcmp("action/clear_breakpoints", msg) == 0) {
+    clear_breakpoints();
   } else if (strncmp("action/key_event", msg, 16) == 0) {
     key_event(msg + 17);
   } else if (strncmp("action/inject_demo", msg, 16) == 0) {

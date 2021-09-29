@@ -15,6 +15,9 @@ const BP_TYPE_TEXT = ["Program Counter", "Memory Watch", "IO Watch"];
 class TrsXray {
   private socket: WebSocket | null = null;
 
+  private altSingleStepMode: boolean;
+  private emulatorIsRunning: boolean;
+
   private memoryData: Uint8Array;
   private memoryChanged: Uint8Array;
   private selectedByte: number;
@@ -26,9 +29,11 @@ class TrsXray {
 
   // If false, only screen and registers are updated.
   private enableFullMemoryUpdate: boolean;
-  private memoryUpdateStartAddress: number;
 
   constructor() {
+    this.altSingleStepMode = false;
+    this.emulatorIsRunning = false;
+
     this.memoryData = new Uint8Array(0xFFFF);
     this.memoryChanged = new Uint8Array(0xFFFF);
     this.selectedByte = -1;
@@ -42,7 +47,6 @@ class TrsXray {
     this.disassembler = new Disassembler("disassembler");
 
     this.enableFullMemoryUpdate = true;
-    this.memoryUpdateStartAddress = 0;
   }
 
   private writeMem(addr: number, value: number): void {
@@ -74,10 +78,8 @@ class TrsXray {
 
   private requestMemoryUpdate(): void {
     if (this.enableFullMemoryUpdate) {
-      this.memoryUpdateStartAddress = 0;
       this.onControl("get_memory/0/65536");
     } else {
-      this.memoryUpdateStartAddress = 0x3C00;
       this.onControl(`get_memory/${0x3C00}/${0x3FFF-0x3C00}`);
     }
   }
@@ -92,6 +94,27 @@ class TrsXray {
     this.onControl(`key_event/${dir}/${shift}/${evt.key}`);
   }
 
+  private onControlStep(): void {
+    if (this.emulatorIsRunning) return;
+
+    if (!this.altSingleStepMode) {
+      this.onControl("step");
+      this.requestMemoryUpdate();
+    } else {
+      // TODO: Only remove synthetic breakpoints.
+      this.onControl("clear_breakpoints");
+
+      // In alt mode we predict where the next instruction is and set
+      // breakpoints there to simulate single stepping.
+      const nextPCs = this.disassembler.predictNextPC();
+      for (var addr of nextPCs) {
+        // Add synthetic PC breakpoint.
+        this.onControl(`add_breakpoint/pc/${addr}`);
+      }
+      this.onControl("continue");
+    }
+  }
+
   public onLoad(): void {
     $('input:text').on("keydown", (evt) => {evt.stopPropagation();});
     document.addEventListener("keydown", (evt) => {
@@ -99,8 +122,7 @@ class TrsXray {
       else {
         switch (evt.key) {
           case '1':
-            this.onControl("step");
-            this.requestMemoryUpdate();
+            this.onControlStep();
             break;
           case '2':
             this.onControl("continue");
@@ -146,9 +168,6 @@ class TrsXray {
           case 'm':
             this.enableFullMemoryUpdate = !this.enableFullMemoryUpdate;
             break;
-            case 'r':
-              this.onControl("get_memory/force_update");
-              break;
           case 'r':
             this.onControl("get_memory/force_update");
             break;
@@ -282,6 +301,9 @@ class TrsXray {
     $("#sut-name").text(ctx.system_name);
     $("#sut-model-no").text(`M${ctx.model}`);
     $("#play-btn").css("color", ctx.running ? "#0D0" : "red");
+    $("#step-btn").css("color", !ctx.alt_single_step_mode ? "#0D0" : "orange");
+    this.emulatorIsRunning = ctx.running;
+    this.altSingleStepMode = ctx.alt_single_step_mode;
   }
 
   private onRegisterUpdate(registers: ISUT_Registers): void {
@@ -289,6 +311,8 @@ class TrsXray {
     this.memoryView.onRegisterUpdate(registers.pc, registers.sp)
     this.disassembler.updatePC(registers.pc);
     this.updateDisassembly();
+
+    console.log(`==> New PC is at: ${registers.pc}`);
   }
 
   lastBreakpoints = Array<ISUT_Breakpoint>(0);
