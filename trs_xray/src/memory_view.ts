@@ -6,6 +6,7 @@ const BYTE_RENDER_GAP = 1;
 const BYTE_SIZE_PX = 8;
 const NUM_BYTES_X = 256; //132;
 const NUM_BYTES_Y = 256; // 132;
+const NUM_DATA_VIZ = 3;
 
 enum MouseAction {
   MOVE = 1,
@@ -22,6 +23,7 @@ export class MemoryView {
 
   private memoryData: Uint8Array;
   private memoryChanged: Uint8Array;
+  private memoryType: Array<string>;
 
   private memRegions: Array<MemoryRegionMetadata>;
   private memInfo: Map<number, number>;
@@ -34,7 +36,7 @@ export class MemoryView {
   private prevProgramCounter: number;
   private stackPointer: number;
 
-  private enableDataViz: boolean;
+  private enableDataViz: number;
   private enableLineViz: boolean;
 
   constructor(elementId: string, memoryData: Uint8Array,
@@ -45,6 +47,7 @@ export class MemoryView {
 
     this.memoryData = memoryData;
     this.memoryChanged = memoryChanged;
+    this.memoryType = new Array<string>(memoryData.length);
 
     this.memRegions = MemoryRegions.getMemoryRegions();
     this.memInfo = new Map();
@@ -52,7 +55,7 @@ export class MemoryView {
     this.selectedMemoryRegion = -1;
     this.hoveredByte = -1;
     this.selectedByte = -23;
-    this.enableDataViz = false;
+    this.enableDataViz = 0;
     this.enableLineViz = false;
     this.programCounter = 0;
     this.prevProgramCounter = 0;
@@ -84,6 +87,10 @@ export class MemoryView {
     this.renderMemoryRegions();
   }
 
+  public onMemoryTypeUpdate(typeData: Array<string>): void {
+    this.memoryType = typeData;
+  }
+
   public renderMemoryRegions(): void {
     // console.time("renderMemoryRegions");
     for (let y = 0; y < NUM_BYTES_Y; ++y) {
@@ -96,7 +103,7 @@ export class MemoryView {
   }
 
   public toggleDataViz(): void {
-    this.enableDataViz = !this.enableDataViz;
+    this.enableDataViz = (this.enableDataViz + 1) % NUM_DATA_VIZ;
   }
 
   public toggleLineViz(): void {
@@ -123,10 +130,21 @@ export class MemoryView {
     // Any byte with value zero get blacked out.
     if (this.memoryData && this.memoryData[addr] == 0) color = "#000";
 
-    if (this.enableDataViz && !!this.memoryData) {
-      let hexValue = numToHex(this.memoryData[addr] >> 1);
-      if (hexValue.length == 1) hexValue = `0${hexValue}`;
-      color = `#${hexValue}${hexValue}${hexValue}`;
+    if (this.memoryData) {
+      if (this.enableDataViz == 1) {
+        // #1: Value as shade of gray.
+        let hexValue = numToHex(this.memoryData[addr] >> 1);
+        if (hexValue.length == 1) hexValue = `0${hexValue}`;
+        color = `#${hexValue}${hexValue}${hexValue}`;
+      } else if (this.enableDataViz == 2) {
+        // #2: Use disassembled data type.
+        if (this.memoryType[addr] &&
+            this.memoryType[addr] != "" &&
+            !this.memoryType[addr].startsWith(".") &&
+            this.memoryData[addr] != 0) {
+          color = "#5053cc";
+        }
+      }
     }
 
     // Mark selected range bytes.

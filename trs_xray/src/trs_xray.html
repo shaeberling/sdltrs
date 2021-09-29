@@ -91,7 +91,28 @@
       <div id="breakpoints">
       </div>
     </div>
+    <div id="disassembler-section" class="section">
+      <div class="section-title">Disassembler</div>
+      <pre id="disassembler">
+  0000: CALL  12345678
+  0000: CALL  12345678
+  0000: CALL  12345678
+> 0000: CALL  12345678
+  0000: CALL  12345678
+  0000: CALL  12345678
+  0000: CALL  12345678
+  0000: CALL  12345678
+  0000: CALL  12345678
+  0000: CALL  12345678
+  0000: CALL  12345678
+  0000: CALL  12345678
+  0000: CALL  12345678
+  0000: CALL  12345678
+  0000: CALL  12345678
+  0000: CALL  12345678
+</pre>
     </div>
+    </div> <!-- left-hand-side -->
 
     <div class="section">
       <div class="section-title">Memory</div>
@@ -108,6 +129,7 @@
       <pre id="screen">
       </pre>
     </div>
+
     <script>
       isDebugMode = function() {
         return document.location.href.indexOf("file://") == 0;

@@ -7,6 +7,7 @@ import { numToHex } from "./utils";
 import { Screen } from "./screen";
 import { MemoryView } from "./memory_view";
 import { MemoryRegions } from "./memory_regions";
+import { Disassembler } from "./disassembler";
 
 // See web_debugger.h for definitions.
 const BP_TYPE_TEXT = ["Program Counter", "Memory Watch", "IO Watch"];
@@ -21,6 +22,7 @@ class TrsXray {
   private memoryView: MemoryView;
   private screenView: Screen;
   private registersView: RegisterPanel;
+  private disassembler: Disassembler;
 
   // If false, only screen and registers are updated.
   private enableFullMemoryUpdate: boolean;
@@ -37,6 +39,8 @@ class TrsXray {
                                      (sel) => this.onSelectionUpdate(sel));
     this.screenView = new Screen("screen");
     this.registersView = new RegisterPanel();
+    this.disassembler = new Disassembler("disassembler");
+
     this.enableFullMemoryUpdate = true;
     this.memoryUpdateStartAddress = 0;
   }
@@ -122,6 +126,9 @@ class TrsXray {
             break;
           case 'e':
             this.memoryView.toggleLineViz();
+            break;
+          case 'z':
+            this.updateDisassembly();
             break;
           case 'M':
             this.toggleVisibility("memory-regions-section");
@@ -212,6 +219,11 @@ class TrsXray {
     return parseInt(`${addr1}${addr2}`, 16);
   }
 
+  private updateDisassembly(): void {
+    const typeData = this.disassembler.disassemble(this.memoryData);
+    this.memoryView.onMemoryTypeUpdate(typeData);
+  }
+
   private toggleVisibility(elementId: string): void {
     $(`#${elementId}`).toggle();
   }
@@ -258,12 +270,14 @@ class TrsXray {
 
   private onContextUpdate(ctx: ISUT_Context): void {
     $("#sut-name").text(ctx.system_name);
-    $("#sut-model-no").text(ctx.model);
+    $("#sut-model-no").text(`M${ctx.model}`);
   }
 
   private onRegisterUpdate(registers: ISUT_Registers): void {
     this.registersView.update(registers);
     this.memoryView.onRegisterUpdate(registers.pc, registers.sp)
+    this.disassembler.updatePC(registers.pc);
+    this.updateDisassembly();
   }
 
   lastBreakpoints = Array<ISUT_Breakpoint>(0);
