@@ -119,6 +119,7 @@ class TrsXray {
             this.requestMemoryUpdate();
             break;
           case '+':
+          case '=':
             this.memoryView.increaseByteSize();
             break;
           case '-':

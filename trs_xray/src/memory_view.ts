@@ -32,6 +32,7 @@ export class MemoryView {
   private selectedMemoryRegion: number;
   private hoveredByte: number;
   private selectedByte: number;
+  private dataVizGrayShadeMapping: Array<string>;
 
   private programCounter: number;
   private prevProgramCounter: number;
@@ -62,6 +63,16 @@ export class MemoryView {
     this.programCounter = 0;
     this.prevProgramCounter = 0;
     this.stackPointer = 0;
+
+    this.dataVizGrayShadeMapping = (() => {
+      var result = new Array<string>();
+      for (var value = 0; value <= 0xFF; ++value) {
+        let hexValue = numToHex(value >> 1);
+        if (hexValue.length == 1) hexValue = `0${hexValue}`;
+        result.push(`#${hexValue}${hexValue}${hexValue}`);
+      }
+      return result;
+    })();
 
     this.memRegions.map((region, idx) => {
       for (let i = region.address[0]; i<= region.address[region.address.length - 1]; ++i) {
@@ -152,9 +163,7 @@ export class MemoryView {
     if (this.memoryData) {
       if (this.enableDataViz == 1) {
         // #1: Value as shade of gray.
-        let hexValue = numToHex(this.memoryData[addr] >> 1);
-        if (hexValue.length == 1) hexValue = `0${hexValue}`;
-        color = `#${hexValue}${hexValue}${hexValue}`;
+        color = this.dataVizGrayShadeMapping[this.memoryData[addr]];
       } else if (this.enableDataViz == 2) {
         // #2: Use disassembled data type.
         if (this.memoryType[addr] &&
