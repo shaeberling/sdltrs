@@ -118,6 +118,12 @@ class TrsXray {
             this.onControl("hard_reset")
             this.requestMemoryUpdate();
             break;
+          case '+':
+            this.memoryView.increaseByteSize();
+            break;
+          case '-':
+            this.memoryView.decreaseByteSize();
+            break;
           case 't':
             this.debug_insertTestData();
             break;
@@ -142,6 +148,9 @@ class TrsXray {
             case 'r':
               this.onControl("get_memory/force_update");
               break;
+          case 'r':
+            this.onControl("get_memory/force_update");
+            break;
           case 'i':
             this.onControl("inject_demo");
             break;
@@ -271,6 +280,7 @@ class TrsXray {
   private onContextUpdate(ctx: ISUT_Context): void {
     $("#sut-name").text(ctx.system_name);
     $("#sut-model-no").text(`M${ctx.model}`);
+    $("#play-btn").css("color", ctx.running ? "#0D0" : "red");
   }
 
   private onRegisterUpdate(registers: ISUT_Registers): void {
@@ -340,7 +350,7 @@ class TrsXray {
 
   private debug_insertTestData(): void {
     console.log("Inserting test data for debugging...");
-    const data: IDataFromEmulator = {"context":{"system_name":"sdlTRS","model":3},"breakpoints":[{"id":0,"address":4656,"type":0},{"id":1,"address":6163,"type":0},{"id":2,"address":9545,"type":0}],"registers":{"pc":2,"sp":65535,"af":68,"bc":0,"de":0,"hl":0,"af_prime":0,"bc_prime":0,"de_prime":0,"hl_prime":0,"ix":0,"iy":0,"i":0,"r_1":0,"r_2":2,"z80_t_state_counter":8,"z80_clockspeed":2.0299999713897705,"z80_iff1":0,"z80_iff2":0,"z80_interrupt_mode":0}};
+    const data: IDataFromEmulator = {"context":{"system_name":"sdlTRS","model":3, "running":true, "alt_single_step_mode": false},"breakpoints":[{"id":0,"address":4656,"type":0},{"id":1,"address":6163,"type":0},{"id":2,"address":9545,"type":0}],"registers":{"pc":2,"sp":65535,"af":68,"bc":0,"de":0,"hl":0,"af_prime":0,"bc_prime":0,"de_prime":0,"hl_prime":0,"ix":0,"iy":0,"i":0,"r_1":0,"r_2":2,"z80_t_state_counter":8,"z80_clockspeed":2.0299999713897705,"z80_iff1":0,"z80_iff2":0,"z80_interrupt_mode":0}};
     this.onMessageFromEmulator(data);
   }
 }

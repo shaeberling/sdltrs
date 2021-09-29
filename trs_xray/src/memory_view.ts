@@ -3,7 +3,6 @@ import { numToHex } from "./utils";
 
 // Rendering parameters for the memory map.
 const BYTE_RENDER_GAP = 1;
-const BYTE_SIZE_PX = 8;
 const NUM_BYTES_X = 256; //132;
 const NUM_BYTES_Y = 256; // 132;
 const NUM_DATA_VIZ = 3;
@@ -20,6 +19,8 @@ export class MemoryView {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private selectionUpdater: SelectionUpdater;
+
+  private byteSizePx: number;
 
   private memoryData: Uint8Array;
   private memoryChanged: Uint8Array;
@@ -49,6 +50,7 @@ export class MemoryView {
     this.memoryChanged = memoryChanged;
     this.memoryType = new Array<string>(memoryData.length);
 
+    this.byteSizePx = 8;
     this.memRegions = MemoryRegions.getMemoryRegions();
     this.memInfo = new Map();
     this.lastByteColor = new Array(0xFFFF);
@@ -102,12 +104,29 @@ export class MemoryView {
     // console.timeEnd("renderMemoryRegions");
   }
 
+  private forceRefresh(): void {
+    this.lastByteColor = new Array(0xFFFF);
+    this.renderMemoryRegions();
+  }
+
   public toggleDataViz(): void {
     this.enableDataViz = (this.enableDataViz + 1) % NUM_DATA_VIZ;
   }
 
   public toggleLineViz(): void {
     this.enableLineViz = !this.enableLineViz;
+  }
+
+  public increaseByteSize(): void {
+    this.byteSizePx++;
+    this.initCanvas();
+    this.forceRefresh();
+  }
+
+  public decreaseByteSize(): void {
+    this.byteSizePx--;
+    this.initCanvas();
+    this.forceRefresh();
   }
 
   public onRegisterUpdate(pc: number, sp: number) {
@@ -117,7 +136,7 @@ export class MemoryView {
   }
 
   private initCanvas(): void {
-    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
+    const totalByteSize = this.byteSizePx + BYTE_RENDER_GAP;
     this.canvas.width = NUM_BYTES_X * totalByteSize;
     this.canvas.height = NUM_BYTES_Y * totalByteSize;
     this.canvas.style.width = this.canvas.width + "px";
@@ -169,7 +188,7 @@ export class MemoryView {
 
   private renderByte(x: number, y: number, removeHighlight = false): void {
     const addr = (y * NUM_BYTES_X) + x;
-    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
+    const totalByteSize = this.byteSizePx + BYTE_RENDER_GAP;
 
     const changeHighlight = addr == this.selectedByte ||
                             addr == this.hoveredByte ||
@@ -178,7 +197,7 @@ export class MemoryView {
       this.ctx.fillStyle = addr == this.hoveredByte ? "#88A" :
                           (addr == this.selectedByte ? "#FFF" : "#000");
       this.ctx.fillRect(x * totalByteSize - 1, y * totalByteSize - 1,
-                        BYTE_SIZE_PX + 2, BYTE_SIZE_PX + 2);
+                        this.byteSizePx + 2, this.byteSizePx + 2);
     }
 
     // Optimize rendering by only updating changed bytes.
@@ -187,22 +206,22 @@ export class MemoryView {
     if (color != this.lastByteColor[addr] || changeHighlight) {
       this.ctx.fillStyle = color;
       this.ctx.fillRect(x * totalByteSize, y * totalByteSize,
-                        BYTE_SIZE_PX, BYTE_SIZE_PX);
+                        this.byteSizePx, this.byteSizePx);
       this.lastByteColor[addr] = color;
     }
   }
 
   private renderEffects(): void {
-    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
+    const totalByteSize = this.byteSizePx + BYTE_RENDER_GAP;
     const addrPc0Y = Math.floor(this.prevProgramCounter / NUM_BYTES_X);
     const addrPc0X = this.prevProgramCounter % NUM_BYTES_X;
     const addrPc1Y = Math.floor(this.programCounter / NUM_BYTES_X);
     const addrPc1X = this.programCounter % NUM_BYTES_X;
 
-    const pc0Y = addrPc0Y * totalByteSize + BYTE_SIZE_PX/2;
-    const pc0X = addrPc0X * totalByteSize + BYTE_SIZE_PX/2;
-    const pc1Y = addrPc1Y * totalByteSize + BYTE_SIZE_PX/2;
-    const pc1X = addrPc1X * totalByteSize + BYTE_SIZE_PX/2;
+    const pc0Y = addrPc0Y * totalByteSize + this.byteSizePx/2;
+    const pc0X = addrPc0X * totalByteSize + this.byteSizePx/2;
+    const pc1Y = addrPc1Y * totalByteSize + this.byteSizePx/2;
+    const pc1X = addrPc1X * totalByteSize + this.byteSizePx/2;
 
     console.log(`Line: ${pc0X},${pc0Y} -> ${pc1X},${pc1Y}`);
 
@@ -221,7 +240,7 @@ export class MemoryView {
                  () => {return this.hoveredByte} :
                  () => {return this.selectedByte};
 
-    const totalByteSize = BYTE_SIZE_PX + BYTE_RENDER_GAP;
+    const totalByteSize = this.byteSizePx + BYTE_RENDER_GAP;
     const byteX = Math.floor(x / totalByteSize);
     const byteY = Math.floor(y / totalByteSize);
 

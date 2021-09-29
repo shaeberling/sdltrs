@@ -460,7 +460,7 @@ void debug_init(void)
     ctx->capabilities.memory_range.start = 0;
     ctx->capabilities.memory_range.length = 0xFFFF;
     ctx->capabilities.max_breakpoints = 128;
-    ctx->capabilities.alt_single_step_mode = true;
+    ctx->capabilities.alt_single_step_mode = true;  // TODO: testing
     ctx->control_callback = &on_trx_control_callback;
     ctx->read_memory = &trx_read_memory;
     ctx->write_memory = &trx_write_memory;

@@ -2,6 +2,8 @@
 export interface ISUT_Context {
   system_name: string;
   model: number;
+  running: boolean;
+  alt_single_step_mode: boolean;
 }
 
 /** Register information from the SUT. */
@@ -33,5 +35,5 @@ export interface ISUT_Registers {
 export interface ISUT_Breakpoint {
   id: number,
   address: number,
-  type: number
+  type: number,
 }

@@ -296,6 +296,9 @@ static char* get_registers_json(const TRX_StatusRegistersAndFlags* regs) {
     cJSON* context = cJSON_CreateObject();
     cJSON_AddStringToObject(context, "system_name", ctx->system_name);
     cJSON_AddNumberToObject(context, "model", ctx->model);
+    cJSON_AddBoolToObject(context, "running", emulation_running);
+    cJSON_AddBoolToObject(context, "alt_single_step_mode",
+                          ctx->capabilities.alt_single_step_mode);
     cJSON_AddItemToObject(json, "context", context);
 
     cJSON* breaks = cJSON_CreateArray();

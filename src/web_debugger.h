@@ -63,11 +63,11 @@ typedef struct {
   bool pc_breakpoints;
   bool memory_breakpoints;
   bool io_breakpoints;
-  int max_breakpoints; // TODO: NEW!!!!
+  int max_breakpoints;
   // If active, will not send a single single_step signal, but instead figures
   // out the next possible PC values through disassembly and sets synthetic
   // breakpoints instead before resuming, thus emulating a single step.
-  bool alt_single_step_mode; // TODO: NEW!!!
+  bool alt_single_step_mode;
   TRX_MemoryRange memory_range;
   // TOOD: Supported Memory Segment. (A single segment should suffice)
   //       Model 1 demo will only work on address 32k and up.

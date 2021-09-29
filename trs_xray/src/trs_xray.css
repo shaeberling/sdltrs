@@ -55,6 +55,7 @@ h1 {
 #debug-controls > svg {
   height: 2em;
   width: 2em;
+  color: white;
   background: rgba(0, 0, 0, 0.5);
   border-radius: 5px;
   padding: 5px;
@@ -230,7 +231,7 @@ input.register {
 
 #screen {
   font-family: 'TreasureMIII64C', 'Roboto Mono', 'Courier New', Courier, monospace;
-  font-size: 2em;
+  font-size: 1.8em;
   background: black;
   border-radius: 10px;
   margin: 10px;
