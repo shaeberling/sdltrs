@@ -1,7 +1,14 @@
+import { addModel3RomEntryPoints, disasmForTrs80 } from "trs80-disasm";
 import { Disasm, Instruction } from "z80-disasm";
 import { numToHex2 } from "./utils";
 
 const NUM_ITEMS = 16;
+
+var counter = 0;
+
+declare global {
+  interface Window { dbg_memory: Uint8Array; }
+}
 
 export class Disassembler {
   private pc: number;
@@ -21,14 +28,20 @@ export class Disassembler {
    * @param memory memory to be loaded into the disassembler.
    */
   public disassemble(memory: Uint8Array): Array<string> {
+    // console.log("runDisassembly ..." + counter++);
+    // window.dbg_memory = memory;
+    // console.time("runDisassembly");
     this.runDisassembly(memory);
+    // console.timeEnd("runDisassembly");
 
     const dataType = new Array<string>(memory.length);
     for (var i = 0; i < this.instructions.length; ++i) {
-      dataType[this.instructions[i].address] = this.instructions[i].mnemonic;
+      const addr = this.instructions[i].address;
+      dataType[addr] = this.instructions[i].mnemonic;
+      // Manually mark video ram as data.
+      if (addr >= 0x3C00 && addr <= 0x3FFF) dataType[addr] = ".byte";
     }
     this.updateView(this.instructions);
-    // console.log(result);
     return dataType;
   }
 
@@ -47,14 +60,18 @@ export class Disassembler {
   public predictNextPC(): Array<number> {
     // Find instruction at current PC.
     const instr = this.getInstructionAtAddress(this.pc);
-    if (!instr) return [];
+    if (instr == undefined) {
+      console.error(`BUG: No instruction at current PC ${numToHex2(this.pc)}`);
+      return [];
+    }
 
-    // If there is no jump target, the only possible next PC value is right
-    // after the current instruction.
-    var result = [this.pc + instr.bin.length];
+    var result = [];
+
+    // If this instruction would continue to the next one, add that to the list.
+    if (instr.continues()) result.push(this.pc + instr.bin.length);
 
     // If the instruction is a jump, then that target branch is a second option.
-    if (instr.jumpTarget) result.push(instr.jumpTarget);
+    if (instr.jumpTarget != undefined) result.push(instr.jumpTarget);
 
     return result;
   }
@@ -70,11 +87,14 @@ export class Disassembler {
   }
 
   private runDisassembly(memory: Uint8Array): void {
-    const dis = new Disasm();
-    dis.addChunk(memory, 0);
-    dis.addEntryPoint(0);
-    dis.addEntryPoint(this.pc);
-    this.instructions = dis.disassemble();
+    const disasm = disasmForTrs80();
+    addModel3RomEntryPoints(disasm);
+    // const disasm = new Disasm();
+
+    disasm.addChunk(memory, 0);
+    disasm.addEntryPoint(0);
+    disasm.addEntryPoint(this.pc);
+    this.instructions = disasm.disassemble();
   }
 
   private updateView(instructions: Instruction[]): void {
@@ -90,7 +110,7 @@ export class Disassembler {
     var result = "";
     for (var i = 0; i < NUM_ITEMS; ++i) {
       const instr = instructions[startId + i];
-      result += instr.address == this.pc ? "> " : "  ";
+      result += instr.address == this.pc ? ">" : " ";
       result += numToHex2(instr.address) + " ";
       const cmd = instr.mnemonic;
       result += cmd + this.spaces(6 - cmd.length);

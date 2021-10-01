@@ -122,6 +122,7 @@ export class MemoryView {
 
   public toggleDataViz(): void {
     this.enableDataViz = (this.enableDataViz + 1) % NUM_DATA_VIZ;
+    this.forceRefresh();
   }
 
   public toggleLineViz(): void {

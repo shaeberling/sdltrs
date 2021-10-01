@@ -30,6 +30,8 @@ class TrsXray {
   // If false, only screen and registers are updated.
   private enableFullMemoryUpdate: boolean;
 
+  private sutHostname: string;
+
   constructor() {
     this.altSingleStepMode = false;
     this.emulatorIsRunning = false;
@@ -47,6 +49,17 @@ class TrsXray {
     this.disassembler = new Disassembler("disassembler");
 
     this.enableFullMemoryUpdate = true;
+
+    const IP_PARAM = "?ip=";
+    var params = window.location.search;
+    if (params && params.startsWith(IP_PARAM)) {
+      this.sutHostname = params.substr(IP_PARAM.length);
+      console.log(`SUT hostname: ${this.sutHostname}`);
+    } else {
+      alert("You have to set ?ip=<device IP>");
+      this.sutHostname = "";
+    }
+
   }
 
   private writeMem(addr: number, value: number): void {
@@ -63,7 +76,6 @@ class TrsXray {
           .on("mouseover", () => {this.memoryView.onMemoryRegionSelect(idx)})
           .appendTo(container);
     });
-    this.memoryView.renderMemoryRegions();
   }
 
   private onMessageFromEmulator(json: IDataFromEmulator): void {
@@ -169,7 +181,7 @@ class TrsXray {
             this.enableFullMemoryUpdate = !this.enableFullMemoryUpdate;
             break;
           case 'r':
-            this.onControl("get_memory/force_update");
+            this.forceRefresh();
             break;
           case 'i':
             this.onControl("inject_demo");
@@ -231,6 +243,11 @@ class TrsXray {
     if (!isDebugMode()) this.keepConnectionAliveLoop();
   }
 
+  private forceRefresh(): void {
+    this.onControl("refresh");
+    this.onControl("get_memory/force_update");
+  }
+
   private updateSelectionFromTextField(): void {
     const newSelection = this.getSelectionFromTextfields();
     if (newSelection != NaN) {
@@ -248,8 +265,14 @@ class TrsXray {
     return parseInt(`${addr1}${addr2}`, 16);
   }
 
+
   private updateDisassembly(): void {
-    const typeData = this.disassembler.disassemble(this.memoryData);
+    // For performance reasons, trim down disassembly area as much as possible.
+    var endAddr = 0xFFFE;
+    for (; endAddr >= 0; --endAddr) {
+      if  (this.memoryData[endAddr] != 0) break;
+    }
+    const typeData = this.disassembler.disassemble(this.memoryData.slice(0, endAddr + 1));
     this.memoryView.onMemoryTypeUpdate(typeData);
   }
 
@@ -274,20 +297,20 @@ class TrsXray {
 
   private createNewSocket() {
     console.log("Creating new Websocket");
-    this.socket = new WebSocket("ws://" + location.host + "/channel");
+    // FIXME: Make this a URL parameter!
+    this.socket = new WebSocket(`ws://${this.sutHostname}/channel`);
     this.socket.onerror = (evt) => {
       console.log("Unable to connect to websocket.");
       $("h1").addClass("errorTitle");
     };
     this.socket.onopen = () => {
       console.log("Socked opened.");
-      this.onControl("refresh");
+      this.forceRefresh();
     }
     this.socket.onmessage = (evt) =>  {
       if (evt.data instanceof Blob) {
         evt.data.arrayBuffer().then((data) => {
           this.onMemoryUpdate(new Uint8Array(data));
-          this.screenView.render(this.memoryData);
         });
       } else {
         var json = JSON.parse(evt.data);
@@ -311,8 +334,6 @@ class TrsXray {
     this.memoryView.onRegisterUpdate(registers.pc, registers.sp)
     this.disassembler.updatePC(registers.pc);
     this.updateDisassembly();
-
-    console.log(`==> New PC is at: ${registers.pc}`);
   }
 
   lastBreakpoints = Array<ISUT_Breakpoint>(0);
@@ -357,6 +378,9 @@ class TrsXray {
       }
     }
     this.onSelectionUpdate(-1);
+    this.screenView.render(this.memoryData);
+    this.memoryView.renderMemoryRegions();
+    this.updateDisassembly();
   }
 
   private onSelectionUpdate(addr: number): void {
