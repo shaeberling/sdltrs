@@ -452,15 +452,15 @@ void debug_init(void)
 
     puts("Type \"h(elp)\" for a list of commands.");
 
-		// FIXME: Add a flag to choose between CLI debugger UI and TRX.
+    // FIXME: Add a flag to choose between CLI debugger UI and TRX.
     TRX_Context* ctx = get_default_trx_context();
 
     ctx->system_name = "sdlTRS";
     ctx->model = trs_model;
-    ctx->capabilities.memory_range.start = 0;
-    ctx->capabilities.memory_range.length = 0xFFFF;
+    ctx->capabilities.memory_range.start = 0x0000; // 0x8000;
+    ctx->capabilities.memory_range.length = 0xFF00; // <== FIXME // 20;
     ctx->capabilities.max_breakpoints = 128;
-    ctx->capabilities.alt_single_step_mode = true;
+    ctx->capabilities.alt_single_step_mode = false;
     ctx->control_callback = &on_trx_control_callback;
     ctx->read_memory = &trx_read_memory;
     ctx->write_memory = &trx_write_memory;
