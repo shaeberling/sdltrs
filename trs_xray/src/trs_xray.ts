@@ -2,7 +2,7 @@ declare function isDebugMode(): boolean;
 
 
 import { RegisterPanel } from "./register_panel"
-import { ISUT_Context, ISUT_Registers, ISUT_Breakpoint } from "./data_structures";
+import { ISUT_Context, ISUT_Registers, ISUT_Breakpoint, TRS80GP_Import } from "./data_structures";
 import { numToHex } from "./utils";
 import { Screen } from "./screen";
 import { MemoryView } from "./memory_view";
@@ -49,17 +49,7 @@ class TrsXray {
     this.disassembler = new Disassembler("disassembler");
 
     this.enableFullMemoryUpdate = true;
-
-    const IP_PARAM = "?ip=";
-    var params = window.location.search;
-    if (params && params.startsWith(IP_PARAM)) {
-      this.sutHostname = params.substr(IP_PARAM.length);
-      console.log(`SUT hostname: ${this.sutHostname}`);
-    } else {
-      alert("You have to set ?ip=<device IP>");
-      this.sutHostname = "";
-    }
-
+    this.sutHostname = "N/A";
   }
 
   private writeMem(addr: number, value: number): void {
@@ -109,6 +99,7 @@ class TrsXray {
   private onControlStep(): void {
     if (this.emulatorIsRunning) return;
 
+    console.log("altSingleStepMode: " + this.altSingleStepMode);
     if (!this.altSingleStepMode) {
       this.onControl("step");
       this.requestMemoryUpdate();
@@ -129,6 +120,7 @@ class TrsXray {
 
   public onLoad(): void {
     $('input:text').on("keydown", (evt) => {evt.stopPropagation();});
+    $('textarea').on("keydown", (evt) => {evt.stopPropagation();});
     document.addEventListener("keydown", (evt) => {
       if (this.screenView.isMouseOnScreen()) this.onKeyPressForSut("down", evt);
       else {
@@ -183,7 +175,10 @@ class TrsXray {
           case 'r':
             this.forceRefresh();
             break;
-          case 'i':
+          case 'I':
+            this.openImportDialog();
+            break;
+          case 'I':
             this.onControl("inject_demo");
             break;
           default:
@@ -196,8 +191,7 @@ class TrsXray {
     });
 
     $("#step-btn").on("click", () => {
-      this.onControl("step");
-      this.requestMemoryUpdate();
+      this.onControlStep();
     });
     $("#play-btn").on("click", () => { this.onControl("continue") });
     $("#stop-btn").on("click", () => { this.onControl("stop") });
@@ -240,7 +234,87 @@ class TrsXray {
     this.createMemoryRegions();
     this.toggleVisibility("memory-regions-section");  // Hide by default.
 
+    $("#import-btn").on("click", () => {
+      this.importTrs80Gp($("#import-content").val() as string);
+    });
+
+
+    const IP_PARAM = "?ip=";
+    const CONNECT_PARAM = "?connect=";
+    var params = window.location.search;
+
+    if (params && params.startsWith(IP_PARAM)) {
+      alert("Parameter changed: Please use connect= instead of ip=");
+      return;
+    }
+    if (params && params.startsWith(CONNECT_PARAM)) {
+      this.sutHostname = params.substr(CONNECT_PARAM.length);
+      console.log(`SUT hostname: ${this.sutHostname}`);
+    } else {
+      this.sutHostname = "";
+      this.openImportDialog();
+    }
+
+    // Keep at the end of onLoad().
     if (!isDebugMode()) this.keepConnectionAliveLoop();
+  }
+
+  private importTrs80Gp(jsonStr: string): void {
+    try {
+      // trs80gp is not well-defined JSON, so keys need to be quoted.
+      var fixedJsonStr = jsonStr.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ');
+      const json = JSON.parse(fixedJsonStr) as TRS80GP_Import;
+
+      const ctx : ISUT_Context = {
+        system_name: "trs80gp-import",
+        model: 0,
+        running: false,
+        alt_single_step_mode: false
+      };
+      this.onContextUpdate(ctx);
+      const registers: ISUT_Registers = {
+        af: json.AF,
+        af_prime: json.AFp,
+        bc: json.BC,
+        bc_prime: json.BCp,
+        de: json.DE,
+        de_prime: json.DEp,
+        hl: json.HL,
+        hl_prime: json.HLp,
+
+        i: json.I,
+        z80_iff1: json.IFF1,
+        z80_iff2: json.IFF2,
+        ix: json.IX,
+        iy: json.IY,
+        pc: json.PC,
+        sp: json.SP,
+        r_1: json.R,
+        r_2: 0, // FIXME. Split json.R?
+        z80_clockspeed: 0,
+        z80_interrupt_mode: 0,
+        z80_t_state_counter: 0
+      }
+      this.onRegisterUpdate(registers);
+      // Add start address information.
+      const memory = Uint8Array.from([0, 0].concat(json.mem));
+      // Doing this twice to discard modified markers.
+      this.onMemoryUpdate(memory);
+      this.onMemoryUpdate(memory);
+
+      // For this mode, switch viz.
+      this.memoryView.toggleDataViz();
+
+      // Hide import dialog is parsing was successful.
+      $("#import-overlay").toggle();
+    } catch(e) {
+      alert("Failed to import trs80gp JSON");
+      console.error(e);
+    }
+  }
+
+  private openImportDialog(): void {
+    $("#import-overlay").css("display", "grid");
   }
 
   private forceRefresh(): void {
@@ -341,8 +415,6 @@ class TrsXray {
     if (JSON.stringify(this.lastBreakpoints) == JSON.stringify(breakpoints)) return;
 
     this.lastBreakpoints = breakpoints;
-    console.log(JSON.stringify(this.lastBreakpoints));
-    console.log(JSON.stringify(breakpoints));
     $("#breakpoints").empty();
     for (var bp of breakpoints) {
       let r1 = numToHex((bp.address & 0xFF00) >> 8);

@@ -245,3 +245,22 @@ input.register {
   color: white;
   font-size: 15px;
 }
+
+#import-overlay {
+  display: none;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  font-family: 'Roboto', sans-serif;
+
+  justify-content: center;
+  align-content: center;
+}
+#import-content {
+  width: 100ch;
+  height: 50ch;
+}
+#import-btn {
+  font-size: 1.5em;
+}

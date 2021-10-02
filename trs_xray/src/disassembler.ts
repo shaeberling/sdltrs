@@ -15,11 +15,13 @@ export class Disassembler {
   private root: JQuery<Element>;
 
   private instructions: Array<Instruction>;
+  private labelToAddr: Map<String, number>;
 
   constructor(elementId: string) {
     this.pc = 0;
     this.root = $(`#${elementId}`);
     this.instructions = new Array();
+    this.labelToAddr = new Map();
   }
 
   /**
@@ -35,11 +37,12 @@ export class Disassembler {
     // console.timeEnd("runDisassembly");
 
     const dataType = new Array<string>(memory.length);
-    for (var i = 0; i < this.instructions.length; ++i) {
-      const addr = this.instructions[i].address;
-      dataType[addr] = this.instructions[i].mnemonic;
+    for (var instr of this.instructions) {
+      const addr = instr.address;
+      dataType[addr] = instr.mnemonic;
       // Manually mark video ram as data.
       if (addr >= 0x3C00 && addr <= 0x3FFF) dataType[addr] = ".byte";
+      if (instr.label) this.labelToAddr.set(instr.label, instr.address);
     }
     this.updateView(this.instructions);
     return dataType;
@@ -89,7 +92,6 @@ export class Disassembler {
   private runDisassembly(memory: Uint8Array): void {
     const disasm = disasmForTrs80();
     addModel3RomEntryPoints(disasm);
-    // const disasm = new Disasm();
 
     disasm.addChunk(memory, 0);
     disasm.addEntryPoint(0);
@@ -110,11 +112,23 @@ export class Disassembler {
     var result = "";
     for (var i = 0; i < NUM_ITEMS; ++i) {
       const instr = instructions[startId + i];
+      if (!instr) {
+        result += " ...\n"
+        continue;
+      }
+
       result += instr.address == this.pc ? ">" : " ";
       result += numToHex2(instr.address) + " ";
       const cmd = instr.mnemonic;
       result += cmd + this.spaces(6 - cmd.length);
       if (!instr.mnemonic.startsWith(".")) {
+        // Replace labels with addresses.
+        for (var a = 0; a < instr.args.length; ++a) {
+          if (this.labelToAddr.has(instr.args[a])) {
+            instr.args[a] =
+                "0x"+ numToHex2(this.labelToAddr.get(instr.args[a]) as number);
+          }
+        }
         result += instr.args.toString();
       } else {
         result += "[data]";

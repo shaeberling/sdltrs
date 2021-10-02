@@ -237,6 +237,7 @@ export class MemoryView {
 
     this.ctx.beginPath();
     this.ctx.strokeStyle = "yellow";
+    this.ctx.lineWidth = 3;
     this.ctx.moveTo(pc0X, pc0Y);
     this.ctx.lineTo(pc1X, pc1Y);
     this.ctx.stroke();

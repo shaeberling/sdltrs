@@ -37,3 +37,27 @@ export interface ISUT_Breakpoint {
   address: number,
   type: number,
 }
+
+export interface TRS80GP_Import {
+  AF: number,
+  AFp: number,
+  BC: number,
+  BCp: number,
+  DE: number,
+  DEp: number,
+  HL: number,
+  HLp: number,
+  I: number,
+  IFF1: number,
+  IFF2: number,
+  IM: number,
+  IRQ: number,
+  IRQon: number,
+  IX: number,
+  IY: number,
+  PC: number,
+  R: number,
+  SP: number,
+  mem: Array<number>,
+  port236: number
+}
